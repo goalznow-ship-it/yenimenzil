@@ -1,0 +1,41 @@
+from functools import lru_cache
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=REPO_ROOT / ".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    APP_ENV: str = "development"
+    APP_NAME: str = "YeniMenzil.az API"
+    API_V1_PREFIX: str = "/api/v1"
+
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://yenimenzil:yenimenzil@localhost:5434/yenimenzil"
+    )
+    REDIS_URL: str = "redis://localhost:6381/0"
+
+    # Comma-separated list of allowed CORS origins.
+    CORS_ORIGINS: str = (
+        "http://localhost:3000,http://localhost:3001,"
+        "http://127.0.0.1:3000,http://127.0.0.1:3001"
+    )
+
+    SECRET_KEY: str = "change-me-in-production"
+    API_ACCESS_TOKEN_TTL_MINUTES: int = 15
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
