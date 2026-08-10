@@ -1,0 +1,9 @@
+{
+  "extends": "@yenimenzil/typescript-config/react-library.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src"]
+}

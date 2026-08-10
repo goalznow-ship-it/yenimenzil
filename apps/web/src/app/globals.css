@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+@source "../../../packages/ui/src";
+
+@theme inline {
+  --color-background: #f7f8f6;
+  --color-surface: #ffffff;
+  --color-foreground: #141716;
+  --color-muted-foreground: #666d69;
+  --color-border: #e5e8e5;
+  --color-brand: #15543f;
+  --color-brand-hover: #103f30;
+  --color-brand-soft: #edf5f1;
+  --color-accent: #c7a45a;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --shadow-card: 0 1px 2px rgba(20, 23, 22, 0.04), 0 6px 20px rgba(20, 23, 22, 0.06);
+  --shadow-lift: 0 2px 4px rgba(20, 23, 22, 0.05), 0 16px 40px rgba(20, 23, 22, 0.1);
+  --shadow-panel: 0 1px 2px rgba(20, 23, 22, 0.05), 0 12px 32px rgba(20, 23, 22, 0.08);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  font-feature-settings: "cv11", "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(21, 84, 63, 0.15);
+}
+
+/* Thin, subtle scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(21, 23, 22, 0.15) transparent;
+}
+
+/* MapLibre overrides */
+.maplibregl-map {
+  font-family: var(--font-sans);
+}
+
+.maplibregl-canvas {
+  outline: none;
+}
+
+.maplibregl-ctrl-group {
+  border-radius: 10px;
+  border: 1px solid rgba(229, 232, 229, 0.9);
+  box-shadow: 0 4px 16px rgba(20, 23, 22, 0.08);
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+  width: 32px;
+  height: 32px;
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 10px;
+  opacity: 0.75;
+}
+
+.maplibregl-ctrl-attrib a {
+  color: #15543f;
+}
+
+.maplibregl-popup-content {
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(20, 23, 22, 0.14);
+  padding: 0;
+  overflow: hidden;
+}
+
+.maplibregl-popup-close-button {
+  color: #141716;
+  padding: 6px 8px;
+  font-size: 16px;
+}
+
+/* Price marker styles */
+.ym-marker {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+  will-change: transform;
+}
+
+.ym-marker:hover {
+  transform: scale(1.08);
+  z-index: 10;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

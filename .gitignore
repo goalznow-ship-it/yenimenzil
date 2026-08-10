@@ -1,6 +1,41 @@
+# Dependencies
 node_modules/
-.env
-.env.local
+.pnpm-store/
+
+# Build output
 .next/
+out/
+dist/
+build/
+.turbo/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Python
 __pycache__/
+*.py[cod]
 .venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Uploads / static
+uploads/
+public/uploads/

@@ -1,0 +1,18 @@
+{
+  "name": "@yenimenzil/types",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "echo \"@yenimenzil/types: no lint yet\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@yenimenzil/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}
