@@ -41,7 +41,7 @@ const tabsTriggerVariants = cva(
         default:
           "data-[state=active]:bg-surface data-[state=active]:text-foreground data-[state=active]:shadow-sm",
         underline:
-          "relative rounded-none border-b-2 border-transparent px-1 py-2 text-[15px] font-medium text-foreground/60 transition-colors hover:text-foreground data-[state=active]:border-brand data-[state=active]:font-semibold data-[state=active]:text-brand"
+          "relative rounded-none border-b-[2.5px] border-transparent px-1.5 pb-[9px] pt-1.5 text-[15px] font-medium text-foreground/55 transition-all hover:text-foreground data-[state=active]:border-brand data-[state=active]:font-semibold data-[state=active]:text-brand"
       }
     },
     defaultVariants: { variant: "default" }

@@ -32,7 +32,7 @@ export default function HomePage() {
   return (
     <div>
       <section className="border-b border-border/70 bg-background">
-        <div className="mx-auto max-w-[1440px] px-4 pb-8 pt-7 md:pt-10 lg:px-6">
+        <div className="mx-auto max-w-[1440px] px-4 pb-7 pt-7 md:pt-10 lg:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-foreground md:text-[42px]">
               Yeni məkanını{" "}
@@ -43,10 +43,10 @@ export default function HomePage() {
               əmlak elanlarını rahat şəkildə kəşf et.
             </p>
           </div>
-          <div className="mx-auto mt-7 max-w-4xl">
+          <div className="mx-auto mt-6 max-w-4xl">
             <SearchBar />
           </div>
-          <dl className="mx-auto mt-7 flex max-w-lg items-center justify-center gap-6 text-center md:gap-10">
+          <dl className="mx-auto mt-6 flex max-w-lg items-center justify-center gap-6 text-center md:gap-10">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col-reverse">
                 <dt className="text-[11px] text-muted-foreground sm:text-xs">
@@ -61,7 +61,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1440px] space-y-12 px-4 pt-9 md:space-y-14 lg:px-6">
+      <div className="mx-auto max-w-[1440px] space-y-12 px-4 pt-8 md:space-y-14 lg:px-6">
         <section aria-labelledby="new-listings-title">
           <SectionHeading
             title="Yeni elanlar"
@@ -92,7 +92,7 @@ export default function HomePage() {
             </div>
             <Link
               href="/search?deal=sale"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/20 bg-brand-soft/60 px-3.5 py-1.5 text-[13px] font-semibold text-brand transition-colors hover:border-brand/40 hover:bg-brand-soft"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/20 bg-brand-soft/60 px-4 py-2 text-[13px] font-semibold text-brand shadow-sm transition-all hover:-translate-y-px hover:border-brand/40 hover:bg-brand-soft"
             >
               Hamısına bax
               <ArrowRight className="h-3.5 w-3.5" />

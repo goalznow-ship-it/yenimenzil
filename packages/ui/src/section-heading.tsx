@@ -41,7 +41,7 @@ function SectionHeading({
       {linkHref ? (
         <Link
           href={linkHref}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/20 bg-brand-soft/60 px-3.5 py-1.5 text-[13px] font-semibold text-brand transition-colors hover:border-brand/40 hover:bg-brand-soft"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/20 bg-brand-soft/60 px-4 py-2 text-[13px] font-semibold text-brand shadow-sm transition-all hover:-translate-y-px hover:border-brand/40 hover:bg-brand-soft"
         >
           {linkLabel}
           <ArrowRight className="h-3.5 w-3.5" />

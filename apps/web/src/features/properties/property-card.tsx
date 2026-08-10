@@ -119,9 +119,9 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
 
-      <div className={cn("px-3.5 pb-3.5", compact ? "pt-3" : "pt-3.5")}>
+      <div className={cn("px-3 pb-3", compact ? "pt-2.5" : "pt-3")}>
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-[19px] font-semibold tabular-nums tracking-tight text-foreground">
+          <span className="text-[18px] font-semibold tabular-nums tracking-tight text-foreground">
             {formatPriceWithPeriod(property.price, property.dealType)}
           </span>
           {property.pricePerSqm ? (
@@ -131,7 +131,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
           ) : null}
         </div>
 
-        <h3 className="mt-1.5 line-clamp-1 text-[14.5px] font-medium text-foreground">
+        <h3 className="mt-1 line-clamp-1 text-[14.5px] font-medium text-foreground">
           {titleFor(property)}
         </h3>
 
@@ -139,7 +139,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
           {property.location.addressText}
         </p>
 
-        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-foreground/75">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-foreground/75">
           {property.rooms > 0 ? (
             <span className="flex items-center gap-1.5">
               <span className="h-1 w-1 rounded-full bg-foreground/25" />
@@ -164,7 +164,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
           ) : null}
         </div>
 
-        <div className="mt-3 flex items-center justify-between border-t border-border/80 pt-2.5">
+        <div className="mt-2.5 flex items-center justify-between border-t border-border/80 pt-2">
           <span className="text-xs text-muted-foreground">
             {timeAgo(property.publishedAt)}
           </span>

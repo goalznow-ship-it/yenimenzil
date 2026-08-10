@@ -57,7 +57,7 @@ export function SearchBar() {
 
   return (
     <div>
-      <Tabs value={deal} onValueChange={(v) => setDeal(v as DealType)} variant="underline" className="mb-3.5 max-w-md">
+      <Tabs value={deal} onValueChange={(v) => setDeal(v as DealType)} variant="underline" className="mb-3 max-w-md">
         <TabsList className="gap-5">
           <TabsTrigger value="sale" className="text-[16px]">
             Al
