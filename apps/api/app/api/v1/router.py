@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    admin,
     agency,
     agent,
     analytics,
@@ -32,3 +33,4 @@ api_router.include_router(analytics.router)
 api_router.include_router(moderation.router)
 api_router.include_router(report.router)
 api_router.include_router(location.router)
+api_router.include_router(admin.admin_router)
