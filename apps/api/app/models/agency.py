@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.property import Property
 
 
 class Agency(Base):
@@ -26,8 +32,8 @@ class Agency(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    agents: Mapped[list["Agent"]] = relationship(back_populates="agency")
-    properties: Mapped[list["Property"]] = relationship(back_populates="agency")
+    agents: Mapped[list[Agent]] = relationship(back_populates="agency")
+    properties: Mapped[list[Property]] = relationship(back_populates="agency")
 
 
 class Agent(Base):
@@ -57,4 +63,4 @@ class Agent(Base):
     )
 
     agency: Mapped[Agency | None] = relationship(back_populates="agents")
-    properties: Mapped[list["Property"]] = relationship(back_populates="agent")
+    properties: Mapped[list[Property]] = relationship(back_populates="agent")

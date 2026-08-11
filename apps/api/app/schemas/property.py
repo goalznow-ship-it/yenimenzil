@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 
+from fastapi import Query
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.enums import (
@@ -14,7 +15,10 @@ from app.models.enums import (
     PropertyType,
     RepairStatus,
     SellerKind,
+    StrEnum,
 )
+
+KNOWN_FEATURE_CODES = {feature.value for feature in FeatureKind}
 
 
 class PropertyLocationCreate(BaseModel):
@@ -71,6 +75,9 @@ class PropertyCreate(PropertyBase):
     is_verified: bool = False
     is_premium: bool = False
     is_promoted: bool = False
+    construction_year: int | None = Field(default=None, ge=1900, le=2100)
+    heating: str | None = Field(default=None, max_length=120)
+    furnished: bool = False
     location: PropertyLocationCreate
     media: list[PropertyMediaCreate] = Field(default_factory=list)
     features: list[str] = Field(default_factory=list)
@@ -79,8 +86,7 @@ class PropertyCreate(PropertyBase):
     @field_validator("features")
     @classmethod
     def validate_feature_codes(cls, v: list[str]) -> list[str]:
-        known = {feature.value for feature in __import__("app.models.enums", fromlist=["FeatureKind"]).FeatureKind}
-        unknown = set(v) - known
+        unknown = set(v) - KNOWN_FEATURE_CODES
         if unknown:
             raise ValueError(f"unknown feature codes: {sorted(unknown)}")
         return v
@@ -105,6 +111,9 @@ class PropertyUpdate(BaseModel):
     repair_status: RepairStatus | None = None
     document_type: DocumentType | None = None
     mortgage_available: bool | None = None
+    furnished: bool | None = None
+    heating: str | None = Field(default=None, max_length=120)
+    construction_year: int | None = Field(default=None, ge=1900, le=2100)
     status: PropertyStatus | None = None
     seller_kind: SellerKind | None = None
     is_verified: bool | None = None
@@ -115,6 +124,16 @@ class PropertyUpdate(BaseModel):
     location: PropertyLocationCreate | None = None
     media: list[PropertyMediaCreate] | None = None
     features: list[str] | None = None
+
+    @field_validator("features")
+    @classmethod
+    def validate_feature_codes(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return v
+        unknown = set(v) - KNOWN_FEATURE_CODES
+        if unknown:
+            raise ValueError(f"unknown feature codes: {sorted(unknown)}")
+        return v
 
 
 class PropertyMediaRead(BaseModel):
@@ -150,6 +169,21 @@ class PropertyPriceHistoryRead(BaseModel):
     recorded_at: datetime
 
 
+class PropertySellerRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    name: str
+    kind: SellerKind
+    agency_name: str | None
+    avatar_url: str | None
+    phone: str | None
+    verified_phone: bool
+    verified_identity: bool
+    member_since: str | None
+    active_listings: int
+
+
 class PropertySummaryRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -175,9 +209,14 @@ class PropertySummaryRead(BaseModel):
     published_at: datetime | None
     city: str | None
     district: str | None
+    address_text: str | None
+    metro: str | None
+    latitude: float | None
+    longitude: float | None
     cover_image: str | None
     image_count: int
     has_price_drop: bool
+    seller: PropertySellerRead
 
 
 class PropertyRead(PropertySummaryRead):
@@ -188,6 +227,9 @@ class PropertyRead(PropertySummaryRead):
     area_land: float | None
     document_type: DocumentType | None
     mortgage_available: bool
+    furnished: bool
+    heating: str | None
+    construction_year: int | None
     seller_kind: SellerKind
     owner_id: uuid.UUID
     agency_id: uuid.UUID | None
@@ -199,3 +241,67 @@ class PropertyRead(PropertySummaryRead):
     location: PropertyLocationRead | None
     media: list[PropertyMediaRead]
     price_history: list[PropertyPriceHistoryRead]
+
+
+class PropertySort(StrEnum):
+    NEWEST = "newest"
+    PRICE_ASC = "price_asc"
+    PRICE_DESC = "price_desc"
+    AREA_ASC = "area_asc"
+    AREA_DESC = "area_desc"
+
+
+class PropertyQueryParams(BaseModel):
+    """Query parameters accepted by GET /properties.
+
+    Mirrors the frontend URL filters in apps/web/src/features/search/use-search-filters.ts.
+    """
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    # filters
+    deal: DealType = DealType.SALE
+    city: str | None = None
+    district: str | None = None
+    property_type: PropertyType | None = Field(default=None, alias="property_type")
+    rooms: list[int] = Query(default=[])
+    min_price: float | None = Field(default=None, ge=0)
+    max_price: float | None = Field(default=None, ge=0)
+    min_area: float | None = Field(default=None, ge=0)
+    max_area: float | None = Field(default=None, ge=0)
+    metro: str | None = None
+    building_type: BuildingType | None = None
+    repair_status: RepairStatus | None = None
+    owner_only: bool = False
+    verified_only: bool = False
+
+    # map bounding box (east/west can wrap the antimeridian, so no le/ge here)
+    north: float | None = Field(default=None, ge=-90, le=90)
+    south: float | None = Field(default=None, ge=-90, le=90)
+    east: float | None = None
+    west: float | None = None
+
+    # sorting + pagination
+    sort: PropertySort = PropertySort.NEWEST
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=30, ge=1, le=100)
+
+    @field_validator("rooms", mode="before")
+    @classmethod
+    def split_rooms(cls, v: object) -> object:
+        # Accept comma-separated ("1,2,4plus") or single value query params.
+        if isinstance(v, str):
+            out: list[int] = []
+            for part in v.split(","):
+                part = part.strip()
+                if not part:
+                    continue
+                if part == "4plus":
+                    out.append(4)
+                    continue
+                try:
+                    out.append(int(part))
+                except ValueError:
+                    continue
+            return out
+        return v

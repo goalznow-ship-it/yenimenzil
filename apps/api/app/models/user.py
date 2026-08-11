@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -14,7 +17,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.models.enums import SellerKind, UserRole
+from app.models.enums import UserRole
+
+if TYPE_CHECKING:
+    from app.models.favorite import Favorite
+    from app.models.property import Property
 
 
 class User(Base):
@@ -36,11 +43,11 @@ class User(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    profile: Mapped["Profile"] = relationship(
+    profile: Mapped[Profile] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    properties: Mapped[list["Property"]] = relationship(back_populates="owner")
-    favorites: Mapped[list["Favorite"]] = relationship(
+    properties: Mapped[list[Property]] = relationship(back_populates="owner")
+    favorites: Mapped[list[Favorite]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
 

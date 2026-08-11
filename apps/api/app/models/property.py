@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from geoalchemy2 import Geography
 from sqlalchemy import (
@@ -30,6 +33,11 @@ from app.models.enums import (
     RepairStatus,
     SellerKind,
 )
+
+if TYPE_CHECKING:
+    from app.models.agency import Agency, Agent
+    from app.models.favorite import Favorite
+    from app.models.user import User
 
 
 def _enum(enum_cls) -> Enum:
@@ -92,6 +100,9 @@ class Property(Base):
     )
 
     mortgage_available: Mapped[bool] = mapped_column(Boolean, default=False)
+    furnished: Mapped[bool] = mapped_column(Boolean, default=False)
+    heating: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    construction_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     is_promoted: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -110,29 +121,29 @@ class Property(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    owner: Mapped["User"] = relationship(back_populates="properties")
-    agency: Mapped["Agency | None"] = relationship(back_populates="properties")
-    agent: Mapped["Agent | None"] = relationship(back_populates="properties")
+    owner: Mapped[User] = relationship(back_populates="properties")
+    agency: Mapped[Agency | None] = relationship(back_populates="properties")
+    agent: Mapped[Agent | None] = relationship(back_populates="properties")
 
-    location: Mapped["PropertyLocation"] = relationship(
+    location: Mapped[PropertyLocation] = relationship(
         back_populates="property", uselist=False, cascade="all, delete-orphan"
     )
-    media: Mapped[list["PropertyMedia"]] = relationship(
+    media: Mapped[list[PropertyMedia]] = relationship(
         back_populates="property",
         cascade="all, delete-orphan",
         order_by="PropertyMedia.sort_order",
     )
-    price_history: Mapped[list["PropertyPriceHistory"]] = relationship(
+    price_history: Mapped[list[PropertyPriceHistory]] = relationship(
         back_populates="property",
         cascade="all, delete-orphan",
         order_by="PropertyPriceHistory.recorded_at",
     )
-    features: Mapped[list["PropertyFeature"]] = relationship(
+    features: Mapped[list[PropertyFeature]] = relationship(
         secondary="property_feature_items",
         back_populates="properties",
         lazy="selectin",
     )
-    favorites: Mapped[list["Favorite"]] = relationship(back_populates="property")
+    favorites: Mapped[list[Favorite]] = relationship(back_populates="property")
 
     __table_args__ = (
         Index("ix_properties_deal_status", "deal_type", "status"),

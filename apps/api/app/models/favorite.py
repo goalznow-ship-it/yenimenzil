@@ -1,10 +1,17 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.property import Property
+    from app.models.user import User
 
 
 class Favorite(Base):
@@ -22,5 +29,5 @@ class Favorite(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    user: Mapped["User"] = relationship(back_populates="favorites")
-    property: Mapped["Property"] = relationship(back_populates="favorites")
+    user: Mapped[User] = relationship(back_populates="favorites")
+    property: Mapped[Property] = relationship(back_populates="favorites")

@@ -22,7 +22,7 @@ async def health(
     database_status = "ok"
     try:
         await db.execute(text("SELECT 1"))
-    except Exception:
+    except Exception:  # noqa: BLE001 - health check must never raise
         database_status = "unavailable"
 
     redis_status = "ok"
@@ -30,7 +30,7 @@ async def health(
         client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
         await client.ping()
         await client.aclose()
-    except Exception:
+    except Exception:  # noqa: BLE001 - health check must never raise
         redis_status = "unavailable"
 
     if database_status != "ok" or redis_status != "ok":

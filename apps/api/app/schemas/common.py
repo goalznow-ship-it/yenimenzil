@@ -1,8 +1,4 @@
-from typing import Generic, TypeVar
-
 from pydantic import BaseModel
-
-T = TypeVar("T")
 
 
 class PaginationMeta(BaseModel):
@@ -12,6 +8,6 @@ class PaginationMeta(BaseModel):
     pages: int
 
 
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     data: list[T]
     meta: PaginationMeta
