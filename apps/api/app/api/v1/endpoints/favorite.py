@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,17 +10,17 @@ from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
 from app.models.favorite import Favorite
 from app.models.property import Property
-from app.schemas.property import PropertyRead
 from app.models.user import User
+from app.schemas.property import PropertyRead
 
 router = APIRouter(prefix="/favorites", tags=["favorites"])
 
 
-@router.get("", response_model=List[PropertyRead])
+@router.get("", response_model=list[PropertyRead])
 async def list_favorites(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> List[PropertyRead]:
+) -> list[PropertyRead]:
     stmt = select(Property).join(Favorite, Favorite.property_id == Property.id).where(Favorite.user_id == current_user.id)
     result = await db.execute(stmt)
     properties = result.scalars().all()

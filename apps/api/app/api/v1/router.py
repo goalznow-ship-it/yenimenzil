@@ -3,18 +3,18 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     agency,
     agent,
+    analytics,
     auth,
     favorite,
     health,
     location,
+    moderation,
     notification,
     price_history,
     properties,
+    report,
     saved_search,
     users,
-    analytics,
-    moderation,
-    report,
 )
 
 api_router = APIRouter()

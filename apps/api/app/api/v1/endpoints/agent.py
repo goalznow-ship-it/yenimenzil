@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.dependencies.auth import get_current_user, require_roles
+from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
 from app.models.agency import Agent
-from app.schemas.agent import AgentCreate, AgentRead, AgentUpdate
-from app.models.user import User
 from app.models.enums import UserRole
+from app.models.user import User
+from app.schemas.agent import AgentCreate, AgentRead, AgentUpdate
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -23,13 +22,13 @@ def _require_admin_or_above(user: User) -> User:
     return user
 
 
-@router.get("", response_model=List[AgentRead])
+@router.get("", response_model=list[AgentRead])
 async def list_agents(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     limit: int = Query(default=100, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
-) -> List[AgentRead]:
+) -> list[AgentRead]:
     # For now, allow any authenticated user to list agents
     stmt = select(Agent).offset(offset).limit(limit)
     result = await db.execute(stmt)

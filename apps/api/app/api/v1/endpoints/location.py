@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Query
-from typing import List, Dict, Any
 
 router = APIRouter(prefix="/location", tags=["location"])
 
@@ -9,7 +10,7 @@ router = APIRouter(prefix="/location", tags=["location"])
 @router.get("/hierarchy")
 async def get_location_hierarchy(
     country: str = Query("AZ", description="Country code (ISO 3166-1 alpha-2)"),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Return the location hierarchy for Azerbaijan.
     For now, we return a hardcoded list of cities and districts.
@@ -66,7 +67,7 @@ async def get_location_hierarchy(
 async def get_landmarks(
     city: str | None = Query(None, description="City name"),
     district: str | None = Query(None, description="District name"),
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Return landmarks for a given city or district.
     For now, we return an empty list.

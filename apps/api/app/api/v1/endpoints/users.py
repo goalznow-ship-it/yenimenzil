@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func
+from fastapi import APIRouter, Depends
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
-from app.models.user import User
-from app.models.property import Property
 from app.models.favorite import Favorite
 from app.models.notification import Notification
+from app.models.property import Property
+from app.models.user import User
 from app.schemas.auth import UserRead, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -10,20 +9,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
 from app.models.notification import Notification
-from app.schemas.notification import NotificationCreate, NotificationRead, NotificationUpdate
 from app.models.user import User
+from app.schemas.notification import (
+    NotificationCreate,
+    NotificationRead,
+    NotificationUpdate,
+)
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
-@router.get("", response_model=List[NotificationRead])
+@router.get("", response_model=list[NotificationRead])
 async def list_notifications(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     limit: int = Query(default=100, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
     unread_only: bool = Query(default=False),
-) -> List[NotificationRead]:
+) -> list[NotificationRead]:
     stmt = select(Notification).where(Notification.user_id == current_user.id)
     if unread_only:
         stmt = stmt.where(Notification.is_read == False)

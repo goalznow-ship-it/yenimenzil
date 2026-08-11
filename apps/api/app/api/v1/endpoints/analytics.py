@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -10,13 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.dependencies.auth import get_current_user, get_optional_user
 from app.db.session import get_db
 from app.models.analytics import AnalyticsEvent
-from app.schemas.analytics import AnalyticsEventRead
 from app.models.enums import UserRole
+from app.models.user import User
+from app.schemas.analytics import AnalyticsEventRead
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
-@router.get("/events", response_model=List[AnalyticsEventRead])
+@router.get("/events", response_model=list[AnalyticsEventRead])
 async def list_analytics_events(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -25,7 +25,7 @@ async def list_analytics_events(
     event_type: str | None = Query(default=None),
     property_id: uuid.UUID | None = Query(default=None),
     user_id: uuid.UUID | None = Query(default=None),
-) -> List[AnalyticsEventRead]:
+) -> list[AnalyticsEventRead]:
     # Only moderators can view analytics
     if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
         raise HTTPException(status_code=403, detail="Insufficient permissions")

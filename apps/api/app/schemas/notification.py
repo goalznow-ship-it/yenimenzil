@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -18,9 +17,9 @@ class NotificationCreate(NotificationBase):
 
 
 class NotificationUpdate(BaseModel):
-    title: Optional[str] = Field(None, max_length=200)
-    message: Optional[str] = None
-    is_read: Optional[bool] = None
+    title: str | None = Field(None, max_length=200)
+    message: str | None = None
+    is_read: bool | None = None
 
 
 class NotificationRead(NotificationBase):

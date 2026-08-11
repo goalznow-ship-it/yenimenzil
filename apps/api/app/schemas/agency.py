@@ -2,21 +2,18 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
-
-from app.models.enums import Currency
 
 
 class AgencyBase(BaseModel):
     name: str = Field(..., max_length=200)
     slug: str = Field(..., max_length=220)
-    email: Optional[str] = Field(None, max_length=255)
-    phone: Optional[str] = Field(None, max_length=32)
-    website: Optional[HttpUrl] = None
-    logo_url: Optional[HttpUrl] = None
-    description: Optional[str] = None
+    email: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=32)
+    website: HttpUrl | None = None
+    logo_url: HttpUrl | None = None
+    description: str | None = None
     is_verified: bool = False
 
 
@@ -25,14 +22,14 @@ class AgencyCreate(AgencyBase):
 
 
 class AgencyUpdate(BaseModel):
-    name: Optional[str] = Field(None, max_length=200)
-    slug: Optional[str] = Field(None, max_length=220)
-    email: Optional[str] = Field(None, max_length=255)
-    phone: Optional[str] = Field(None, max_length=32)
-    website: Optional[HttpUrl] = None
-    logo_url: Optional[HttpUrl] = None
-    description: Optional[str] = None
-    is_verified: Optional[bool] = None
+    name: str | None = Field(None, max_length=200)
+    slug: str | None = Field(None, max_length=220)
+    email: str | None = Field(None, max_length=255)
+    phone: str | None = Field(None, max_length=32)
+    website: HttpUrl | None = None
+    logo_url: HttpUrl | None = None
+    description: str | None = None
+    is_verified: bool | None = None
 
 
 class AgencyRead(AgencyBase):

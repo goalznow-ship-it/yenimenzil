@@ -1,9 +1,8 @@
 import uuid
 from datetime import UTC, datetime
-from typing import Annotated, List
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi import UploadFile, File
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,10 +11,7 @@ from app.core.config import get_settings
 from app.core.storage import upload_file
 from app.db.session import get_db
 from app.models.enums import PropertyStatus, UserRole
-from app.models.property import Property
-from app.models.property import PropertyPriceHistory
-from app.models.property import PropertyMedia
-from app.models.property import PropertyPriceHistory
+from app.models.property import Property, PropertyMedia, PropertyPriceHistory
 from app.models.user import User
 from app.repositories.property import PropertyRepository
 from app.schemas.common import PaginatedResponse

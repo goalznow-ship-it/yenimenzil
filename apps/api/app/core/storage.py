@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+
 from minio import Minio
 from minio.error import S3Error
 
