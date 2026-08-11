@@ -132,14 +132,8 @@ async def create_property(
             detail="Yalnız qaralama kimi yaradıla bilər. Dərc üçün elanı "
             "təsdiqə göndərin.",
         )
-    if payload.owner_id is not None and payload.owner_id != user.id:
-        if user.role not in AUTO_PUBLISH_ROLES:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Başqa istifadəçi adına elan yarada bilməzsiniz",
-            )
-    else:
-        payload.owner_id = user.id
+    # Derive ownership from authenticated user; ignore any owner_id in payload.
+    payload.owner_id = user.id
 
     try:
         prop = await repo.create(payload)

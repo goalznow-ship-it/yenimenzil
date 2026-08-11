@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+import uuid
 
 import redis.asyncio as aioredis
 
@@ -55,7 +56,9 @@ class RateLimiter:
                 count = await client.zcard(full_key)
                 if count >= self.burst_limit:
                     return False
-                await client.zadd(full_key, {now_ms: now_ms})
+                # Use a unique member to avoid collisions
+                member = f"{now_ms}:{uuid.uuid4()}"
+                await client.zadd(full_key, {member: now_ms})
                 await client.expire(full_key, self.window_seconds * 2)
                 return count < self.limit
             except Exception as exc:  # noqa: BLE001
@@ -64,9 +67,12 @@ class RateLimiter:
         now = time.monotonic()
         window = self.window_seconds
         bucket = self._memory.setdefault(full_key, [])
+        # Remove outdated entries
         self._memory[full_key] = [ts for ts in bucket if now - ts < window]
         bucket = self._memory[full_key]
         if len(bucket) >= self.burst_limit:
             return False
-        self._memory[full_key].append(now)
-        return len(bucket) < self.limit
+        # Add current request
+        bucket.append(now)
+        # Allow if previous count (before adding) was below limit
+        return len(bucket) - 1 < self.limit

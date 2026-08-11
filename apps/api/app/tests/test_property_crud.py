@@ -56,12 +56,15 @@ async def test_create_reference_codes_increment(client, auth_user, feature_catal
 
 @pytest.mark.asyncio
 async def test_create_for_another_user_rejected(client, auth_user, feature_catalog):
-    await auth_user()
+    """Ignoring payload owner_id; should create as current user."""
+    owner = await auth_user()
     response = await client.post(
         "/api/v1/properties",
-        json=make_property_payload(uuid.uuid4()),
+        json=make_property_payload(uuid.uuid4()),  # payload owner_id ignored
     )
-    assert response.status_code == 403
+    assert response.status_code == 201
+    data = response.json()
+    assert data["owner_id"] == str(owner.id)
 
 
 @pytest.mark.asyncio

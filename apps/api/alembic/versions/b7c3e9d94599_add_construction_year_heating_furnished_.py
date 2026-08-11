@@ -5,16 +5,16 @@ Revises: cb41b0b14272
 Create Date: 2026-08-11 03:27:22.591002
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision: str = 'b7c3e9d94599'
-down_revision: Union[str, None] = 'cb41b0b14272'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = 'cb41b0b14272'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

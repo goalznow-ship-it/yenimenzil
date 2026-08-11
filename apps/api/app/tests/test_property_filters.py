@@ -392,8 +392,8 @@ async def test_list_bbox_all_outside(client, auth_user, feature_catalog):
     assert response.json()["meta"]["total"] == 0
 
 
-@pytest.mark.asyncio
-async def test_list_invalid_uuid_idempotent(client, auth_user, feature_catalog):
-    owner = await auth_user(is_verified=True)
-    response = await client.get("/api/v1/properties", params={"north": 91})
-    assert response.status_code == 422
+    @pytest.mark.asyncio
+    async def test_list_invalid_uuid_idempotent(client, auth_user, feature_catalog):
+        await auth_user(is_verified=True)
+        response = await client.get("/api/v1/properties", params={"north": 91})
+        assert response.status_code == 422
