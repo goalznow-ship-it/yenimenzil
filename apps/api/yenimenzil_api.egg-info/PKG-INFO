@@ -13,6 +13,11 @@ Requires-Dist: alembic>=1.14
 Requires-Dist: redis>=5.2
 Requires-Dist: geoalchemy2>=0.16
 Requires-Dist: email-validator>=2.2
+Requires-Dist: bcrypt>=4.2
+Requires-Dist: PyJWT>=2.9
+Requires-Dist: Pillow>=10.4
+Requires-Dist: minio>=7.2
+Requires-Dist: python-multipart>=0.0.9
 Provides-Extra: dev
 Requires-Dist: pytest>=8.3; extra == "dev"
 Requires-Dist: pytest-asyncio>=0.24; extra == "dev"

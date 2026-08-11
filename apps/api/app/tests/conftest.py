@@ -6,6 +6,7 @@ app's settings/engine bind to the test database.
 """
 import os
 
+# Set test environment variables before importing the app
 TEST_DB_NAME = "yenimenzil_test"
 TEST_DB_URL = (
     f"postgresql+asyncpg://yenimenzil:yenimenzil@localhost:5434/{TEST_DB_NAME}"
@@ -14,6 +15,8 @@ ADMIN_DB_URL = "postgresql://yenimenzil:yenimenzil@localhost:5434/yenimenzil"
 
 os.environ["DATABASE_URL"] = TEST_DB_URL
 os.environ["RATE_LIMIT_ENABLED"] = "false"
+# Set a fixed 32-byte secret for JWT in tests (deterministic)
+os.environ["SECRET_KEY"] = "a" * 32  # 32 bytes
 
 import asyncpg
 import pytest

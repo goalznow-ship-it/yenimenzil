@@ -222,7 +222,7 @@ class PropertyPriceHistory(Base):
         ForeignKey("properties.id", ondelete="CASCADE"), index=True
     )
     price: Mapped[float] = mapped_column(Numeric(14, 2))
-    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     property: Mapped[Property] = relationship(back_populates="price_history")
 

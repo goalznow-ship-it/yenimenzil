@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm } from "@/features/auth/login-form";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Qeydiyyat",
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPage() {
-  return <LoginForm mode="register" />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm mode="register" />
+    </Suspense>
+  );
 }

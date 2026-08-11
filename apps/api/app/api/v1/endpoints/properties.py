@@ -1,16 +1,21 @@
 import uuid
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import UploadFile, File
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import can_edit_property, get_current_user
 from app.core.config import get_settings
+from app.core.storage import upload_file
 from app.db.session import get_db
 from app.models.enums import PropertyStatus, UserRole
 from app.models.property import Property
+from app.models.property import PropertyPriceHistory
+from app.models.property import PropertyMedia
+from app.models.property import PropertyPriceHistory
 from app.models.user import User
 from app.repositories.property import PropertyRepository
 from app.schemas.common import PaginatedResponse
@@ -210,6 +215,8 @@ async def update_property(
             detail="Statusu birbaşa dəyişə bilməzsiniz — elanı təsdiqə "
             "göndərməlisiniz",
         )
+    # Store the old price for comparison
+    old_price = prop.price
     try:
         prop = await repo.update(prop, payload)
         await db.commit()
@@ -219,8 +226,15 @@ async def update_property(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Yeniləmə mümkün olmadı: məlumat uyğunsuzluğu var.",
         ) from exc
+    # If the price has changed and a price was provided, create a price history record
+    if payload.price is not None and payload.price != old_price:
+        price_history = PropertyPriceHistory(
+            property_id=prop.id,
+            price=payload.price,
+        )
+        db.add(price_history)
+        await db.commit()
     return repo.to_read(prop)
-
 
 @router.delete(
     "/{property_id}",
@@ -241,3 +255,46 @@ async def delete_property(
         )
     await repo.delete(prop)
     await db.commit()
+
+@router.post(
+    "/{property_id}/media",
+    response_model=list[PropertyRead],
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_property_media(
+    property_id: uuid.UUID,
+    files: list[UploadFile] = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[PropertyRead]:
+    """Upload one or more images for a property."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Heç bir fayl yüklənməди",
+        )
+    from app.models.enums import MediaKind
+    uploaded_media = []
+    for file in files:
+        content = await file.read()
+        url = upload_file(content, file.filename, file.content_type)
+        media = PropertyMedia(
+            property_id=prop.id,
+            url=url,
+            alt=file.filename or "",
+            is_cover=False,
+            kind=MediaKind.IMAGE,
+        )
+        db.add(media)
+        uploaded_media.append(media)
+    await db.commit()
+    for media in uploaded_media:
+        await db.refresh(media)
+    return [repo.to_read(prop)]

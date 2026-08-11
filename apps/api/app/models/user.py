@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from app.models.analytics import AnalyticsEvent
     from app.models.auth import RefreshToken
     from app.models.favorite import Favorite
+    from app.models.notification import Notification
     from app.models.property import Property
     from app.models.saved_search import SavedSearch
 
@@ -66,6 +67,9 @@ class User(Base):
     )
     analytics_events: Mapped[list[AnalyticsEvent]] = relationship(
         back_populates="user"
+    )
+    notifications: Mapped[list[Notification]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
     )
     agent_records: Mapped[list[Agent]] = relationship(
         foreign_keys="Agent.user_id", lazy="selectin"
