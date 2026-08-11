@@ -99,3 +99,22 @@ def verify_origin(request: Request) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid origin",
         )
+
+
+def can_edit_property(prop, user: User) -> bool:
+    """Whether a user may modify a property record (edit/delete/submit)."""
+    if user.role in STAFF_ROLES:
+        return True
+    if prop.owner_id == user.id:
+        return True
+    if user.role == UserRole.AGENT and prop.agent_id is not None:
+
+        for agent in user.agent_records or []:
+            if agent.id == prop.agent_id:
+                return True
+    if user.role == UserRole.AGENCY_ADMIN and prop.agency_id is not None:
+
+        for agent in user.agent_records or []:
+            if agent.agency_id == prop.agency_id:
+                return True
+    return False

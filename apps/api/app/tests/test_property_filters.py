@@ -4,23 +4,46 @@ import pytest
 from app.tests.conftest import make_property_payload
 
 
-async def _create(client, owner, payload_overrides=None, **kwargs):
-    payload = make_property_payload(owner.id)
+async def _create(client, user, payload_overrides=None, **kwargs):
+    payload = make_property_payload(user.id)
     if payload_overrides:
         payload.update(payload_overrides)
     payload["price_history"] = []
-    return (
+    created = (
         await client.post("/api/v1/properties", json=payload, **kwargs)
     ).json()
+    response = await client.post(f"/api/v1/properties/{created['id']}/submit")
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+async def _verified_owner(auth_user):
+    return await auth_user(is_verified=True)
 
 
 @pytest.mark.asyncio
-async def test_list_defaults_to_active_sale(client, owner, feature_catalog):
+async def test_list_defaults_to_active_sale(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"deal_type": "sale"})
     await _create(client, owner, {"deal_type": "rent"})
     await _create(client, owner, {"deal_type": "daily"})
-    await _create(client, owner, {"status": "draft"})
-    await _create(client, owner, {"status": "sold"})
+
+    # a draft that was never submitted stays hidden
+    draft = make_property_payload(owner.id)
+    draft["price_history"] = []
+    draft_body = (
+        await client.post("/api/v1/properties", json=draft)
+    ).json()
+    assert draft_body["status"] == "draft"
+
+    # a sold listing is hidden from search
+    sold = (
+        await client.post("/api/v1/properties", json=make_property_payload(owner.id))
+    ).json()
+    sold_patch = await client.patch(
+        f"/api/v1/properties/{sold['id']}", json={"status": "sold"}
+    )
+    assert sold_patch.status_code == 200
 
     response = await client.get("/api/v1/properties")
     assert response.status_code == 200
@@ -30,10 +53,12 @@ async def test_list_defaults_to_active_sale(client, owner, feature_catalog):
     assert body["meta"]["page_size"] == 30
     assert body["meta"]["pages"] == 1
     assert len(body["data"]) == 1
+    assert body["data"][0]["deal_type"] == "sale"
 
 
 @pytest.mark.asyncio
-async def test_list_deal_filter(client, owner, feature_catalog):
+async def test_list_deal_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"deal_type": "sale"})
     await _create(client, owner, {"deal_type": "rent"})
     await _create(client, owner, {"deal_type": "daily"})
@@ -44,7 +69,8 @@ async def test_list_deal_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_city_filter(client, owner, feature_catalog):
+async def test_list_city_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"location": {**make_property_payload(owner.id)["location"], "city": "Bakı"}})
     payload = make_property_payload(owner.id)
     payload["location"]["city"] = "Gəncə"
@@ -56,7 +82,8 @@ async def test_list_city_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_district_filter_normalizes_az(client, owner, feature_catalog):
+async def test_list_district_filter_normalizes_az(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     payload = make_property_payload(owner.id)
     payload["location"]["district"] = "Nərimanov"
     await _create(client, owner, payload)
@@ -72,7 +99,8 @@ async def test_list_district_filter_normalizes_az(client, owner, feature_catalog
 
 
 @pytest.mark.asyncio
-async def test_list_district_no_match(client, owner, feature_catalog):
+async def test_list_district_no_match(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {})
     response = await client.get(
         "/api/v1/properties", params={"district": "Binaqadi"}
@@ -81,7 +109,8 @@ async def test_list_district_no_match(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_property_type_filter(client, owner, feature_catalog):
+async def test_list_property_type_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"property_type": "apartment"})
     await _create(client, owner, {"property_type": "house"})
     await _create(client, owner, {"property_type": "land"})
@@ -94,7 +123,8 @@ async def test_list_property_type_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_rooms_filter(client, owner, feature_catalog):
+async def test_list_rooms_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"rooms": 1})
     await _create(client, owner, {"rooms": 2})
     await _create(client, owner, {"rooms": 3})
@@ -113,7 +143,8 @@ async def test_list_rooms_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_price_range_filter(client, owner, feature_catalog):
+async def test_list_price_range_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"price": 50_000})
     await _create(client, owner, {"price": 150_000})
     await _create(client, owner, {"price": 300_000})
@@ -128,7 +159,8 @@ async def test_list_price_range_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_area_range_filter(client, owner, feature_catalog):
+async def test_list_area_range_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"area_total": 50})
     await _create(client, owner, {"area_total": 90})
     await _create(client, owner, {"area_total": 200})
@@ -140,7 +172,8 @@ async def test_list_area_range_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_metro_filter(client, owner, feature_catalog):
+async def test_list_metro_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {})
     payload = make_property_payload(owner.id)
     payload["location"]["metro"] = "İnşaatçılar"
@@ -151,7 +184,8 @@ async def test_list_metro_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_building_and_repair_filters(client, owner, feature_catalog):
+async def test_list_building_and_repair_filters(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"building_type": "new", "repair_status": "renovated"})
     await _create(client, owner, {"building_type": "old", "repair_status": "cosmetic"})
 
@@ -167,7 +201,8 @@ async def test_list_building_and_repair_filters(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_owner_only_filter(client, owner, feature_catalog):
+async def test_list_owner_only_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"seller_kind": "owner"})
     await _create(client, owner, {"seller_kind": "agent"})
 
@@ -176,7 +211,8 @@ async def test_list_owner_only_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_verified_only_filter(client, owner, feature_catalog):
+async def test_list_verified_only_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"is_verified": True})
     await _create(client, owner, {"is_verified": False})
 
@@ -185,7 +221,8 @@ async def test_list_verified_only_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_combined_filters(client, owner, feature_catalog):
+async def test_list_combined_filters(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(
         client,
         owner,
@@ -224,7 +261,8 @@ async def test_list_combined_filters(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_pagination(client, owner, feature_catalog):
+async def test_list_pagination(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     for i in range(7):
         await _create(client, owner, {"title": f"Elan {i}"})
 
@@ -258,7 +296,8 @@ async def test_list_pagination(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_sort_price(client, owner, feature_catalog):
+async def test_list_sort_price(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"price": 300_000})
     await _create(client, owner, {"price": 100_000})
     await _create(client, owner, {"price": 200_000})
@@ -277,7 +316,8 @@ async def test_list_sort_price(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_sort_area(client, owner, feature_catalog):
+async def test_list_sort_area(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     await _create(client, owner, {"area_total": 200})
     await _create(client, owner, {"area_total": 50})
     await _create(client, owner, {"area_total": 100})
@@ -296,7 +336,8 @@ async def test_list_sort_area(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_sort_newest(client, owner, feature_catalog):
+async def test_list_sort_newest(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     first = await _create(client, owner, {"title": "En kohne"})
     second = await _create(client, owner, {"title": "Yeni"})
 
@@ -308,12 +349,14 @@ async def test_list_sort_newest(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_bbox_filter(client, owner, feature_catalog):
+async def test_list_bbox_filter(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     inside = make_property_payload(owner.id)
     inside["location"]["latitude"] = 40.4
     inside["location"]["longitude"] = 49.85
     inside["price_history"] = []
-    await client.post("/api/v1/properties", json=inside)
+    inside_created = (await client.post("/api/v1/properties", json=inside)).json()
+    await client.post(f"/api/v1/properties/{inside_created['id']}/submit")
 
     outside = make_property_payload(owner.id)
     outside["location"]["latitude"] = 41.0
@@ -333,12 +376,14 @@ async def test_list_bbox_filter(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_bbox_all_outside(client, owner, feature_catalog):
+async def test_list_bbox_all_outside(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     payload = make_property_payload(owner.id)
     payload["location"]["latitude"] = 41.0
     payload["location"]["longitude"] = 50.0
     payload["price_history"] = []
-    await client.post("/api/v1/properties", json=payload)
+    created = (await client.post("/api/v1/properties", json=payload)).json()
+    await client.post(f"/api/v1/properties/{created['id']}/submit")
 
     response = await client.get(
         "/api/v1/properties",
@@ -348,6 +393,7 @@ async def test_list_bbox_all_outside(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_list_invalid_uuid_idempotent(client, owner, feature_catalog):
+async def test_list_invalid_uuid_idempotent(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     response = await client.get("/api/v1/properties", params={"north": 91})
     assert response.status_code == 422

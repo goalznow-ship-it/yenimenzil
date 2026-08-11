@@ -6,11 +6,17 @@ from app.tests.conftest import make_property_payload
 
 
 @pytest.mark.asyncio
-async def test_create_property_roundtrip(client, owner, feature_catalog):
-    response = await client.post(
-        "/api/v1/properties", json=make_property_payload(owner.id)
-    )
-    assert response.status_code == 201
+async def test_create_property_roundtrip(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
+    created = (
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
+    ).json()
+    await client.post(f"/api/v1/properties/{created['id']}/submit")
+    response = await client.get(f"/api/v1/properties/{created['id']}")
+    assert response.status_code == 200
     body = response.json()
 
     assert body["reference_code"] == "AB1001"
@@ -39,7 +45,8 @@ async def test_create_property_roundtrip(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_create_reference_codes_increment(client, owner, feature_catalog):
+async def test_create_reference_codes_increment(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     payload = make_property_payload(owner.id)
     for expected in ("AB1001", "AB1002"):
         response = await client.post("/api/v1/properties", json=payload)
@@ -48,28 +55,45 @@ async def test_create_reference_codes_increment(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_create_requires_existing_owner(client, feature_catalog):
-    payload = make_property_payload(uuid.uuid4())
-    response = await client.post("/api/v1/properties", json=payload)
-    assert response.status_code == 400
+async def test_create_for_another_user_rejected(client, auth_user, feature_catalog):
+    await auth_user()
+    response = await client.post(
+        "/api/v1/properties",
+        json=make_property_payload(uuid.uuid4()),
+    )
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio
-async def test_create_rejects_unknown_feature(client, owner, feature_catalog):
-    payload = make_property_payload(owner.id, features=["not-a-real-feature"])
+async def test_create_requires_auth(client, feature_catalog):
+    response = await client.post(
+        "/api/v1/properties",
+        json=make_property_payload(uuid.uuid4()),
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_create_rejects_unknown_feature(client, auth_user, feature_catalog):
+    owner = await auth_user()
+    payload = make_property_payload(
+        owner.id, features=["not-a-real-feature"]
+    )
     response = await client.post("/api/v1/properties", json=payload)
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_create_rejects_invalid_price(client, owner):
+async def test_create_rejects_invalid_price(client, auth_user):
+    owner = await auth_user()
     payload = make_property_payload(owner.id, price=-100)
     response = await client.post("/api/v1/properties", json=payload)
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_create_rejects_invalid_coordinates(client, owner):
+async def test_create_rejects_invalid_coordinates(client, auth_user):
+    owner = await auth_user()
     payload = make_property_payload(owner.id)
     payload["location"]["latitude"] = 95
     response = await client.post("/api/v1/properties", json=payload)
@@ -77,9 +101,34 @@ async def test_create_rejects_invalid_coordinates(client, owner):
 
 
 @pytest.mark.asyncio
-async def test_get_property_by_id(client, owner, feature_catalog):
+async def test_create_rejects_active_status_for_regular_user(
+    client, auth_user, feature_catalog
+):
+    owner = await auth_user()
+    payload = make_property_payload(owner.id, status="active")
+    response = await client.post("/api/v1/properties", json=payload)
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_create_active_allowed_for_moderator(
+    client, auth_user, feature_catalog
+):
+    owner = await auth_user(role="moderator")
+    payload = make_property_payload(owner.id, status="active")
+    response = await client.post("/api/v1/properties", json=payload)
+    assert response.status_code == 201
+    assert response.json()["status"] == "active"
+
+
+@pytest.mark.asyncio
+async def test_get_property_by_id(client, auth_user, feature_catalog):
+    owner = await auth_user()
     created = (
-        await client.post("/api/v1/properties", json=make_property_payload(owner.id))
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
     ).json()
 
     response = await client.get(f"/api/v1/properties/{created['id']}")
@@ -96,9 +145,7 @@ async def test_get_property_by_id(client, owner, feature_catalog):
 
 @pytest.mark.asyncio
 async def test_get_property_not_found(client):
-    response = await client.get(
-        f"/api/v1/properties/{uuid.uuid4()}"
-    )
+    response = await client.get(f"/api/v1/properties/{uuid.uuid4()}")
     assert response.status_code == 404
 
 
@@ -109,9 +156,13 @@ async def test_get_property_invalid_uuid(client):
 
 
 @pytest.mark.asyncio
-async def test_patch_property_partial(client, owner, feature_catalog):
+async def test_patch_property_partial(client, auth_user, feature_catalog):
+    owner = await auth_user()
     created = (
-        await client.post("/api/v1/properties", json=make_property_payload(owner.id))
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
     ).json()
 
     response = await client.patch(
@@ -126,9 +177,13 @@ async def test_patch_property_partial(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_patch_updates_location_and_features(client, owner, feature_catalog):
+async def test_patch_updates_location_and_features(client, auth_user, feature_catalog):
+    owner = await auth_user()
     created = (
-        await client.post("/api/v1/properties", json=make_property_payload(owner.id))
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
     ).json()
 
     response = await client.patch(
@@ -153,9 +208,13 @@ async def test_patch_updates_location_and_features(client, owner, feature_catalo
 
 
 @pytest.mark.asyncio
-async def test_patch_unknown_feature_rejected(client, owner, feature_catalog):
+async def test_patch_unknown_feature_rejected(client, auth_user, feature_catalog):
+    owner = await auth_user()
     created = (
-        await client.post("/api/v1/properties", json=make_property_payload(owner.id))
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
     ).json()
     response = await client.patch(
         f"/api/v1/properties/{created['id']}", json={"features": ["nope"]}
@@ -164,7 +223,16 @@ async def test_patch_unknown_feature_rejected(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_patch_not_found(client, owner):
+async def test_patch_requires_auth(client):
+    response = await client.patch(
+        f"/api/v1/properties/{uuid.uuid4()}", json={"price": 1}
+    )
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_patch_not_found(client, auth_user):
+    await auth_user()
     response = await client.patch(
         f"/api/v1/properties/{uuid.uuid4()}", json={"price": 1}
     )
@@ -172,9 +240,31 @@ async def test_patch_not_found(client, owner):
 
 
 @pytest.mark.asyncio
-async def test_delete_property(client, owner, feature_catalog):
+async def test_patch_other_users_property_rejected(client, auth_user, feature_catalog):
+    owner = await auth_user()
     created = (
-        await client.post("/api/v1/properties", json=make_property_payload(owner.id))
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
+    ).json()
+
+    other = await auth_user(email="other@test.az")
+    response = await client.patch(
+        f"/api/v1/properties/{created['id']}", json={"price": 1}
+    )
+    assert response.status_code == 403
+    assert other.id != owner.id
+
+
+@pytest.mark.asyncio
+async def test_delete_property(client, auth_user, feature_catalog):
+    owner = await auth_user()
+    created = (
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
     ).json()
 
     response = await client.delete(f"/api/v1/properties/{created['id']}")
@@ -185,39 +275,55 @@ async def test_delete_property(client, owner, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_delete_not_found(client):
+async def test_delete_other_users_property_rejected(
+    client, auth_user, feature_catalog
+):
+    owner = await auth_user()
+    created = (
+        await client.post(
+            "/api/v1/properties",
+            json=make_property_payload(owner.id),
+        )
+    ).json()
+
+    await auth_user(email="other@test.az")
+    response = await client.delete(f"/api/v1/properties/{created['id']}")
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_delete_not_found(client, auth_user):
+    await auth_user()
     response = await client.delete(f"/api/v1/properties/{uuid.uuid4()}")
     assert response.status_code == 404
 
 
 @pytest.mark.asyncio
-async def test_similar_properties(client, owner, feature_catalog):
+async def test_similar_properties(client, auth_user, feature_catalog):
+    owner = await auth_user(is_verified=True)
     base = make_property_payload(owner.id)
     base["price_history"] = []
-    created = (
-        await client.post("/api/v1/properties", json=base)
-    ).json()
+    created = (await client.post("/api/v1/properties", json=base)).json()
+    await client.post(f"/api/v1/properties/{created['id']}/submit")
 
-    # same deal + type, similar price
     same = make_property_payload(owner.id, title="Benzer elan", price=160000)
     same["price_history"] = []
-    same_created = (
-        await client.post("/api/v1/properties", json=same)
-    ).json()
+    same_created = (await client.post("/api/v1/properties", json=same)).json()
+    await client.post(f"/api/v1/properties/{same_created['id']}/submit")
 
-    # different type
-    other_type = make_property_payload(owner.id, title="Villa", property_type="villa")
+    other_type = make_property_payload(
+        owner.id, title="Villa", property_type="villa"
+    )
     other_type["price_history"] = []
-    other_type_created = (
-        await client.post("/api/v1/properties", json=other_type)
-    ).json()
+    other_type_created = (await client.post("/api/v1/properties", json=other_type)).json()
+    await client.post(f"/api/v1/properties/{other_type_created['id']}/submit")
 
-    # different deal
-    rent = make_property_payload(owner.id, title="Kiraye", deal_type="rent", price=800)
+    rent = make_property_payload(
+        owner.id, title="Kiraye", deal_type="rent", price=800
+    )
     rent["price_history"] = []
-    rent_created = (
-        await client.post("/api/v1/properties", json=rent)
-    ).json()
+    rent_created = (await client.post("/api/v1/properties", json=rent)).json()
+    await client.post(f"/api/v1/properties/{rent_created['id']}/submit")
 
     response = await client.get(f"/api/v1/properties/{created['id']}/similar")
     assert response.status_code == 200

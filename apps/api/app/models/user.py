@@ -20,6 +20,7 @@ from app.db.base import Base
 from app.models.enums import UserRole
 
 if TYPE_CHECKING:
+    from app.models.agency import Agent
     from app.models.analytics import AnalyticsEvent
     from app.models.auth import RefreshToken
     from app.models.favorite import Favorite
@@ -65,6 +66,9 @@ class User(Base):
     )
     analytics_events: Mapped[list[AnalyticsEvent]] = relationship(
         back_populates="user"
+    )
+    agent_records: Mapped[list[Agent]] = relationship(
+        foreign_keys="Agent.user_id", lazy="selectin"
     )
 
 

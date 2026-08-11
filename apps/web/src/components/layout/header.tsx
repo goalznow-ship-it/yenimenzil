@@ -167,7 +167,7 @@ export function Header() {
           </div>
 
           <Link
-            href="/login"
+            href="/add-property"
             aria-label="Elan yerləşdir"
             className="hidden sm:block"
           >

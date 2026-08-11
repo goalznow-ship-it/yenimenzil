@@ -256,6 +256,19 @@ class PropertyRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_mine(
+        self, user_id: uuid.UUID, status: PropertyStatus | None = None
+    ) -> list[PropertySummaryRead]:
+        """All of a user's listings across statuses (dashboard)."""
+        stmt = select(Property).join(Property.location, isouter=False)
+        stmt = stmt.where(Property.owner_id == user_id)
+        if status is not None:
+            stmt = stmt.where(Property.status == status)
+        stmt = stmt.order_by(Property.updated_at.desc())
+        stmt = stmt.options(*_summary_load_options())
+        result = await self.session.execute(stmt)
+        return [self._to_summary_read(p) for p in result.scalars().all()]
+
     async def get_by_id(self, property_id: uuid.UUID) -> Property | None:
         result = await self.session.execute(
             select(Property)

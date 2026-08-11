@@ -67,11 +67,11 @@ class PropertyBase(BaseModel):
 
 
 class PropertyCreate(PropertyBase):
-    owner_id: uuid.UUID
+    owner_id: uuid.UUID | None = None
     agency_id: uuid.UUID | None = None
     agent_id: uuid.UUID | None = None
     seller_kind: SellerKind = SellerKind.OWNER
-    status: PropertyStatus = PropertyStatus.ACTIVE
+    status: PropertyStatus = PropertyStatus.DRAFT
     is_verified: bool = False
     is_premium: bool = False
     is_promoted: bool = False

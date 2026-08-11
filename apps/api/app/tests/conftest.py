@@ -104,6 +104,45 @@ async def feature_catalog(db):
     await db.commit()
 
 
+@pytest.fixture()
+async def auth_user(db, client):
+    """Register (or log back into) a user via the API; return the User."""
+
+    async def make(email="crud@test.az", *, role=None, is_verified=False):
+        from sqlalchemy import select
+
+        from app.models.user import User
+
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if user is None:
+            response = await client.post(
+                "/api/v1/auth/register",
+                json={
+                    "email": email,
+                    "password": "supersecret1",
+                    "full_name": "Test Sahib",
+                },
+            )
+            assert response.status_code == 201, response.text
+            result = await db.execute(select(User).where(User.email == email))
+            user = result.scalar_one()
+        else:
+            response = await client.post(
+                "/api/v1/auth/login",
+                json={"email": email, "password": "supersecret1"},
+            )
+            assert response.status_code == 200, response.text
+        if role is not None or is_verified:
+            user.role = role or user.role
+            user.is_verified = is_verified
+            await db.commit()
+            await db.refresh(user)
+        return user
+
+    return make
+
+
 def make_property_payload(owner_id, **overrides):
     payload = {
         "title": "Test elan 3 otaqli manzil",
@@ -139,6 +178,7 @@ def make_property_payload(owner_id, **overrides):
             {"url": "https://img.test/2.jpg", "alt": "Mətbəx"},
         ],
         "price_history": [{"price": 155000}, {"price": 150000}],
+        "status": "draft",
     }
     payload.update(overrides)
     return payload
