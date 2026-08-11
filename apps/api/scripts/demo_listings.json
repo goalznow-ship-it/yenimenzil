@@ -1,0 +1,2858 @@
+[
+  {
+    "dealType": "sale",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 245000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "areaTotal": 95,
+    "areaLiving": 72,
+    "floor": 8,
+    "totalFloors": 16,
+    "constructionYear": 2025,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "3 otaqlı yeni tikili, 95 m², Gənclik",
+    "description": "Gənclik metrosuna cəmi 5 dəqiqəlik məsafədə, 2025-ci ildə tikilmiş müasir yaşayış binasında 3 otaqlı mənzil.\n\nMənzil tam təmirli vəziyyətdə təhvil verilir: laminat döşəmə, quraşdırılmış mətbəx mebeli, kondisioner və kombi quraşdırılıb. Pəncərələrdən həyətin yaşıllıq sahəsinə mənzərə açılır.\n\nBina liftlərlə, mühafizə ilə və yeraltı parkinq ilə təchiz olunub. Yaxınlıqda məktəb, uşaq bağçası, marketlər və ictimai nəqliyyat dayanacaqları var.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nərimanov",
+      "neighborhood": "Gənclik",
+      "metro": "Gənclik",
+      "addressText": "Nərimanov r., Gənclik",
+      "point": {
+        "lat": 40.4093,
+        "lng": 49.8502
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Çoxmərtəbəli bina"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      }
+    ],
+    "badges": [
+      "new",
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-103",
+      "name": "Kamran Hüseynov",
+      "kind": "agent",
+      "agencyName": "Caspian Properties",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2021",
+      "activeListings": 24
+    },
+    "publishedAt": "2026-08-08T21:05:09.311Z",
+    "views": 412,
+    "priceHistory": [
+      {
+        "date": "2026-07-01T23:25:09.311Z",
+        "price": 255000
+      },
+      {
+        "date": "2026-07-23T23:25:09.311Z",
+        "price": 249000
+      },
+      {
+        "date": "2026-08-07T23:25:09.311Z",
+        "price": 245000
+      }
+    ],
+    "id": "prop-ab1001",
+    "referenceCode": "AB1001",
+    "slug": "sale-new_building-ab1001",
+    "isFavorite": false,
+    "pricePerSqm": 2579
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "cosmetic",
+    "documentType": "citizenship",
+    "price": 132000,
+    "currency": "AZN",
+    "rooms": 2,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 62,
+    "areaLiving": 48,
+    "floor": 5,
+    "totalFloors": 14,
+    "constructionYear": 2024,
+    "mortgageAvailable": true,
+    "heating": "kombi",
+    "title": "2 otaqlı yeni tikili, 62 m², Yasamal",
+    "description": "Yasamalda, İnşaatçılar metrosu yaxınlığında yeni tikilidə 2 otaqlı mənzil satılır.\n\nMənzildə kosmetik təmir aparılıb, plastik pəncərələr, kombi və su sayğacları quraşdırılıb. Bina 2024-cü ildə istifadəyə verilib, liftlər və mühafizə fəaliyyət göstərir.\n\nYaxınlıqda iki dəfə məktəb, bağça, marketlər mövcuddur. Mənzilə çıxarış əldə etmək mümkündür.",
+    "features": [
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "elevator",
+      "security",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Yasamal",
+      "neighborhood": "İnşaatçılar",
+      "metro": "İnşaatçılar",
+      "addressText": "Yasamal r., İnşaatçılar metrosu",
+      "point": {
+        "lat": 40.3902,
+        "lng": 49.8074
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80",
+        "alt": "İşıqlı qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağ mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yeni tikili kompleksi"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-104",
+      "name": "Nigar Quliyeva",
+      "kind": "agent",
+      "agencyName": "Metro Emlak",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2022",
+      "activeListings": 31
+    },
+    "publishedAt": "2026-08-09T18:40:09.311Z",
+    "views": 268,
+    "priceHistory": [
+      {
+        "date": "2026-08-04T23:25:09.311Z",
+        "price": 135000
+      }
+    ],
+    "id": "prop-ab1002",
+    "referenceCode": "AB1002",
+    "slug": "sale-new_building-ab1002",
+    "isFavorite": false,
+    "pricePerSqm": 2129
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 415000,
+    "currency": "AZN",
+    "rooms": 4,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "areaTotal": 148,
+    "areaLiving": 116,
+    "floor": 12,
+    "totalFloors": 24,
+    "constructionYear": 2026,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "4 otaqlı premium mənzil, 148 m², Dənizkənarı bulvar",
+    "description": "Bakı bulvarına bir neçə addım məsafədə, mərkəzdə yerləşən premium yaşayış kompleksində 4 otaqlı geniş mənzil.\n\nPanoramik pəncərələr, Xəzər dənizinə açılan mənzərə, tam təmirli interyer, qonaq otağında kamin. Kompleksdə hovuz, fitnes mərkəzi, qapalı parkinq və 24/7 mühafizə xidməti var.\n\nMənzil çıxarışlıdır, ipoteka ilə alış mümkündür.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "pool",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Səbail",
+      "neighborhood": "Sahil",
+      "metro": "Sahil",
+      "addressText": "Səbail r., Sahil, Dənizkənarı bulvar",
+      "point": {
+        "lat": 40.3712,
+        "lng": 49.8465
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Lüks interyer",
+        "placeholder": "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Eleqant qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Hovuzlu villa"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ada mətbəx"
+      }
+    ],
+    "badges": [
+      "premium",
+      "new",
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": true,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-105",
+      "name": "Elçin Səfərov",
+      "kind": "agent",
+      "agencyName": "Premium Home AZ",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2020",
+      "activeListings": 12
+    },
+    "publishedAt": "2026-08-07T01:15:09.311Z",
+    "views": 1584,
+    "priceHistory": [
+      {
+        "date": "2026-07-16T23:25:09.311Z",
+        "price": 430000
+      }
+    ],
+    "id": "prop-ab1003",
+    "referenceCode": "AB1003",
+    "slug": "sale-new_building-ab1003",
+    "isFavorite": false,
+    "pricePerSqm": 2804
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 189000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "areaTotal": 86,
+    "areaLiving": 64,
+    "floor": 6,
+    "totalFloors": 18,
+    "constructionYear": 2025,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "3 otaqlı yeni tikili, 86 m², Nəriman Nərimanov",
+    "description": "Nəriman Nərimanov metrosundan 4 dəqiqəlik piyada məsafədə yeni tikilidə 3 otaqlı mənzil.\n\nMənzil açar təslim təhvil verilir: daxili qapılar, laminat, mətbəx komplekti. Bina yaxınlığında yaşıllıq ərazisi və uşaq meydançası var.\n\nŞəhərin bütün ərazilərinə asan nəqliyyat əlaqəsi.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "kombi",
+      "elevator",
+      "security",
+      "balcony",
+      "internet",
+      "children_playground"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nərimanov",
+      "neighborhood": "Nəriman Nərimanov",
+      "metro": "Nəriman Nərimanov",
+      "addressText": "Nərimanov r., Nəriman Nərimanov",
+      "point": {
+        "lat": 40.4021,
+        "lng": 49.8668
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Skandinav üslublu qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yeni tikili kompleksi"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-103",
+      "name": "Kamran Hüseynov",
+      "kind": "agent",
+      "agencyName": "Caspian Properties",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2021",
+      "activeListings": 24
+    },
+    "publishedAt": "2026-08-05T19:55:09.311Z",
+    "views": 640,
+    "priceHistory": [
+      {
+        "date": "2026-07-11T23:25:09.311Z",
+        "price": 198000
+      },
+      {
+        "date": "2026-07-29T23:25:09.311Z",
+        "price": 192000
+      },
+      {
+        "date": "2026-08-06T23:25:09.311Z",
+        "price": 189000
+      }
+    ],
+    "id": "prop-ab1004",
+    "referenceCode": "AB1004",
+    "slug": "sale-new_building-ab1004",
+    "isFavorite": false,
+    "pricePerSqm": 2198
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 98500,
+    "currency": "AZN",
+    "rooms": 1,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 47,
+    "areaLiving": 36,
+    "floor": 9,
+    "totalFloors": 21,
+    "constructionYear": 2025,
+    "mortgageAvailable": true,
+    "heating": "kombi",
+    "title": "1 otaqlı yeni tikili, 47 m², Xətai",
+    "description": "Xətai rayonunda, Neftçilər metrosu yaxınlığında yeni tikilidə 1 otaqlı mənzil.\n\nKompakt planlaşdırma, tam təmirli vəziyyət, kombi və kondisioner. Gənc ailələr və investisiya üçün ideal seçim.\n\nBina yeni tikilidir, lift və mühafizə ilə təmin olunub.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xətai",
+      "neighborhood": "Neftçilər",
+      "metro": "Neftçilər",
+      "addressText": "Xətai r., Neftçilər metrosu",
+      "point": {
+        "lat": 40.3712,
+        "lng": 49.8553
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Rahat qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağ mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-106",
+      "name": "Leyla Qasımova",
+      "kind": "agent",
+      "agencyName": "Baku Estate",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2023",
+      "activeListings": 18
+    },
+    "publishedAt": "2026-08-08T00:35:09.311Z",
+    "views": 391,
+    "priceHistory": [
+      {
+        "date": "2026-08-01T23:25:09.311Z",
+        "price": 101000
+      }
+    ],
+    "id": "prop-ab1005",
+    "referenceCode": "AB1005",
+    "slug": "sale-new_building-ab1005",
+    "isFavorite": false,
+    "pricePerSqm": 2096
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "cosmetic",
+    "documentType": "citizenship",
+    "price": 156000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "areaTotal": 74,
+    "areaLiving": 58,
+    "floor": 3,
+    "totalFloors": 15,
+    "constructionYear": 2024,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "3 otaqlı yeni tikili, 74 m², Xırdalan",
+    "description": "Xırdalanda, Heydər Əliyev prospekti yaxınlığında yeni yaşayış kompleksində 3 otaqlı mənzil.\n\nKosmetik təmirli, plastik pəncərələr, qaz və kombi quraşdırılıb. Kompleksin daxilində market və uşaq meydançası var.\n\nBakıya qədər 10 dəqiqəlik yol.",
+    "features": [
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "kombi",
+      "elevator",
+      "security",
+      "balcony",
+      "internet",
+      "children_playground"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Xırdalan",
+      "district": "Abşeron",
+      "addressText": "Xırdalan, Heydər Əliyev prospekti",
+      "point": {
+        "lat": 40.4488,
+        "lng": 49.7562
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80",
+        "alt": "İşıqlı qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yeni tikili kompleksi"
+      }
+    ],
+    "badges": [
+      "price_drop"
+    ],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-08-04T03:10:09.311Z",
+    "views": 287,
+    "priceHistory": [
+      {
+        "date": "2026-07-06T23:25:09.311Z",
+        "price": 168000
+      },
+      {
+        "date": "2026-07-27T23:25:09.311Z",
+        "price": 160000
+      },
+      {
+        "date": "2026-08-08T23:25:09.311Z",
+        "price": 156000
+      }
+    ],
+    "id": "prop-ab1006",
+    "referenceCode": "AB1006",
+    "slug": "sale-new_building-ab1006",
+    "isFavorite": false,
+    "pricePerSqm": 2108
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "old",
+    "repairStatus": "renovated",
+    "documentType": "citizenship",
+    "price": 118000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "areaTotal": 68,
+    "areaLiving": 52,
+    "floor": 4,
+    "totalFloors": 9,
+    "constructionYear": 2004,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "3 otaqlı mənzil, 68 m², 28 May",
+    "description": "28 May metrosuna 7 dəqiqəlik məsafədə, 2004-cü il tikintisi binada 3 otaqlı mənzil.\n\nMənzil tam təmirli vəziyyətdədir, mətbəxdə quraşdırılmış mebel var. Hündür mərtəbə deyil — ailə üçün rahat.\n\nŞəhər mərkəzində yaşamaq istəyənlər üçün əla seçim.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "balcony",
+      "furnished",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nəsimi",
+      "neighborhood": "28 May",
+      "metro": "28 May",
+      "addressText": "Nəsimi r., 28 May metrosu",
+      "point": {
+        "lat": 40.38,
+        "lng": 49.8467
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Rahat qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağ mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Bej tonlarda qonaq otağı"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-102",
+      "name": "Aygün Əliyeva",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2024",
+      "activeListings": 1
+    },
+    "publishedAt": "2026-08-04T19:25:09.311Z",
+    "views": 356,
+    "priceHistory": [
+      {
+        "date": "2026-07-21T23:25:09.311Z",
+        "price": 122000
+      }
+    ],
+    "id": "prop-ab1007",
+    "referenceCode": "AB1007",
+    "slug": "sale-apartment-ab1007",
+    "isFavorite": false,
+    "pricePerSqm": 1735
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "old",
+    "repairStatus": "needs_repair",
+    "documentType": "citizenship",
+    "price": 64000,
+    "currency": "AZN",
+    "rooms": 2,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 55,
+    "areaLiving": 40,
+    "floor": 2,
+    "totalFloors": 5,
+    "constructionYear": 1978,
+    "mortgageAvailable": false,
+    "heating": "qaz",
+    "title": "2 otaqlı mənzil, 55 m², Binəqədi",
+    "description": "Binəqədi rayonunda, Azadlıq prospekti yaxınlığında 2 otaqlı mənzil satılır.\n\nMənzil təmir tələb edir — öz zövqünə uyğun təmir etmək istəyənlər üçün əla fürsət. Qiymət bazar qiymətindən aşağıdır.\n\nMəktəb, bağça və marketlər yaxınlıqdadır.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "balcony"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Binəqədi",
+      "neighborhood": "Azadlıq prospekti",
+      "metro": "Azadlıq prospekti",
+      "addressText": "Binəqədi r., Azadlıq prospekti",
+      "point": {
+        "lat": 40.4288,
+        "lng": 49.8215
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Bej tonlarda qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağ mətbəx"
+      }
+    ],
+    "badges": [
+      "price_drop"
+    ],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-08-01T21:00:09.311Z",
+    "views": 214,
+    "priceHistory": [
+      {
+        "date": "2026-07-11T23:25:09.311Z",
+        "price": 69000
+      },
+      {
+        "date": "2026-08-02T23:25:09.311Z",
+        "price": 64000
+      }
+    ],
+    "id": "prop-ab1008",
+    "referenceCode": "AB1008",
+    "slug": "sale-apartment-ab1008",
+    "isFavorite": false,
+    "pricePerSqm": 1164
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "old",
+    "repairStatus": "renovated",
+    "documentType": "citizenship",
+    "price": 87000,
+    "currency": "AZN",
+    "rooms": 2,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 58,
+    "areaLiving": 44,
+    "floor": 7,
+    "totalFloors": 9,
+    "constructionYear": 2008,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "2 otaqlı mənzil, 58 m², Səbail",
+    "description": "Səbail rayonunda, İçərişəhər metrosunun yaxınlığında 2 otaqlı mənzil.\n\nMənzil təmirli vəziyyətdədir, kombi quraşdırılıb. Şəhərin mərkəzi hissəsində hər şeyə yaxın: kafelər, parklar, ictimai nəqliyyat.\n\nKirayə gəliri üçün də uyğun seçimdir.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "elevator",
+      "balcony",
+      "furnished",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Səbail",
+      "neighborhood": "İçərişəhər",
+      "metro": "İçərişəhər",
+      "addressText": "Səbail r., İçərişəhər metrosu",
+      "point": {
+        "lat": 40.3669,
+        "lng": 49.8326
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Skandinav üslublu qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-102",
+      "name": "Aygün Əliyeva",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2024",
+      "activeListings": 1
+    },
+    "publishedAt": "2026-08-07T02:20:09.311Z",
+    "views": 421,
+    "priceHistory": [],
+    "id": "prop-ab1009",
+    "referenceCode": "AB1009",
+    "slug": "sale-apartment-ab1009",
+    "isFavorite": false,
+    "pricePerSqm": 1500
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "house",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 310000,
+    "currency": "AZN",
+    "rooms": 5,
+    "bedrooms": 4,
+    "bathrooms": 2,
+    "areaTotal": 210,
+    "areaLiving": 160,
+    "areaLand": 400,
+    "floor": 2,
+    "totalFloors": 2,
+    "constructionYear": 2023,
+    "mortgageAvailable": true,
+    "heating": "kombi",
+    "title": "5 otaqlı həyət evi, 210 m², Mərdəkan",
+    "description": "Mərdəkanda, dənizə 1,5 km məsafədə yerləşən müasir 2 mərtəbəli həyət evi.\n\nEvin ümumi sahəsi 210 m², həyət sahəsi 400 m²-dir. Ev 2023-cü ildə tikilib, tam təmirli vəziyyətdə: mərmər döşəmə, kombi, kondisionerlər, quraşdırılmış mətbəx.\n\nHəyətdə avtomobil üçün dayanacaq və meyvə ağacları var. Sənədlər tamdır, çıxarışlıdır.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "security",
+      "parking",
+      "garden",
+      "furnished",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Mərdəkan",
+      "addressText": "Xəzər r., Mərdəkan qəsəbəsi",
+      "point": {
+        "lat": 40.4932,
+        "lng": 50.1358
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir ev fasadı",
+        "placeholder": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Həyət evi"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      }
+    ],
+    "badges": [
+      "new",
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-103",
+      "name": "Kamran Hüseynov",
+      "kind": "agent",
+      "agencyName": "Caspian Properties",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2021",
+      "activeListings": 24
+    },
+    "publishedAt": "2026-08-07T22:50:09.311Z",
+    "views": 512,
+    "priceHistory": [
+      {
+        "date": "2026-07-20T23:25:09.311Z",
+        "price": 320000
+      }
+    ],
+    "id": "prop-ab1010",
+    "referenceCode": "AB1010",
+    "slug": "sale-house-ab1010",
+    "isFavorite": false,
+    "pricePerSqm": 1476
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "house",
+    "buildingType": "old",
+    "repairStatus": "cosmetic",
+    "documentType": "citizenship",
+    "price": 148000,
+    "currency": "AZN",
+    "rooms": 4,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "areaTotal": 140,
+    "areaLiving": 105,
+    "areaLand": 600,
+    "floor": 1,
+    "totalFloors": 1,
+    "constructionYear": 1995,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "4 otaqlı həyət evi, 140 m², Buzovna",
+    "description": "Buzovnada geniş həyəti (600 m²) olan 1 mərtəbəli həyət evi satılır.\n\nEv 1995-ci ildə tikilib, 2020-ci ildə təmir olunub. Həyətdə avtomobil dayanacağı, bağ sahəsi və çardağ var.\n\nSakit qəsəbə həyatı, dənizə 5 dəqiqəlik məsafə.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "parking",
+      "garden",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Buzovna",
+      "addressText": "Xəzər r., Buzovna qəsəbəsi",
+      "point": {
+        "lat": 40.5165,
+        "lng": 50.1168
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Klassik ev fasadı",
+        "placeholder": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Bej tonlarda qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Həyət evi"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-08-02T23:05:09.311Z",
+    "views": 289,
+    "priceHistory": [],
+    "id": "prop-ab1011",
+    "referenceCode": "AB1011",
+    "slug": "sale-house-ab1011",
+    "isFavorite": false,
+    "pricePerSqm": 1057
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "villa",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 1150000,
+    "currency": "AZN",
+    "rooms": 7,
+    "bedrooms": 5,
+    "bathrooms": 4,
+    "areaTotal": 380,
+    "areaLiving": 300,
+    "areaLand": 800,
+    "floor": 2,
+    "totalFloors": 2,
+    "constructionYear": 2024,
+    "mortgageAvailable": false,
+    "heating": "mərkəzi istilik",
+    "title": "Dəniz mənzərəli villa, 380 m², Sea Breeze",
+    "description": "Sea Breeze yaşayış kompleksində dənizə birbaşa mənzərəli, müasir 2 mərtəbəli villa.\n\n380 m² yaşayış sahəsi, 800 m² həyət. Evdə hovuz, sauna, böyük qonaq otağı, 5 yataq otağı və xidmətçi otağı var.\n\nKompleksin öz infrastrukturu: tennis kortları, velosiped yolları, kafe və restoranlar, çimərlik.\n\nVilla tam təmirli, mebelli vəziyyətdə təhvil verilir.",
+    "features": [
+      "extract",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "security",
+      "parking",
+      "balcony",
+      "pool",
+      "garden",
+      "furnished",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Sea Breeze",
+      "addressText": "Xəzər r., Sea Breeze kompleksi",
+      "point": {
+        "lat": 40.4931,
+        "lng": 50.03
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Hovuzlu villa",
+        "placeholder": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Dizayn interyer"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Eleqant qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ada mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Hovuzlu ev"
+      }
+    ],
+    "badges": [
+      "premium",
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": true,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-105",
+      "name": "Elçin Səfərov",
+      "kind": "agent",
+      "agencyName": "Premium Home AZ",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2020",
+      "activeListings": 12
+    },
+    "publishedAt": "2026-08-08T20:30:09.311Z",
+    "views": 2145,
+    "priceHistory": [
+      {
+        "date": "2026-07-13T23:25:09.311Z",
+        "price": 1250000
+      },
+      {
+        "date": "2026-07-26T23:25:09.311Z",
+        "price": 1190000
+      },
+      {
+        "date": "2026-08-05T23:25:09.311Z",
+        "price": 1150000
+      }
+    ],
+    "id": "prop-ab1012",
+    "referenceCode": "AB1012",
+    "slug": "sale-villa-ab1012",
+    "isFavorite": false,
+    "pricePerSqm": 3026
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "villa",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 720000,
+    "currency": "AZN",
+    "rooms": 6,
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "areaTotal": 290,
+    "areaLiving": 230,
+    "areaLand": 500,
+    "floor": 2,
+    "totalFloors": 3,
+    "constructionYear": 2023,
+    "mortgageAvailable": true,
+    "heating": "kombi",
+    "title": "Hovuzlu villa, 290 m², Şüvəlan",
+    "description": "Şüvəlan qəsəbəsində, dənizə 400 metr məsafədə hovuzlu müasir villa.\n\nEv 2023-cü ildə tikilib: 290 m² yaşayış sahəsi, 3 mərtəbə, panoramik pəncərələr, qapalı hovuz və istirahət zonası.\n\nHəyətdə yaşıllıq və avtomobil üçün geniş dayanacaq. Ailəvi yaşayış üçün ideal variant.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "security",
+      "parking",
+      "pool",
+      "garden",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Şüvəlan",
+      "addressText": "Xəzər r., Şüvəlan qəsəbəsi",
+      "point": {
+        "lat": 40.4552,
+        "lng": 50.2004
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir villa",
+        "placeholder": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ada mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Avtomobil yolu ilə ev"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-103",
+      "name": "Kamran Hüseynov",
+      "kind": "agent",
+      "agencyName": "Caspian Properties",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2021",
+      "activeListings": 24
+    },
+    "publishedAt": "2026-08-05T00:45:09.311Z",
+    "views": 968,
+    "priceHistory": [
+      {
+        "date": "2026-07-22T23:25:09.311Z",
+        "price": 740000
+      }
+    ],
+    "id": "prop-ab1013",
+    "referenceCode": "AB1013",
+    "slug": "sale-villa-ab1013",
+    "isFavorite": false,
+    "pricePerSqm": 2483
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "land",
+    "price": 85000,
+    "currency": "AZN",
+    "rooms": 0,
+    "areaTotal": 700,
+    "areaLand": 700,
+    "documentType": "extract",
+    "title": "Torpaq sahəsi, 700 m², Şüvəlan",
+    "description": "Şüvəlan qəsəbəsində tikinti üçün yararlı 700 m² torpaq sahəsi satılır.\n\nSahə bağlanıb, su və işıq xətləri keçirilib. Qəsəbə mərkəzinə və dənizə yaxın məsafədədir.\n\nFərdi ev tikintisi üçün ideal ərazi. Sənədlər tamdır.",
+    "features": [
+      "water",
+      "electricity"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Şüvəlan",
+      "addressText": "Xəzər r., Şüvəlan qəsəbəsi",
+      "point": {
+        "lat": 40.455,
+        "lng": 50.198
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1523895665936-7bfe172b757d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Torpaq sahəsi",
+        "placeholder": "https://images.unsplash.com/photo-1523895665936-7bfe172b757d?auto=format&fit=crop&w=40&q=20&blur=30"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-07-31T18:55:09.311Z",
+    "views": 178,
+    "priceHistory": [
+      {
+        "date": "2026-07-25T23:25:09.311Z",
+        "price": 90000
+      }
+    ],
+    "id": "prop-ab1014",
+    "referenceCode": "AB1014",
+    "slug": "sale-land-ab1014",
+    "isFavorite": false,
+    "mortgageAvailable": false
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "land",
+    "price": 240000,
+    "currency": "AZN",
+    "rooms": 0,
+    "areaTotal": 1200,
+    "areaLand": 1200,
+    "documentType": "extract",
+    "title": "Torpaq sahəsi, 1200 m², Bilgəh",
+    "description": "Bilgəh qəsəbəsində, dənizə 800 metr məsafədə 1200 m² torpaq sahəsi satılır.\n\nSahə düzdür, tikinti üçün bütün kommunikasiyalar keçirilib. Bağlanmış ərazidədir.\n\nVilla tikintisi və ya investisiya üçün əla fürsət.",
+    "features": [
+      "gas",
+      "water",
+      "electricity"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Bilgəh",
+      "addressText": "Xəzər r., Bilgəh qəsəbəsi",
+      "point": {
+        "lat": 40.5683,
+        "lng": 50.0348
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yaşıl torpaq sahəsi",
+        "placeholder": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=40&q=20&blur=30"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-104",
+      "name": "Nigar Quliyeva",
+      "kind": "agent",
+      "agencyName": "Metro Emlak",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2022",
+      "activeListings": 31
+    },
+    "publishedAt": "2026-07-29T21:40:09.311Z",
+    "views": 245,
+    "priceHistory": [],
+    "id": "prop-ab1015",
+    "referenceCode": "AB1015",
+    "slug": "sale-land-ab1015",
+    "isFavorite": false,
+    "mortgageAvailable": false
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "land",
+    "price": 58000,
+    "currency": "AZN",
+    "rooms": 0,
+    "areaTotal": 500,
+    "areaLand": 500,
+    "documentType": "certificate",
+    "title": "Torpaq sahəsi, 500 m², Sumqayıt",
+    "description": "Sumqayıt şəhəri, Corat qəsəbəsi yaxınlığında 500 m² torpaq sahəsi satılır.\n\nSahə magistral yolun yaxınlığındadır, keçid rahatdır. Tikinti üçün yararlıdır.\n\nUcuz və perspektivli ərazi.",
+    "features": [
+      "water",
+      "electricity"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Sumqayıt",
+      "district": "Corat",
+      "addressText": "Sumqayıt, Corat qəsəbəsi",
+      "point": {
+        "lat": 40.5807,
+        "lng": 49.703
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Torpaq sahəsi",
+        "placeholder": "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=40&q=20&blur=30"
+      }
+    ],
+    "badges": [
+      "price_drop"
+    ],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-102",
+      "name": "Aygün Əliyeva",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2024",
+      "activeListings": 1
+    },
+    "publishedAt": "2026-07-30T18:25:09.311Z",
+    "views": 154,
+    "priceHistory": [
+      {
+        "date": "2026-07-19T23:25:09.311Z",
+        "price": 62000
+      },
+      {
+        "date": "2026-08-03T23:25:09.311Z",
+        "price": 58000
+      }
+    ],
+    "id": "prop-ab1016",
+    "referenceCode": "AB1016",
+    "slug": "sale-land-ab1016",
+    "isFavorite": false,
+    "mortgageAvailable": false
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "office",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 420000,
+    "currency": "AZN",
+    "rooms": 0,
+    "areaTotal": 180,
+    "areaLiving": 180,
+    "floor": 4,
+    "totalFloors": 12,
+    "constructionYear": 2023,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "Ofis sahəsi, 180 m², Nərimanov",
+    "description": "Nərimanov rayonunda, Gənclik metrosu yaxınlığında biznes mərkəzində 180 m² ofis sahəsi satılır.\n\nSahə açıq planlıdır, təmirli vəziyyətdə təhvil verilir. Binada qəbul, mühafizə və yeraltı parkinq var.\n\nŞirkətlər üçün əla lokasiya — mərkəzdə, nəqliyyat qovşağının yaxınlığında.",
+    "features": [
+      "extract",
+      "mortgage",
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nərimanov",
+      "neighborhood": "Gənclik",
+      "metro": "Gənclik",
+      "addressText": "Nərimanov r., Gənclik",
+      "point": {
+        "lat": 40.409,
+        "lng": 49.8515
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ofis interyeri",
+        "placeholder": "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ofis görüş otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ofis lobbisi"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-105",
+      "name": "Elçin Səfərov",
+      "kind": "agent",
+      "agencyName": "Premium Home AZ",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2020",
+      "activeListings": 12
+    },
+    "publishedAt": "2026-08-06T00:55:09.311Z",
+    "views": 302,
+    "priceHistory": [],
+    "id": "prop-ab1017",
+    "referenceCode": "AB1017",
+    "slug": "sale-office-ab1017",
+    "isFavorite": false,
+    "pricePerSqm": 2333
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "commercial",
+    "buildingType": "old",
+    "repairStatus": "renovated",
+    "documentType": "citizenship",
+    "price": 190000,
+    "currency": "AZN",
+    "rooms": 0,
+    "areaTotal": 120,
+    "areaLiving": 120,
+    "floor": 1,
+    "totalFloors": 5,
+    "constructionYear": 2010,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "Mağaza üçün obyekt, 120 m², Xətai",
+    "description": "Xətai rayonunda, sıx keçişli küçədə yerləşən 120 m² ticarət obyekti satılır.\n\nObyekt vitrinlərlə birlikdə təhvil verilir, elektrik və su xətləri çəkilib. Hazırda fəaliyyət göstərən mağaza kimi istifadə olunur.\n\nTicarət üçün əla yer — ətrafda yaşayış binaları və nəqliyyat dayanacaqları var.",
+    "features": [
+      "water",
+      "electricity",
+      "kombi",
+      "security"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xətai",
+      "addressText": "Xətai r., Xətai metrosu",
+      "point": {
+        "lat": 40.3669,
+        "lng": 49.8591
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ticarət obyekti",
+        "placeholder": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=40&q=20&blur=30"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-08-02T00:15:09.311Z",
+    "views": 198,
+    "priceHistory": [],
+    "id": "prop-ab1018",
+    "referenceCode": "AB1018",
+    "slug": "sale-commercial-ab1018",
+    "isFavorite": false,
+    "pricePerSqm": 1583
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "garage",
+    "price": 22000,
+    "currency": "AZN",
+    "rooms": 0,
+    "areaTotal": 20,
+    "floor": 0,
+    "totalFloors": 1,
+    "documentType": "citizenship",
+    "title": "Qaraj, 20 m², Binəqədi",
+    "description": "Binəqədi rayonunda qapalı ərazidə yerləşən qaraj satılır.\n\nQaraj 20 m²-dir, elektrik var. Bağlı ərazidədir, mühafizə olunur.\n\nAvtomobilinizi qorumaq üçün etibarlı yer.",
+    "features": [
+      "electricity",
+      "security"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Binəqədi",
+      "addressText": "Binəqədi r., Binəqədi",
+      "point": {
+        "lat": 40.437,
+        "lng": 49.804
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1523895665936-7bfe172b757d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Torpaq sahəsi",
+        "placeholder": "https://images.unsplash.com/photo-1523895665936-7bfe172b757d?auto=format&fit=crop&w=40&q=20&blur=30"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-07-28T20:10:09.311Z",
+    "views": 96,
+    "priceHistory": [],
+    "id": "prop-ab1019",
+    "referenceCode": "AB1019",
+    "slug": "sale-garage-ab1019",
+    "isFavorite": false,
+    "mortgageAvailable": false
+  },
+  {
+    "dealType": "rent",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "price": 750,
+    "currency": "AZN",
+    "rooms": 2,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 58,
+    "areaLiving": 45,
+    "floor": 6,
+    "totalFloors": 16,
+    "constructionYear": 2024,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "Kirayə: 2 otaqlı mənzil, 58 m², Gənclik",
+    "description": "Gənclik metrosuna 5 dəqiqəlik məsafədə yeni binada 2 otaqlı mənzil kirayə verilir.\n\nMənzil mebelli və məişət texnikası ilə təmin olunub: soyuducu, paltaryuyan, kondisioner. İnternet və kabel TV qoşulub.\n\nUzunmüddətli kirayə üçün verilir. Əvvəlcədən ödəniş: 1 ay + depozit.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "balcony",
+      "furnished",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nərimanov",
+      "neighborhood": "Gənclik",
+      "metro": "Gənclik",
+      "addressText": "Nərimanov r., Gənclik",
+      "point": {
+        "lat": 40.4098,
+        "lng": 49.8524
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Rahat qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir mətbəx"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-104",
+      "name": "Nigar Quliyeva",
+      "kind": "agent",
+      "agencyName": "Metro Emlak",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2022",
+      "activeListings": 31
+    },
+    "publishedAt": "2026-08-10T03:35:09.311Z",
+    "views": 634,
+    "priceHistory": [],
+    "id": "prop-ab1020",
+    "referenceCode": "AB1020",
+    "slug": "rent-apartment-ab1020",
+    "isFavorite": false,
+    "pricePerSqm": 13
+  },
+  {
+    "dealType": "rent",
+    "propertyType": "apartment",
+    "buildingType": "old",
+    "repairStatus": "cosmetic",
+    "price": 420,
+    "currency": "AZN",
+    "rooms": 1,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 45,
+    "areaLiving": 35,
+    "floor": 3,
+    "totalFloors": 5,
+    "constructionYear": 2000,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "Kirayə: 1 otaqlı mənzil, 45 m², Nəsimi",
+    "description": "Nəsimi rayonunda, 28 May metrosu yaxınlığında 1 otaqlı mənzil kirayə verilir.\n\nMənzil mebelli, kombi və qaz quraşdırılıb. Şəhər mərkəzində yaşamaq üçün rahat seçim.\n\nUzunmüddətli kirayə. Ödəniş: aylıq, əvvəlcədən 1 ay + depozit.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "balcony",
+      "furnished",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nəsimi",
+      "neighborhood": "28 May",
+      "metro": "28 May",
+      "addressText": "Nəsimi r., 28 May",
+      "point": {
+        "lat": 40.3806,
+        "lng": 49.8449
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Skandinav üslublu qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-101",
+      "name": "Rəşad Məmmədov",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2023",
+      "activeListings": 3
+    },
+    "publishedAt": "2026-08-08T19:50:09.311Z",
+    "views": 845,
+    "priceHistory": [],
+    "id": "prop-ab1021",
+    "referenceCode": "AB1021",
+    "slug": "rent-apartment-ab1021",
+    "isFavorite": false,
+    "pricePerSqm": 9
+  },
+  {
+    "dealType": "rent",
+    "propertyType": "new_building",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "price": 1400,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "areaTotal": 96,
+    "areaLiving": 74,
+    "floor": 14,
+    "totalFloors": 24,
+    "constructionYear": 2025,
+    "mortgageAvailable": false,
+    "heating": "mərkəzi istilik",
+    "title": "Kirayə: 3 otaqlı yeni tikili, 96 m², Sahil",
+    "description": "Sahil metrosu yaxınlığında, Dənizkənarı bulvara baxan yeni binada 3 otaqlı mənzil kirayə verilir.\n\nMənzil tam təmirli, tam mebelli və texnika ilə təmin olunub. Panoramik mənzərə, kondisioner sistemi.\n\nPremium yaşayış üçün mərkəzdə ideal seçim.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "furnished",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Səbail",
+      "neighborhood": "Sahil",
+      "metro": "Sahil",
+      "addressText": "Səbail r., Sahil",
+      "point": {
+        "lat": 40.3709,
+        "lng": 49.8468
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Eleqant qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ada mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Şəhər mənzərəsi"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": true,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-105",
+      "name": "Elçin Səfərov",
+      "kind": "agent",
+      "agencyName": "Premium Home AZ",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2020",
+      "activeListings": 12
+    },
+    "publishedAt": "2026-08-07T21:20:09.311Z",
+    "views": 1102,
+    "priceHistory": [],
+    "id": "prop-ab1022",
+    "referenceCode": "AB1022",
+    "slug": "rent-new_building-ab1022",
+    "isFavorite": false,
+    "pricePerSqm": 15
+  },
+  {
+    "dealType": "rent",
+    "propertyType": "house",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "price": 2600,
+    "currency": "AZN",
+    "rooms": 5,
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "areaTotal": 260,
+    "areaLiving": 210,
+    "areaLand": 500,
+    "floor": 2,
+    "totalFloors": 2,
+    "constructionYear": 2022,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "Kirayə: hovuzlu həyət evi, 260 m², Bilgəh",
+    "description": "Bilgəh qəsəbəsində hovuzlu 2 mərtəbəli həyət evi illik kirayə verilir.\n\nEv tam mebelli: 4 yataq otağı, geniş qonaq otağı, hovuz, bağça və istirahət zonası. Qaraj və dayanacaq var.\n\nAiləvi yaşayış üçün idealdır. Müqavilə əsasında.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "security",
+      "parking",
+      "pool",
+      "garden",
+      "furnished",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Bilgəh",
+      "addressText": "Xəzər r., Bilgəh qəsəbəsi",
+      "point": {
+        "lat": 40.5685,
+        "lng": 50.0342
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Hovuzlu ev",
+        "placeholder": "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      }
+    ],
+    "badges": [
+      "premium"
+    ],
+    "isVerified": true,
+    "isPremium": true,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-106",
+      "name": "Leyla Qasımova",
+      "kind": "agent",
+      "agencyName": "Baku Estate",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2023",
+      "activeListings": 18
+    },
+    "publishedAt": "2026-08-03T22:05:09.311Z",
+    "views": 723,
+    "priceHistory": [],
+    "id": "prop-ab1023",
+    "referenceCode": "AB1023",
+    "slug": "rent-house-ab1023",
+    "isFavorite": false,
+    "pricePerSqm": 10
+  },
+  {
+    "dealType": "daily",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "price": 80,
+    "currency": "AZN",
+    "rooms": 1,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 48,
+    "areaLiving": 38,
+    "floor": 10,
+    "totalFloors": 21,
+    "constructionYear": 2024,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "Günlük kirayə: 1 otaqlı mənzil, 48 m², Gənclik",
+    "description": "Gənclik metrosu yaxınlığında yeni binada günlük kirayə verilən 1 otaqlı mənzil.\n\nMənzil tam mebelli, məişət texnikası, kondisioner və internet var. Təmiz dəsmallar və yataq dəsti təmin olunur.\n\nQiymət: 80 ₼/gün. Minimum 1 gecə. 7+ günlük qalmalara endirim.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "furnished",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nərimanov",
+      "neighborhood": "Gənclik",
+      "metro": "Gənclik",
+      "addressText": "Nərimanov r., Gənclik",
+      "point": {
+        "lat": 40.4101,
+        "lng": 49.8511
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80",
+        "alt": "İşıqlı qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-102",
+      "name": "Aygün Əliyeva",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2024",
+      "activeListings": 1
+    },
+    "publishedAt": "2026-08-10T05:10:09.311Z",
+    "views": 987,
+    "priceHistory": [],
+    "id": "prop-ab1024",
+    "referenceCode": "AB1024",
+    "slug": "daily-apartment-ab1024",
+    "isFavorite": false,
+    "pricePerSqm": 2
+  },
+  {
+    "dealType": "daily",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "price": 150,
+    "currency": "AZN",
+    "rooms": 2,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 62,
+    "areaLiving": 48,
+    "floor": 18,
+    "totalFloors": 30,
+    "constructionYear": 2025,
+    "mortgageAvailable": false,
+    "heating": "mərkəzi istilik",
+    "title": "Günlük kirayə: dəniz mənzərəli mənzil, 62 m², İçərişəhər",
+    "description": "İçərişəhərin girişində, dəniz mənzərəli hündür binada 2 otaqlı mənzil günlük kirayə verilir.\n\nMüasir təmir, tam mebel, smart TV, sürətli Wi-Fi. Qonaqlar üçün hər şey düşünülüb.\n\nQiymət: 150 ₼/gün. Həftəsonu və bayram günlərində mövcudluq məhduddur.",
+    "features": [
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "balcony",
+      "furnished",
+      "internet",
+      "home_appliances"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Səbail",
+      "neighborhood": "İçərişəhər",
+      "metro": "İçərişəhər",
+      "addressText": "Səbail r., İçərişəhər",
+      "point": {
+        "lat": 40.3671,
+        "lng": 49.8333
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Rahat qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1554995207-c18c203602cb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ada mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-106",
+      "name": "Leyla Qasımova",
+      "kind": "agent",
+      "agencyName": "Baku Estate",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2023",
+      "activeListings": 18
+    },
+    "publishedAt": "2026-08-06T23:40:09.311Z",
+    "views": 1456,
+    "priceHistory": [],
+    "id": "prop-ab1025",
+    "referenceCode": "AB1025",
+    "slug": "daily-apartment-ab1025",
+    "isFavorite": false,
+    "pricePerSqm": 2
+  },
+  {
+    "dealType": "daily",
+    "propertyType": "villa",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "price": 500,
+    "currency": "AZN",
+    "rooms": 6,
+    "bedrooms": 4,
+    "bathrooms": 3,
+    "areaTotal": 300,
+    "areaLiving": 240,
+    "areaLand": 600,
+    "floor": 2,
+    "totalFloors": 2,
+    "constructionYear": 2023,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "Günlük kirayə: hovuzlu villa, Mərdəkan",
+    "description": "Mərdəkanda hovuzlu villa həftəsonu və bayram günləri üçün günlük kirayə verilir.\n\nVillada hovuz, manqal zonası, geniş həyət və 4 yataq otağı var. 12 nəfərə qədər qonaq qəbul edə bilər.\n\nQiymət: 500 ₼/gün. Təmizlik xidməti daxildir.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "security",
+      "parking",
+      "pool",
+      "garden",
+      "furnished",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Mərdəkan",
+      "addressText": "Xəzər r., Mərdəkan qəsəbəsi",
+      "point": {
+        "lat": 40.4928,
+        "lng": 50.1362
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Hovuzlu villa",
+        "placeholder": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Eleqant qonaq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Həyət evi"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      }
+    ],
+    "badges": [
+      "premium"
+    ],
+    "isVerified": true,
+    "isPremium": true,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-103",
+      "name": "Kamran Hüseynov",
+      "kind": "agent",
+      "agencyName": "Caspian Properties",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2021",
+      "activeListings": 24
+    },
+    "publishedAt": "2026-08-09T01:25:09.311Z",
+    "views": 1820,
+    "priceHistory": [],
+    "id": "prop-ab1026",
+    "referenceCode": "AB1026",
+    "slug": "daily-villa-ab1026",
+    "isFavorite": false,
+    "pricePerSqm": 2
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 210000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "areaTotal": 92,
+    "areaLiving": 70,
+    "floor": 10,
+    "totalFloors": 22,
+    "constructionYear": 2025,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "3 otaqlı mənzil, 92 m², Yasamal",
+    "description": "Yasamal rayonunda, Elmlər Akademiyası metrosu yaxınlığında müasir binada 3 otaqlı mənzil.\n\nTam təmirli, açar təslim vəziyyətdə. Pəncərələrdən şəhər mənzərəsi.\n\nBina mühafizə və liftlərlə təchiz olunub, yeraltı parkinq var.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Yasamal",
+      "neighborhood": "Elmlər Akademiyası",
+      "metro": "Elmlər Akademiyası",
+      "addressText": "Yasamal r., Elmlər Akademiyası metrosu",
+      "point": {
+        "lat": 40.3848,
+        "lng": 49.8164
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Bej tonlarda qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağ mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yaşayış binası"
+      }
+    ],
+    "badges": [
+      "new",
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-104",
+      "name": "Nigar Quliyeva",
+      "kind": "agent",
+      "agencyName": "Metro Emlak",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2022",
+      "activeListings": 31
+    },
+    "publishedAt": "2026-08-09T23:15:09.311Z",
+    "views": 389,
+    "priceHistory": [],
+    "id": "prop-ab1027",
+    "referenceCode": "AB1027",
+    "slug": "sale-apartment-ab1027",
+    "isFavorite": false,
+    "pricePerSqm": 2283
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "old",
+    "repairStatus": "renovated",
+    "documentType": "citizenship",
+    "price": 175000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "areaTotal": 80,
+    "areaLiving": 62,
+    "floor": 2,
+    "totalFloors": 9,
+    "constructionYear": 2012,
+    "mortgageAvailable": false,
+    "heating": "kombi",
+    "title": "3 otaqlı mənzil, 80 m², Nərimanov",
+    "description": "Nərimanov rayonunda, 2012-ci il tikintisi binada 3 otaqlı mənzil.\n\nMənzil təmirli vəziyyətdədir, kombi, kondisioner və quraşdırılmış mətbəx var.\n\nMetroya 10 dəqiqəlik piyada məsafə. Ailə üçün rahat, sakit həyət.",
+    "features": [
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "balcony",
+      "furnished",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Nərimanov",
+      "addressText": "Nərimanov r., Nərimanov",
+      "point": {
+        "lat": 40.404,
+        "lng": 49.8615
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Skandinav üslublu qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağac üzlüklü mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      }
+    ],
+    "badges": [],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-102",
+      "name": "Aygün Əliyeva",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2024",
+      "activeListings": 1
+    },
+    "publishedAt": "2026-08-04T20:35:09.311Z",
+    "views": 342,
+    "priceHistory": [
+      {
+        "date": "2026-07-17T23:25:09.311Z",
+        "price": 180000
+      }
+    ],
+    "id": "prop-ab1028",
+    "referenceCode": "AB1028",
+    "slug": "sale-apartment-ab1028",
+    "isFavorite": false,
+    "pricePerSqm": 2188
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 265000,
+    "currency": "AZN",
+    "rooms": 3,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "areaTotal": 108,
+    "areaLiving": 84,
+    "floor": 7,
+    "totalFloors": 20,
+    "constructionYear": 2025,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "3 otaqlı geniş mənzil, 108 m², Dərnəgül",
+    "description": "Dərnəgül metrosu yaxınlığında yeni kompleksdə 3 otaqlı geniş mənzil satılır.\n\n108 m² ümumi sahə, açıq planlaşdırma, böyük qonaq otağı. Tam təmirli vəziyyətdə təhvil verilir.\n\nKompleksdə uşaq meydançası, market və idman zalı var. İpoteka mümkündür.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "internet",
+      "children_playground"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Binəqədi",
+      "neighborhood": "Dərnəgül",
+      "metro": "Dərnəgül",
+      "addressText": "Binəqədi r., Dərnəgül",
+      "point": {
+        "lat": 40.448,
+        "lng": 49.8375
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yeni tikili kompleksi"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-103",
+      "name": "Kamran Hüseynov",
+      "kind": "agent",
+      "agencyName": "Caspian Properties",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2021",
+      "activeListings": 24
+    },
+    "publishedAt": "2026-08-06T02:00:09.311Z",
+    "views": 455,
+    "priceHistory": [],
+    "id": "prop-ab1029",
+    "referenceCode": "AB1029",
+    "slug": "sale-apartment-ab1029",
+    "isFavorite": false,
+    "pricePerSqm": 2454
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "cosmetic",
+    "documentType": "citizenship",
+    "price": 71000,
+    "currency": "AZN",
+    "rooms": 1,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 42,
+    "areaLiving": 33,
+    "floor": 8,
+    "totalFloors": 16,
+    "constructionYear": 2023,
+    "mortgageAvailable": true,
+    "heating": "kombi",
+    "title": "1 otaqlı mənzil, 42 m², Sumqayıt",
+    "description": "Sumqayıt şəhərində, mərkəzi parkın yaxınlığında yeni binada 1 otaqlı mənzil.\n\nMənzil kosmetik təmirli, kombi və kondisioner quraşdırılıb. Lift və mühafizə var.\n\nGənc ailələr üçün əla ilk ev seçimi.",
+    "features": [
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Sumqayıt",
+      "district": "Mərkəz",
+      "addressText": "Sumqayıt, Mərkəz",
+      "point": {
+        "lat": 40.586,
+        "lng": 49.6325
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1400&q=80",
+        "alt": "İşıqlı qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1556912173-3bb406ef7e77?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ağ mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      }
+    ],
+    "badges": [
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-104",
+      "name": "Nigar Quliyeva",
+      "kind": "agent",
+      "agencyName": "Metro Emlak",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2022",
+      "activeListings": 31
+    },
+    "publishedAt": "2026-08-03T01:15:09.311Z",
+    "views": 267,
+    "priceHistory": [],
+    "id": "prop-ab1030",
+    "referenceCode": "AB1030",
+    "slug": "sale-apartment-ab1030",
+    "isFavorite": false,
+    "pricePerSqm": 1690
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 228000,
+    "currency": "AZN",
+    "rooms": 2,
+    "bedrooms": 2,
+    "bathrooms": 2,
+    "areaTotal": 88,
+    "areaLiving": 68,
+    "floor": 11,
+    "totalFloors": 19,
+    "constructionYear": 2025,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "2 otaqlı mənzil, 88 m², Mərdəkan",
+    "description": "Mərdəkanda dənizə yaxın yeni yaşayış kompleksində 2 otaqlı mənzil satılır.\n\nGeniş otaqlar, böyük qonaq otağı, tam təmirli vəziyyət. Kompleksdə hovuz, fitnes və uşaq meydançası var.\n\nDəniz kənarında yaşamaq istəyənlər üçün əla seçim.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "kombi",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "pool",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xəzər",
+      "settlement": "Mərdəkan",
+      "addressText": "Xəzər r., Mərdəkan qəsəbəsi",
+      "point": {
+        "lat": 40.494,
+        "lng": 50.133
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Eleqant qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1571508601891-ca5e7a713859?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Ada mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir villa"
+      }
+    ],
+    "badges": [
+      "new",
+      "verified"
+    ],
+    "isVerified": true,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-105",
+      "name": "Elçin Səfərov",
+      "kind": "agent",
+      "agencyName": "Premium Home AZ",
+      "verifiedPhone": true,
+      "verifiedIdentity": true,
+      "memberSince": "2020",
+      "activeListings": 12
+    },
+    "publishedAt": "2026-08-08T22:30:09.311Z",
+    "views": 534,
+    "priceHistory": [],
+    "id": "prop-ab1031",
+    "referenceCode": "AB1031",
+    "slug": "sale-apartment-ab1031",
+    "isFavorite": false,
+    "pricePerSqm": 2591
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "new",
+    "repairStatus": "renovated",
+    "documentType": "extract",
+    "price": 350000,
+    "currency": "AZN",
+    "rooms": 4,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "areaTotal": 132,
+    "areaLiving": 104,
+    "floor": 15,
+    "totalFloors": 26,
+    "constructionYear": 2026,
+    "mortgageAvailable": true,
+    "heating": "mərkəzi istilik",
+    "title": "4 otaqlı mənzil, 132 m², Xətai",
+    "description": "Xətai rayonunda, Bakıxanov metrosu yaxınlığında yeni kompleksdə 4 otaqlı geniş mənzil.\n\nMənzil 2026-cı ilin ikinci rübündə təhvil verilir. Açıq planlaşdırma, böyük mətbəx-qonaq otağı.\n\nİnvestisiya üçün də uyğun — kompleks sürətlə inkişaf edən ərazidə yerləşir.",
+    "features": [
+      "extract",
+      "mortgage",
+      "gas",
+      "water",
+      "electricity",
+      "central_heating",
+      "air_conditioning",
+      "elevator",
+      "security",
+      "parking",
+      "balcony",
+      "internet"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Bakı",
+      "district": "Xətai",
+      "addressText": "Xətai r., Bakıxanov metrosu",
+      "point": {
+        "lat": 40.3938,
+        "lng": 49.8773
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Dizayn interyer",
+        "placeholder": "https://images.unsplash.com/photo-1600121848594-d8644e57abab?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1600489000022-c2086d79f9d4?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Müasir mətbəx"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Sakit yataq otağı"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yeni tikili kompleksi"
+      }
+    ],
+    "badges": [
+      "new"
+    ],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": true,
+    "status": "active",
+    "seller": {
+      "id": "usr-106",
+      "name": "Leyla Qasımova",
+      "kind": "agent",
+      "agencyName": "Baku Estate",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2023",
+      "activeListings": 18
+    },
+    "publishedAt": "2026-08-06T19:10:09.311Z",
+    "views": 481,
+    "priceHistory": [],
+    "id": "prop-ab1032",
+    "referenceCode": "AB1032",
+    "slug": "sale-apartment-ab1032",
+    "isFavorite": false,
+    "pricePerSqm": 2652
+  },
+  {
+    "dealType": "sale",
+    "propertyType": "apartment",
+    "buildingType": "old",
+    "repairStatus": "needs_repair",
+    "documentType": "citizenship",
+    "price": 54000,
+    "currency": "AZN",
+    "rooms": 1,
+    "bedrooms": 1,
+    "bathrooms": 1,
+    "areaTotal": 40,
+    "areaLiving": 30,
+    "floor": 4,
+    "totalFloors": 5,
+    "constructionYear": 1985,
+    "mortgageAvailable": false,
+    "heating": "qaz",
+    "title": "1 otaqlı mənzil, 40 m², Sumqayıt",
+    "description": "Sumqayıtın mərkəzində 1 otaqlı mənzil satılır.\n\nMənzil təmirsiz vəziyyətdədir — öz zövqünə uyğun təmir etmək istəyənlər üçün sərfəli alış.\n\nBütün kommunikasiyalar var: qaz, su, işıq.",
+    "features": [
+      "gas",
+      "water",
+      "electricity"
+    ],
+    "location": {
+      "country": "Azərbaycan",
+      "city": "Sumqayıt",
+      "district": "Mərkəz",
+      "addressText": "Sumqayıt, Mərkəz",
+      "point": {
+        "lat": 40.5859,
+        "lng": 49.6312
+      }
+    },
+    "images": [
+      {
+        "src": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Bej tonlarda qonaq otağı",
+        "placeholder": "https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=40&q=20&blur=30"
+      },
+      {
+        "src": "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1400&q=80",
+        "alt": "Yataq otağı"
+      }
+    ],
+    "badges": [
+      "price_drop"
+    ],
+    "isVerified": false,
+    "isPremium": false,
+    "isPromoted": false,
+    "status": "active",
+    "seller": {
+      "id": "usr-102",
+      "name": "Aygün Əliyeva",
+      "kind": "owner",
+      "verifiedPhone": true,
+      "verifiedIdentity": false,
+      "memberSince": "2024",
+      "activeListings": 1
+    },
+    "publishedAt": "2026-07-31T21:45:09.311Z",
+    "views": 231,
+    "priceHistory": [
+      {
+        "date": "2026-07-11T23:25:09.311Z",
+        "price": 59000
+      },
+      {
+        "date": "2026-08-04T23:25:09.311Z",
+        "price": 54000
+      }
+    ],
+    "id": "prop-ab1033",
+    "referenceCode": "AB1033",
+    "slug": "sale-apartment-ab1033",
+    "isFavorite": false,
+    "pricePerSqm": 1350
+  }
+]

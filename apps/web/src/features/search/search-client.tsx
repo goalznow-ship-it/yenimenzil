@@ -2,11 +2,12 @@
 
 import * as React from "react";
 import { useSearchParams } from "next/navigation";
+import type { Property } from "@yenimenzil/types";
 import type { MapBounds } from "@/lib/map/types";
 import { isPointInBounds } from "@/lib/map/types";
 import type { MapMarkerData } from "@/lib/map/types";
 import { useSearchFilters, type ViewMode } from "./use-search-filters";
-import { searchListings } from "@/services/listings-service";
+import { searchProperties } from "@/services/property-api";
 import { MapView } from "@/features/map/map-view";
 import { FilterControls } from "./filter-controls";
 import { PropertyListRow } from "./property-list-row";
@@ -83,27 +84,41 @@ export function SearchClient() {
   const [mapOpen, setMapOpen] = React.useState(false);
   const [activeMarkerId, setActiveMarkerId] = React.useState<string | null>(null);
   const [pendingBounds, setPendingBounds] = React.useState<MapBounds | null>(null);
+  const [unfiltered, setUnfiltered] = React.useState<Property[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const unfiltered = React.useMemo(
-    () =>
-      searchListings({
-        deal: filters.deal,
-        district: filters.district,
-        propertyType: filters.propertyType,
-        rooms: filters.rooms,
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-        minArea: filters.minArea,
-        maxArea: filters.maxArea,
-        metro: filters.metro,
-        buildingType: filters.buildingType,
-        repairStatus: filters.repairStatus,
-        ownerOnly: filters.ownerOnly,
-        verifiedOnly: filters.verifiedOnly,
-        sort: filters.sort
-      }),
-    [filters]
-  );
+  React.useEffect(() => {
+    let cancelled = false;
+    searchProperties({
+      deal: filters.deal,
+      district: filters.district,
+      propertyType: filters.propertyType,
+      rooms: filters.rooms,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      minArea: filters.minArea,
+      maxArea: filters.maxArea,
+      metro: filters.metro,
+      buildingType: filters.buildingType,
+      repairStatus: filters.repairStatus,
+      ownerOnly: filters.ownerOnly,
+      verifiedOnly: filters.verifiedOnly,
+      sort: filters.sort
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setUnfiltered(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setUnfiltered([]);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
 
   const results = React.useMemo(() => {
     if (!mapBounds) return unfiltered;
@@ -187,9 +202,11 @@ export function SearchClient() {
     onReset: resetAll
   };
 
-  const countLabel = mapBounds
-    ? `${results.length} elan`
-    : `${unfiltered.length} elan`;
+  const countLabel = loading
+    ? "Yüklənir…"
+    : mapBounds
+      ? `${results.length} elan`
+      : `${unfiltered.length} elan`;
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 lg:px-6">
@@ -312,7 +329,23 @@ export function SearchClient() {
       {/* Desktop: split results + map */}
       <div className="mt-4 hidden gap-5 lg:grid lg:grid-cols-[1.25fr_1fr]">
         <div className={cn(view === "map" && "hidden")}>
-          {results.length === 0 ? (
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex gap-4 rounded-2xl bg-surface p-3 ring-1 ring-border/70"
+                >
+                  <Skeleton className="h-40 w-44 rounded-xl sm:w-56" />
+                  <div className="flex-1 space-y-2.5 py-1">
+                    <Skeleton className="h-5 w-1/3" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3.5 w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : results.length === 0 ? (
             <EmptyState
               icon={<SearchX className="h-7 w-7" />}
               title="Heç bir elan tapılmadı"
@@ -359,7 +392,23 @@ export function SearchClient() {
 
       {/* Mobile: list */}
       <div className="mt-3 lg:hidden">
-        {results.length === 0 ? (
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex gap-4 rounded-2xl bg-surface p-3 ring-1 ring-border/70"
+              >
+                <Skeleton className="h-32 w-36 rounded-xl sm:w-48" />
+                <div className="flex-1 space-y-2.5 py-1">
+                  <Skeleton className="h-5 w-1/3" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3.5 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : results.length === 0 ? (
           <EmptyState
             icon={<SearchX className="h-7 w-7" />}
             title="Heç bir elan tapılmadı"

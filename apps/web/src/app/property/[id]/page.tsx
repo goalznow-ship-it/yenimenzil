@@ -9,7 +9,7 @@ import {
   REPAIR_LABELS,
   type Property
 } from "@yenimenzil/types";
-import { getListingById, getSimilarListings } from "@/services/listings-service";
+import { fetchPropertyById, fetchSimilarProperties } from "@/services/property-api";
 import { propertyMetadata, jsonLdProperty } from "@/lib/seo";
 import { formatPricePerSqm, formatPriceWithPeriod, formatDate, timeAgo } from "@/lib/format";
 import { PropertyGallery } from "@/features/properties/property-gallery";
@@ -27,7 +27,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const property = getListingById(id);
+  const property = await fetchPropertyById(id);
   if (!property) return { title: "Elan tapılmadı" };
   return propertyMetadata(property);
 }
@@ -198,7 +198,7 @@ function FeaturesSection({ property }: { property: Property }) {
 
 export default async function PropertyPage({ params }: PageProps) {
   const { id } = await params;
-  const property = getListingById(id);
+  const property = await fetchPropertyById(id);
 
   if (!property) notFound();
 
@@ -222,7 +222,7 @@ export default async function PropertyPage({ params }: PageProps) {
     );
   }
 
-  const similar = getSimilarListings(property, 4);
+  const similar = await fetchSimilarProperties(property, 4);
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-5 lg:px-6 lg:py-7">

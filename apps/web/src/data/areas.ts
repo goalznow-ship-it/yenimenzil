@@ -1,4 +1,5 @@
 import { getDemoListings } from "@/data/listings";
+import type { Property } from "@yenimenzil/types";
 
 export interface PopularArea {
   name: string;
@@ -6,9 +7,7 @@ export interface PopularArea {
   count: number;
 }
 
-const all = getDemoListings();
-
-function countFor(query: string, value: string): number {
+function countFor(all: Property[], query: string, value: string): number {
   return all.filter((p) => {
     switch (query) {
       case "district":
@@ -25,45 +24,57 @@ function countFor(query: string, value: string): number {
   }).length;
 }
 
-export const DISTRICT_POPULAR_AREAS: PopularArea[] = [
+const AREA_DEFS: Array<Omit<PopularArea, "count">> = [
   {
     name: "Nərimanov",
-    href: "/search?deal=sale&district=nerimanov",
-    count: countFor("district", "Nərimanov")
+    href: "/search?deal=sale&district=nerimanov"
   },
   {
     name: "Yasamal",
-    href: "/search?deal=sale&district=yasamal",
-    count: countFor("district", "Yasamal")
+    href: "/search?deal=sale&district=yasamal"
   },
   {
     name: "Səbail",
-    href: "/search?deal=sale&district=sebail",
-    count: countFor("district", "Səbail")
+    href: "/search?deal=sale&district=sebail"
   },
   {
     name: "Nəsimi",
-    href: "/search?deal=sale&district=nesimi",
-    count: countFor("district", "Nəsimi")
+    href: "/search?deal=sale&district=nesimi"
   },
   {
     name: "Xətai",
-    href: "/search?deal=sale&district=xetai",
-    count: countFor("district", "Xətai")
+    href: "/search?deal=sale&district=xetai"
   },
   {
     name: "Mərdəkan",
-    href: "/search?deal=sale&district=merdekan",
-    count: countFor("settlement", "Mərdəkan")
+    href: "/search?deal=sale&district=merdekan"
   },
   {
     name: "Şüvəlan",
-    href: "/search?deal=sale&district=suvelan",
-    count: countFor("settlement", "Şüvəlan")
+    href: "/search?deal=sale&district=suvelan"
   },
   {
     name: "Sumqayıt",
-    href: "/search?deal=sale&district=sumqayit",
-    count: all.filter((p) => p.location.city === "Sumqayıt").length
+    href: "/search?deal=sale&district=sumqayit"
   }
 ];
+
+/**
+ * Popular areas with live listing counts. Pass the current listing set (e.g.
+ * fetched from the API) so counts reflect real data; defaults to the bundled
+ * demo listings.
+ */
+export function getPopularAreas(listings?: Property[]): PopularArea[] {
+  const all = listings ?? getDemoListings();
+  return AREA_DEFS.map((area) => ({
+    ...area,
+    count:
+      area.name === "Sumqayıt"
+        ? all.filter((p) => p.location.city === "Sumqayıt").length
+        : area.name === "Mərdəkan" || area.name === "Şüvəlan"
+          ? countFor(all, "settlement", area.name)
+          : countFor(all, "district", area.name)
+  }));
+}
+
+export const DISTRICT_POPULAR_AREAS: PopularArea[] = getPopularAreas();

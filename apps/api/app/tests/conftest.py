@@ -4,7 +4,6 @@ Uses a dedicated ``yenimenzil_test`` database on the local PostGIS container
 (port 5434). The DATABASE_URL env var is set before any app import so the
 app's settings/engine bind to the test database.
 """
-import asyncio
 import os
 
 TEST_DB_NAME = "yenimenzil_test"
@@ -15,60 +14,50 @@ ADMIN_DB_URL = "postgresql://yenimenzil:yenimenzil@localhost:5434/yenimenzil"
 
 os.environ["DATABASE_URL"] = TEST_DB_URL
 
-import asyncpg  # noqa: E402
-import pytest  # noqa: E402
-from httpx import ASGITransport, AsyncClient  # noqa: E402
-from sqlalchemy import text  # noqa: E402
-from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
-from sqlalchemy.pool import NullPool  # noqa: E402
+import asyncpg
+import pytest
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.pool import NullPool
 
-import app.models  # noqa: E402,F401  (register all models on Base.metadata)
-from app.db.base import Base  # noqa: E402
-from app.db.session import async_session_factory  # noqa: E402
-from app.main import app  # noqa: E402
+import app.models
+from app.db.base import Base
+from app.db.session import async_session_factory
+from app.main import app
 
 TRUNCATE_TABLES = ", ".join(
     f"\"{t.name}\"" for t in reversed(Base.metadata.sorted_tables)
 )
 
 
-def _run(coro):
-    return asyncio.run(coro)
-
-
 @pytest.fixture(scope="session", autouse=True)
-def db_ready():
+async def db_ready():
     """Create the test database and apply the full schema (with PostGIS)."""
-    async def prepare() -> None:
-        conn = await asyncpg.connect(ADMIN_DB_URL)
-        try:
-            await conn.execute(f"CREATE DATABASE {TEST_DB_NAME}")
-        except asyncpg.exceptions.DuplicateDatabaseError:
-            pass
-        await conn.close()
+    conn = await asyncpg.connect(ADMIN_DB_URL)
+    try:
+        await conn.execute(f"CREATE DATABASE {TEST_DB_NAME}")
+    except asyncpg.exceptions.DuplicateDatabaseError:
+        pass
+    await conn.close()
 
-        engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
-        async with engine.begin() as conn:
-            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
-            await conn.run_sync(Base.metadata.create_all)
-        await engine.dispose()
-
-    _run(prepare())
+    engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
+    async with engine.begin() as conn:
+        await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+        await conn.run_sync(Base.metadata.create_all)
+    await engine.dispose()
     yield
 
 
 @pytest.fixture(autouse=True)
-def clean_tables():
+async def clean_tables():
     """Truncate every table between tests for full isolation."""
-    async def truncate() -> None:
-        engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
-        async with engine.begin() as conn:
-            await conn.execute(
-                text(f"TRUNCATE {TRUNCATE_TABLES} RESTART IDENTITY CASCADE")
-            )
-        await engine.dispose()
-
-    _run(truncate())
+    engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
+    async with engine.begin() as conn:
+        await conn.execute(
+            text(f"TRUNCATE {TRUNCATE_TABLES} RESTART IDENTITY CASCADE")
+        )
+    await engine.dispose()
     yield
 
 

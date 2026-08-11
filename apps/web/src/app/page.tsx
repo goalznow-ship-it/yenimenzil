@@ -2,30 +2,30 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
 import { SectionHeading } from "@yenimenzil/ui";
-import { getDemoListings } from "@/data/listings";
-import { getFeaturedSections } from "@/services/listings-service";
+import { fetchFeaturedSections } from "@/services/property-api";
 import { SearchBar } from "@/features/search/search-bar";
 import { PropertyGrid } from "@/features/properties/property-grid";
 import { MapDiscover } from "@/features/map/map-discover";
-import { DISTRICT_POPULAR_AREAS } from "@/data/areas";
+import { getPopularAreas } from "@/data/areas";
 
 export const metadata: Metadata = {
   title: "YeniMenzil.az — Yeni məkanını burada tap"
 };
 
-export default function HomePage() {
-  const sections = getFeaturedSections();
-  const all = getDemoListings();
+export default async function HomePage() {
+  const sections = await fetchFeaturedSections();
+  const all = sections.all;
   const activeCount = all.filter((p) => p.status === "active").length;
   const droppedCount = all.filter(
     (p) =>
       p.priceHistory.length >= 2 &&
       p.priceHistory.at(-1)!.price < p.priceHistory[0]!.price
   ).length;
+  const popularAreas = getPopularAreas(all);
 
   const stats = [
     { value: `${activeCount}+`, label: "aktiv elan" },
-    { value: String(DISTRICT_POPULAR_AREAS.length), label: "populyar ərazi" },
+    { value: String(popularAreas.length), label: "populyar ərazi" },
     { value: String(droppedCount), label: "qiyməti endirilmiş elan" }
   ];
 
@@ -127,7 +127,7 @@ export default function HomePage() {
             subtitle="Ən çox baxılan rayon və qəsəbələr"
           />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-            {DISTRICT_POPULAR_AREAS.map((area) => (
+            {popularAreas.map((area) => (
               <Link
                 key={area.name}
                 href={area.href}

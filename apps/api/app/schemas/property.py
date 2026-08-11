@@ -289,19 +289,27 @@ class PropertyQueryParams(BaseModel):
     @field_validator("rooms", mode="before")
     @classmethod
     def split_rooms(cls, v: object) -> object:
-        # Accept comma-separated ("1,2,4plus") or single value query params.
+        # Accept comma-separated ("1,2,4plus") or repeated query params.
+        # FastAPI hands list-typed query params to the model as a list, so
+        # handle both plain strings and sequences of raw values.
         if isinstance(v, str):
-            out: list[int] = []
-            for part in v.split(","):
-                part = part.strip()
-                if not part:
-                    continue
-                if part == "4plus":
-                    out.append(4)
-                    continue
-                try:
-                    out.append(int(part))
-                except ValueError:
-                    continue
-            return out
-        return v
+            parts = v.split(",")
+        elif isinstance(v, (list, tuple, set, frozenset)):
+            parts = []
+            for item in v:
+                parts.extend(str(item).split(","))
+        else:
+            return v
+        out: list[int] = []
+        for part in parts:
+            part = part.strip()
+            if not part:
+                continue
+            if part == "4plus":
+                out.append(4)
+                continue
+            try:
+                out.append(int(part))
+            except ValueError:
+                continue
+        return out

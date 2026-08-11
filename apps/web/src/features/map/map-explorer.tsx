@@ -3,9 +3,10 @@
 import * as React from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import type { Property } from "@yenimenzil/types";
 import type { MapMarkerData } from "@/lib/map/types";
 import { MapView } from "@/features/map/map-view";
-import { searchListings } from "@/services/listings-service";
+import { searchProperties } from "@/services/property-api";
 import { useSearchFilters } from "@/features/search/use-search-filters";
 import { FilterControls } from "@/features/search/filter-controls";
 import { formatPriceShort, formatPriceWithPeriod } from "@/lib/format";
@@ -21,21 +22,35 @@ export function MapExplorer() {
   const [activeId, setActiveId] = React.useState<string | null>(() =>
     searchParams.get("property")
   );
+  const [listings, setListings] = React.useState<Property[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const listings = React.useMemo(
-    () =>
-      searchListings({
-        deal: filters.deal,
-        district: filters.district,
-        propertyType: filters.propertyType,
-        rooms: filters.rooms,
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-        metro: filters.metro,
-        sort: "newest" as SortKey
-      }),
-    [filters]
-  );
+  React.useEffect(() => {
+    let cancelled = false;
+    searchProperties({
+      deal: filters.deal,
+      district: filters.district,
+      propertyType: filters.propertyType,
+      rooms: filters.rooms,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      metro: filters.metro,
+      sort: "newest" as SortKey
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setListings(res.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setListings([]);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filters]);
 
   const markers = React.useMemo<MapMarkerData[]>(
     () =>
@@ -98,7 +113,7 @@ export function MapExplorer() {
 
       {/* Result count chip */}
       <span className="absolute left-1/2 top-3 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-surface px-4 py-2 text-sm font-semibold shadow-card ring-1 ring-border/70">
-        {listings.length} elan
+        {loading ? "Yüklənir…" : `${listings.length} elan`}
       </span>
 
       {/* Side panel with selected listing */}
@@ -156,7 +171,7 @@ export function MapExplorer() {
         </div>
       ) : null}
 
-      {listings.length === 0 && !filtersOpen ? (
+      {listings.length === 0 && !filtersOpen && !loading ? (
         <div className="absolute inset-x-3 top-20 z-10 md:left-1/2 md:right-auto md:-translate-x-1/2 md:top-16 md:w-[420px]">
           <EmptyState
             icon={<SearchX className="h-6 w-6" />}

@@ -1,23 +1,16 @@
 import type { Property } from "@yenimenzil/types";
 import { TrendingDown, TrendingUp, Info } from "lucide-react";
-import { getDemoListings } from "@/data/listings";
+import { fetchMarketPool } from "@/services/property-api";
 import { formatPrice, formatPricePerSqm } from "@/lib/format";
 import { cn } from "@yenimenzil/ui";
 
 /**
  * Price intelligence — estimates only.
- * Phase 1 uses demo listings to compute district medians; Phase 2 will use
- * real market data from the backend. Estimates are always labelled as such.
+ * Uses live market data from the backend (demo listings fallback); estimates
+ * are always labelled as such.
  */
-export function PriceAnalysisCard({ property }: { property: Property }) {
-  const pool = getDemoListings().filter(
-    (p) =>
-      p.id !== property.id &&
-      p.dealType === property.dealType &&
-      p.propertyType === property.propertyType &&
-      p.pricePerSqm != null &&
-      property.pricePerSqm != null
-  );
+export async function PriceAnalysisCard({ property }: { property: Property }) {
+  const pool = await fetchMarketPool(property);
 
   if (pool.length < 3 || !property.pricePerSqm) return null;
 

@@ -3,21 +3,39 @@
 import * as React from "react";
 import Link from "next/link";
 import { MapPin, ArrowRight } from "lucide-react";
-import { getDemoListings } from "@/data/listings";
 import { MapView } from "@/features/map/map-view";
+import { searchProperties } from "@/services/property-api";
 import type { MapMarkerData } from "@/lib/map/types";
 import { formatPriceShort } from "@/lib/format";
 
-const markers: MapMarkerData[] = getDemoListings()
-  .filter((p) => p.dealType === "sale")
-  .map((p) => ({
-    id: p.id,
-    point: p.location.point,
-    price: p.price,
-    formattedPrice: formatPriceShort(p.price)
-  }));
-
 export function MapDiscover() {
+  const [markers, setMarkers] = React.useState<MapMarkerData[]>([]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    searchProperties({ deal: "sale", sort: "newest" })
+      .then((res) => {
+        if (cancelled) return;
+        setMarkers(
+          res.data
+            .filter((p) => p.dealType === "sale")
+            .map((p) => ({
+              id: p.id,
+              point: p.location.point,
+              price: p.price,
+              formattedPrice: formatPriceShort(p.price)
+            }))
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setMarkers([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <section aria-labelledby="map-discover-title" className="relative">
       <div className="relative h-[420px] overflow-hidden rounded-3xl ring-1 ring-border/70">

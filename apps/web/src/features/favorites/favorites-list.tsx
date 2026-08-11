@@ -2,19 +2,35 @@
 
 import * as React from "react";
 import Link from "next/link";
+import type { Property } from "@yenimenzil/types";
 import { useFavoritesStore } from "@/stores/favorites-store";
-import { getListingById } from "@/services/listings-service";
+import { fetchPropertyById } from "@/services/property-api";
 import { PropertyCard } from "@/features/properties/property-card";
 import { EmptyState, SectionHeading, Skeleton } from "@yenimenzil/ui";
 import { Heart } from "lucide-react";
 
 export function FavoritesList() {
   const ids = useFavoritesStore((s) => s.ids);
+  const [listings, setListings] = React.useState<Property[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-  const listings = React.useMemo(
-    () => ids.map((id) => getListingById(id)).filter((p) => p != null),
-    [ids]
-  );
+  React.useEffect(() => {
+    let cancelled = false;
+    Promise.all(ids.map((id) => fetchPropertyById(id)))
+      .then((found) => {
+        if (cancelled) return;
+        setListings(found.filter((p) => p != null));
+        setLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setListings([]);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [ids]);
 
   if (ids.length === 0) {
     return (
@@ -40,7 +56,7 @@ export function FavoritesList() {
         title={`Seçilmişlər (${listings.length})`}
         subtitle="Sizə uyğun elanları burada saxlayın"
       />
-      {listings.length === 0 ? (
+      {loading ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div
@@ -55,10 +71,16 @@ export function FavoritesList() {
             </div>
           ))}
         </div>
+      ) : listings.length === 0 ? (
+        <div className="rounded-2xl bg-surface p-10 text-center ring-1 ring-border/70">
+          <p className="text-sm text-muted-foreground">
+            Seçilmiş elanlar artıq mövcud deyil və ya axtarışda tapılmadı.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {listings.map((listing) => (
-            <PropertyCard key={listing!.id} property={listing!} />
+            <PropertyCard key={listing.id} property={listing} />
           ))}
         </div>
       )}

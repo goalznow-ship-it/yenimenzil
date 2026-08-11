@@ -463,7 +463,7 @@ class PropertyRepository:
             )
         )
         last = result.scalar_one_or_none()
-        seq = 1000
+        seq = 1001
         if last and last[2:].isdigit():
             seq = int(last[2:]) + 1
         ref = f"AB{seq}"
