@@ -36,7 +36,10 @@ from app.models.enums import (
 
 if TYPE_CHECKING:
     from app.models.agency import Agency, Agent
+    from app.models.analytics import AnalyticsEvent
     from app.models.favorite import Favorite
+    from app.models.moderation import ModerationLog
+    from app.models.report import Report
     from app.models.user import User
 
 
@@ -144,6 +147,15 @@ class Property(Base):
         lazy="selectin",
     )
     favorites: Mapped[list[Favorite]] = relationship(back_populates="property")
+    moderation_logs: Mapped[list[ModerationLog]] = relationship(
+        back_populates="property", cascade="all, delete-orphan"
+    )
+    reports: Mapped[list[Report]] = relationship(
+        back_populates="property", cascade="all, delete-orphan"
+    )
+    analytics_events: Mapped[list[AnalyticsEvent]] = relationship(
+        back_populates="property"
+    )
 
     __table_args__ = (
         Index("ix_properties_deal_status", "deal_type", "status"),

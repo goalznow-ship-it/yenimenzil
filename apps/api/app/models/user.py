@@ -20,8 +20,11 @@ from app.db.base import Base
 from app.models.enums import UserRole
 
 if TYPE_CHECKING:
+    from app.models.analytics import AnalyticsEvent
+    from app.models.auth import RefreshToken
     from app.models.favorite import Favorite
     from app.models.property import Property
+    from app.models.saved_search import SavedSearch
 
 
 class User(Base):
@@ -36,6 +39,7 @@ class User(Base):
         String(32), default=UserRole.USER.value, nullable=False
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -44,11 +48,23 @@ class User(Base):
     )
 
     profile: Mapped[Profile] = relationship(
-        back_populates="user", uselist=False, cascade="all, delete-orphan"
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+        lazy="selectin",
     )
     properties: Mapped[list[Property]] = relationship(back_populates="owner")
     favorites: Mapped[list[Favorite]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
+    )
+    refresh_tokens: Mapped[list[RefreshToken]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    saved_searches: Mapped[list[SavedSearch]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    analytics_events: Mapped[list[AnalyticsEvent]] = relationship(
+        back_populates="user"
     )
 
 
@@ -62,6 +78,9 @@ class Profile(Base):
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     location: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    preferred_language: Mapped[str] = mapped_column(
+        String(8), default="az", nullable=False
+    )
     member_since: Mapped[date | None] = mapped_column(Date, nullable=True)
     phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     identity_verified: Mapped[bool] = mapped_column(Boolean, default=False)

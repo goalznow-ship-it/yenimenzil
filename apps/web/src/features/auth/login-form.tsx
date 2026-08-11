@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Input } from "@yenimenzil/ui";
 import { Info, KeyRound, Mail, UserRound } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
+import { useAuth } from "@/store/auth";
 
 const loginSchema = z.object({
   email: z.string().email("Düzgün e-poçt daxil edin"),
@@ -44,10 +46,35 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
     defaultValues: { email: "", password: "", name: "", phone: "" }
   });
 
-  const [submitted, setSubmitted] = React.useState(false);
+  const login = useAuth((s) => s.login);
+  const registerAction = useAuth((s) => s.register);
+  const loginError = useAuth((s) => s.loginError);
+  const registerError = useAuth((s) => s.registerError);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? "/";
 
-  const onSubmit = () => {
-    setSubmitted(true);
+  const [serverError, setServerError] = React.useState<string | null>(null);
+
+  const onSubmit = async (values: FormValues) => {
+    setServerError(null);
+    try {
+      if (isRegister) {
+        await registerAction({
+          email: values.email,
+          password: values.password,
+          full_name: values.name ?? "",
+          phone: values.phone || undefined
+        });
+      } else {
+        await login(values.email, values.password);
+      }
+      router.push(next.startsWith("/") ? next : "/");
+    } catch (err) {
+      setServerError(
+        err instanceof Error ? err.message : "Xəta baş verdi, yenidən cəhd edin"
+      );
+    }
   };
 
   return (
@@ -66,22 +93,14 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
             : "Hesabınıza daxil olaraq davam edin."}
         </p>
 
-        {submitted ? (
-          <div className="mt-6 rounded-xl bg-brand-soft p-4 text-sm leading-relaxed text-brand">
-            <p className="font-semibold">
-              {isRegister ? "Qeydiyyat üçün təşəkkürlər!" : "Giriş uğurlu olacaq!"}
-            </p>
-            <p className="mt-1 text-brand/80">
-              Demo rejimi: autentifikasiya servisi backend ilə birlikdə
-              aktivləşəcək (Phase 2). Bu vaxt elanlara baxmaq üçün{" "}
-              <Link href="/search" className="font-semibold underline">
-                axtarışdan
-              </Link>{" "}
-              istifadə edin.
-            </p>
+        {serverError || loginError || registerError ? (
+          <div className="mt-6 flex items-center gap-2 rounded-xl bg-red-500/10 px-3.5 py-2.5 text-[13px] text-red-600">
+            <Info className="h-4 w-4 shrink-0" />
+            {serverError || loginError || registerError}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+        ) : null}
+
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             {isRegister ? (
               <>
                 <div>
@@ -186,17 +205,19 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
               ) : null}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isRegister ? "Qeydiyyatdan keç" : "Daxil ol"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Gözləyin…"
+                : isRegister
+                  ? "Qeydiyyatdan keç"
+                  : "Daxil ol"}
             </Button>
           </form>
-        )}
-
-        <div className="mt-5 flex items-center gap-2 rounded-xl bg-foreground/[0.03] px-3.5 py-2.5 text-[12px] text-foreground/60">
-          <Info className="h-4 w-4 shrink-0" />
-          Demo rejimi — məlumatlar serverə göndərilmir.
         </div>
-      </div>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         {isRegister ? "Artıq hesabınız var?" : "Hesabınız yoxdur?"}{" "}

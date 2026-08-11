@@ -68,7 +68,52 @@ class SellerKind(StrEnum):
 
 class UserRole(StrEnum):
     USER = "user"
+    OWNER = "owner"
+    AGENT = "agent"
+    AGENCY_ADMIN = "agency_admin"
+    MODERATOR = "moderator"
     ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
+
+
+class ReportReason(StrEnum):
+    FAKE = "fake"
+    SCAM = "scam"
+    WRONG_PRICE = "wrong_price"
+    DUPLICATE = "duplicate"
+    MISLEADING = "misleading"
+    EXPIRED = "expired"
+    OTHER = "other"
+
+
+class ReportStatus(StrEnum):
+    OPEN = "open"
+    UNDER_REVIEW = "under_review"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"
+
+
+class ModerationAction(StrEnum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CHANGES_REQUESTED = "changes_requested"
+    SUSPENDED = "suspended"
+    ACTIVATED = "activated"
+    ARCHIVED = "archived"
+
+
+class AnalyticsEventType(StrEnum):
+    PROPERTY_VIEW = "property_view"
+    PROPERTY_FAVORITE = "property_favorite"
+    PROPERTY_UNFAVORITE = "property_unfavorite"
+    PHONE_REVEAL = "phone_reveal"
+    WHATSAPP_CLICK = "whatsapp_click"
+    MESSAGE_CLICK = "message_click"
+    SEARCH = "search"
+    FILTER_APPLIED = "filter_applied"
+    SAVED_SEARCH_CREATED = "saved_search_created"
+    LISTING_CREATED = "listing_created"
+    LISTING_SUBMITTED = "listing_submitted"
 
 
 class MediaKind(StrEnum):

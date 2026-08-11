@@ -13,6 +13,7 @@ TEST_DB_URL = (
 ADMIN_DB_URL = "postgresql://yenimenzil:yenimenzil@localhost:5434/yenimenzil"
 
 os.environ["DATABASE_URL"] = TEST_DB_URL
+os.environ["RATE_LIMIT_ENABLED"] = "false"
 
 import asyncpg
 import pytest
@@ -44,6 +45,7 @@ async def db_ready():
     engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
     async with engine.begin() as conn:
         await conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     await engine.dispose()
     yield

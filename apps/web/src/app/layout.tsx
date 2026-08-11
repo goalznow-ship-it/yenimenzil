@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@yenimenzil/ui";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
@@ -62,12 +63,14 @@ export default function RootLayout({
     <html lang="az" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-dvh font-sans">
         <TooltipProvider delayDuration={300}>
-          <div className="flex min-h-dvh flex-col">
-            <Header />
-            <main className="flex-1 pb-20 md:pb-0">{children}</main>
-            <Footer />
-            <MobileNav />
-          </div>
+          <AuthProvider>
+            <div className="flex min-h-dvh flex-col">
+              <Header />
+              <main className="flex-1 pb-20 md:pb-0">{children}</main>
+              <Footer />
+              <MobileNav />
+            </div>
+          </AuthProvider>
         </TooltipProvider>
       </body>
     </html>

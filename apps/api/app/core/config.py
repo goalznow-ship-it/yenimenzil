@@ -30,6 +30,24 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = "change-me-in-production"
     API_ACCESS_TOKEN_TTL_MINUTES: int = 15
+    REFRESH_TOKEN_TTL_DAYS: int = 30
+    COOKIE_SECURE: bool = False
+    COOKIE_DOMAIN: str | None = None
+
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_LOGIN_PER_MINUTE: int = 10
+    RATE_LIMIT_LOGIN_BURST: int = 20
+
+    # Media storage (S3-compatible, e.g. MinIO).
+    S3_ENDPOINT: str = "localhost:9002"
+    S3_BUCKET: str = "yenimenzil-media"
+    S3_ACCESS_KEY: str = "minioadmin"
+    S3_SECRET_KEY: str = "minioadmin"
+    S3_PUBLIC_URL: str = "http://localhost:9002"
+    S3_SECURE: bool = False
+    MEDIA_MAX_SIZE_MB: int = 10
+    MEDIA_MIN_WIDTH: int = 400
+    MEDIA_MAX_IMAGES: int = 15
 
     @property
     def cors_origins_list(self) -> list[str]:

@@ -11,11 +11,11 @@ import {
   MessageCircle,
   Plus,
   Search,
-  UserRound,
   X
 } from "lucide-react";
 import { Button, cn } from "@yenimenzil/ui";
 import { Logo } from "./logo";
+import { UserAvatarLink, UserMenu } from "./user-menu";
 import { LANGUAGE_OPTIONS } from "@/lib/languages";
 
 const NAV_LINKS = [
@@ -168,22 +168,17 @@ export function Header() {
 
           <Link
             href="/login"
-            aria-label="Profil"
-            className="hidden h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground md:flex"
-          >
-            <UserRound className="h-[19px] w-[19px]" />
-          </Link>
-
-          <Link
-            href="/login"
-            className="hidden sm:block"
             aria-label="Elan yerləşdir"
+            className="hidden sm:block"
           >
             <Button size="sm" className="gap-1.5">
               <Plus className="h-4 w-4" />
               Elan yerləşdir
             </Button>
           </Link>
+
+          <UserAvatarLink />
+          <UserMenu />
         </div>
       </div>
 

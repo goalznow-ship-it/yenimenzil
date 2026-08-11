@@ -102,6 +102,7 @@ class Seed:
 
         await self._reset()
         await self._seed_feature_catalog()
+        await self._seed_demo_accounts()
         sellers = await self._seed_sellers(listings)
         await self._seed_properties(listings, sellers)
 
@@ -110,6 +111,28 @@ class Seed:
             f"Seeded {len(listings)} properties, {len(sellers)} sellers, "
             f"{len(FeatureKind)} feature codes."
         )
+
+    async def _seed_demo_accounts(self) -> None:
+        from app.core.security import hash_password
+        from app.models.enums import UserRole
+
+        accounts = [
+            ("demo@yenimenzil.az", "demo1234", "Demo İstifadəçi", UserRole.USER),
+            ("moderator@yenimenzil.az", "moderator1", "Moderator", UserRole.MODERATOR),
+            ("admin@yenimenzil.az", "admin1234", "Administrator", UserRole.ADMIN),
+        ]
+        for email, password, name, role in accounts:
+            user = User(
+                id=uuid.uuid4(),
+                email=email,
+                password_hash=hash_password(password),
+                full_name=name,
+                role=role.value,
+                is_verified=True,
+            )
+            user.profile = Profile(member_since=date(2024, 1, 1))
+            self.session.add(user)
+        await self.session.flush()
 
     async def _reset(self) -> None:
         table_list = ", ".join(f'"{t}"' for t in TRUNCATE_TABLES)
