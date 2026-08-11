@@ -39,3 +39,6 @@ coverage/
 # Uploads / static
 uploads/
 public/uploads/
+
+*.backup
+*.tsbuildinfo
