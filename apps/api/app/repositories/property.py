@@ -17,9 +17,11 @@ from sqlalchemy.orm import selectinload
 
 from app.models.agency import Agent
 from app.models.enums import PropertyStatus, SellerKind
+from app.models.favorite import Favorite
 from app.models.property import (
     Property,
     PropertyFeature,
+    PropertyFeatureItem,
     PropertyLocation,
     PropertyMedia,
     PropertyPriceHistory,
@@ -121,11 +123,15 @@ def _apply_filters(
         translated_settl = func.translate(
             func.lower(PropertyLocation.settlement), "əşğçöüı", "esgcouii"
         )
+        translated_landmark = func.translate(
+            func.lower(PropertyLocation.landmark), "əşğçöüı", "esgcouii"
+        )
         stmt = stmt.where(
             or_(
                 translated.like(like),
                 translated_neigh.like(like),
                 translated_settl.like(like),
+                translated_landmark.like(like),
             )
         )
 
@@ -157,6 +163,11 @@ def _apply_filters(
     if params.metro:
         stmt = stmt.where(PropertyLocation.metro == params.metro)
 
+    if params.landmark:
+        stmt = stmt.where(
+            PropertyLocation.landmark.ilike(f"%{params.landmark}%")
+        )
+
     if params.building_type is not None:
         stmt = stmt.where(Property.building_type == params.building_type)
 
@@ -166,8 +177,127 @@ def _apply_filters(
     if params.owner_only:
         stmt = stmt.where(Property.seller_kind == SellerKind.OWNER.value)
 
+    if params.seller_kind is not None:
+        stmt = stmt.where(Property.seller_kind == params.seller_kind)
+
     if params.verified_only:
         stmt = stmt.where(Property.is_verified.is_(True))
+
+    if params.promoted_only:
+        stmt = stmt.where(
+            or_(Property.is_promoted.is_(True), Property.is_premium.is_(True))
+        )
+
+    if params.price_dropped:
+        sub = (
+            select(PropertyPriceHistory.property_id)
+            .group_by(PropertyPriceHistory.property_id)
+            .having(func.count(PropertyPriceHistory.id) >= 2)
+        )
+        latest_sub = (
+            select(
+                PropertyPriceHistory.property_id,
+                func.row_number()
+                .over(
+                    partition_by=PropertyPriceHistory.property_id,
+                    order_by=PropertyPriceHistory.recorded_at.desc(),
+                )
+                .label("rn"),
+                PropertyPriceHistory.price.label("latest_price"),
+            )
+            .subquery()
+        )
+        first_sub = (
+            select(
+                PropertyPriceHistory.property_id,
+                func.row_number()
+                .over(
+                    partition_by=PropertyPriceHistory.property_id,
+                    order_by=PropertyPriceHistory.recorded_at.asc(),
+                )
+                .label("rn"),
+                PropertyPriceHistory.price.label("first_price"),
+            )
+            .subquery()
+        )
+        dropped_ids = (
+            select(latest_sub.c.property_id)
+            .join(
+                first_sub,
+                (first_sub.c.property_id == latest_sub.c.property_id)
+                & (first_sub.c.rn == 1),
+            )
+            .where(latest_sub.c.rn == 1)
+            .where(latest_sub.c.latest_price < first_sub.c.first_price)
+        )
+        stmt = stmt.where(Property.id.in_(dropped_ids))
+
+    if params.mortgage is not None:
+        stmt = stmt.where(Property.mortgage_available.is_(params.mortgage))
+
+    if params.furnished is not None:
+        stmt = stmt.where(Property.furnished.is_(params.furnished))
+
+    if params.heating:
+        stmt = stmt.where(Property.heating.ilike(f"%{params.heating}%"))
+
+    if params.document_type is not None:
+        stmt = stmt.where(Property.document_type == params.document_type)
+
+    if params.floor is not None:
+        stmt = stmt.where(Property.floor == params.floor)
+
+    if params.is_first_floor:
+        stmt = stmt.where(Property.floor == 1)
+
+    if params.is_last_floor:
+        stmt = stmt.where(Property.floor == Property.total_floors)
+
+    if params.total_floors is not None:
+        stmt = stmt.where(Property.total_floors == params.total_floors)
+
+    if params.min_bedrooms is not None:
+        stmt = stmt.where(Property.bedrooms >= params.min_bedrooms)
+    if params.max_bedrooms is not None:
+        stmt = stmt.where(Property.bedrooms <= params.max_bedrooms)
+
+    if params.min_bathrooms is not None:
+        stmt = stmt.where(Property.bathrooms >= params.min_bathrooms)
+    if params.max_bathrooms is not None:
+        stmt = stmt.where(Property.bathrooms <= params.max_bathrooms)
+
+    if params.min_area_land is not None:
+        stmt = stmt.where(Property.area_land >= params.min_area_land)
+    if params.max_area_land is not None:
+        stmt = stmt.where(Property.area_land <= params.max_area_land)
+
+    if params.min_construction_year is not None:
+        stmt = stmt.where(Property.construction_year >= params.min_construction_year)
+    if params.max_construction_year is not None:
+        stmt = stmt.where(Property.construction_year <= params.max_construction_year)
+
+    if params.keyword:
+        keyword = f"%{params.keyword}%"
+        stmt = stmt.where(
+            or_(
+                Property.title.ilike(keyword),
+                Property.description.ilike(keyword),
+                Property.reference_code.ilike(keyword),
+            )
+        )
+
+    if params.published_after is not None:
+        stmt = stmt.where(Property.published_at >= params.published_after)
+
+    if params.features:
+        sub = (
+            select(PropertyFeatureItem.property_id)
+            .join(PropertyFeature, PropertyFeature.id == PropertyFeatureItem.feature_id)
+            .where(PropertyFeature.code.in_(params.features))
+            .group_by(PropertyFeatureItem.property_id)
+            .having(func.count(PropertyFeatureItem.feature_id) == len(params.features))
+        )
+        stmt = stmt.where(Property.id.in_(sub))
 
     # Map bounding box via PostGIS ST_Intersects on the geography point.
     # The envelope from ST_MakeEnvelope is geometry (SRID 4326); PostGIS casts
@@ -197,10 +327,32 @@ def _apply_sort(stmt: Select[tuple[Property]], sort: PropertySort) -> Select:
         return stmt.order_by(Property.price.asc(), Property.id.asc())
     if sort == PropertySort.PRICE_DESC:
         return stmt.order_by(Property.price.desc(), Property.id.asc())
+    if sort == PropertySort.PRICE_PER_M2_ASC:
+        return stmt.order_by(
+            (Property.price / Property.area_total).asc(), Property.id.asc()
+        )
+    if sort == PropertySort.PRICE_PER_M2_DESC:
+        return stmt.order_by(
+            (Property.price / Property.area_total).desc(), Property.id.asc()
+        )
     if sort == PropertySort.AREA_ASC:
         return stmt.order_by(Property.area_total.asc(), Property.id.asc())
     if sort == PropertySort.AREA_DESC:
         return stmt.order_by(Property.area_total.desc(), Property.id.asc())
+    if sort == PropertySort.VIEWS:
+        return stmt.order_by(Property.views.desc(), Property.id.asc())
+    if sort == PropertySort.FAVORITES:
+        fav_count = (
+            select(func.count(Favorite.id))
+            .where(Favorite.property_id == Property.id)
+            .correlate(Property)
+            .scalar_subquery()
+        )
+        return stmt.order_by(fav_count.desc(), Property.id.asc())
+    if sort == PropertySort.OLDEST:
+        return stmt.order_by(
+            Property.published_at.asc().nullsfirst(), Property.id.asc()
+        )
     # NEWEST (default): published_at desc, nulls last, deterministic tie-break
     return stmt.order_by(
         Property.published_at.desc().nullslast(), Property.id.asc()
@@ -350,6 +502,8 @@ class PropertyRepository:
             settlement=payload.location.settlement,
             neighborhood=payload.location.neighborhood,
             metro=payload.location.metro,
+            landmark=payload.location.landmark,
+            street=payload.location.street,
         )
         for i, m in enumerate(payload.media):
             prop.media.append(
@@ -368,6 +522,10 @@ class PropertyRepository:
                     price=ph.price,
                     recorded_at=ph.recorded_at or now,
                 )
+            )
+        if not payload.price_history:
+            prop.price_history.append(
+                PropertyPriceHistory(price=payload.price, recorded_at=now)
             )
         await self._replace_features(prop, payload.features)
 
@@ -425,6 +583,12 @@ class PropertyRepository:
             if status_value == PropertyStatus.ACTIVE.value and prop.published_at is None:
                 prop.published_at = datetime.now(UTC)
 
+        if "edit_count" in data or any(
+            k in data for k in ("title", "description", "price", "status", "property_type")
+        ):
+            prop.edit_count = (prop.edit_count or 0) + 1
+            prop.last_edited_at = datetime.now(UTC)
+
         if "location" in data and data["location"] is not None:
             loc = payload.location
             assert loc is not None
@@ -440,6 +604,8 @@ class PropertyRepository:
                 prop.location.settlement = loc.settlement
                 prop.location.neighborhood = loc.neighborhood
                 prop.location.metro = loc.metro
+                prop.location.landmark = loc.landmark
+                prop.location.street = loc.street
 
         if "media" in data and data["media"] is not None:
             prop.media.clear()

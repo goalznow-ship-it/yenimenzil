@@ -30,6 +30,8 @@ class PropertyLocationCreate(BaseModel):
     settlement: str | None = None
     neighborhood: str | None = None
     metro: str | None = None
+    landmark: str | None = Field(default=None, max_length=150)
+    street: str | None = Field(default=None, max_length=150)
 
 
 class PropertyMediaCreate(BaseModel):
@@ -159,6 +161,8 @@ class PropertyLocationRead(BaseModel):
     settlement: str | None
     neighborhood: str | None
     metro: str | None
+    landmark: str | None
+    street: str | None
 
 
 class PropertyPriceHistoryRead(BaseModel):
@@ -245,10 +249,15 @@ class PropertyRead(PropertySummaryRead):
 
 class PropertySort(StrEnum):
     NEWEST = "newest"
+    OLDEST = "oldest"
     PRICE_ASC = "price_asc"
     PRICE_DESC = "price_desc"
+    PRICE_PER_M2_ASC = "price_per_m2_asc"
+    PRICE_PER_M2_DESC = "price_per_m2_desc"
     AREA_ASC = "area_asc"
     AREA_DESC = "area_desc"
+    VIEWS = "views"
+    FAVORITES = "favorites"
 
 
 class PropertyQueryParams(BaseModel):
@@ -269,11 +278,34 @@ class PropertyQueryParams(BaseModel):
     max_price: float | None = Field(default=None, ge=0)
     min_area: float | None = Field(default=None, ge=0)
     max_area: float | None = Field(default=None, ge=0)
+    min_area_land: float | None = Field(default=None, ge=0)
+    max_area_land: float | None = Field(default=None, ge=0)
     metro: str | None = None
+    landmark: str | None = None
     building_type: BuildingType | None = None
     repair_status: RepairStatus | None = None
     owner_only: bool = False
     verified_only: bool = False
+    promoted_only: bool = False
+    price_dropped: bool = False
+    mortgage: bool | None = None
+    furnished: bool | None = None
+    heating: str | None = None
+    document_type: DocumentType | None = None
+    floor: int | None = Field(default=None, ge=0)
+    total_floors: int | None = Field(default=None, ge=0)
+    is_first_floor: bool = False
+    is_last_floor: bool = False
+    min_bedrooms: int | None = Field(default=None, ge=0)
+    max_bedrooms: int | None = Field(default=None, ge=0)
+    min_bathrooms: int | None = Field(default=None, ge=0)
+    max_bathrooms: int | None = Field(default=None, ge=0)
+    min_construction_year: int | None = Field(default=None, ge=1900, le=2100)
+    max_construction_year: int | None = Field(default=None, ge=1900, le=2100)
+    seller_kind: SellerKind | None = None
+    keyword: str | None = None
+    published_after: datetime | None = None
+    features: list[str] = Query(default=[])
 
     # map bounding box (east/west can wrap the antimeridian, so no le/ge here)
     north: float | None = Field(default=None, ge=-90, le=90)
@@ -313,3 +345,10 @@ class PropertyQueryParams(BaseModel):
             except ValueError:
                 continue
         return out
+
+    @field_validator("features", mode="before")
+    @classmethod
+    def split_features(cls, v: object) -> object:
+        if isinstance(v, str):
+            return [p for p in v.split(",") if p]
+        return v

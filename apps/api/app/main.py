@@ -1,10 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.db.session import async_session_factory
 
 settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Background tasks on startup/shutdown."""
+    # Start expiry watcher task
+    from app.services.expiry_watcher import start_expiry_watcher, stop_expiry_watcher
+    start_expiry_watcher()
+    yield
+    stop_expiry_watcher()
 
 
 def create_app() -> FastAPI:
@@ -12,6 +24,7 @@ def create_app() -> FastAPI:
         title=settings.APP_NAME,
         version="0.1.0",
         description="Marketplace backend for YeniMenzil.az",
+        lifespan=lifespan,
     )
 
     application.add_middleware(

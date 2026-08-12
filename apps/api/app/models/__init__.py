@@ -21,7 +21,9 @@ from app.models.enums import (
     UserRole,
 )
 from app.models.favorite import Favorite
+from app.models.location import LocationPlace
 from app.models.moderation import ModerationLog
+from app.models.notification import Notification
 from app.models.property import (
     Property,
     PropertyFeature,
@@ -46,9 +48,11 @@ __all__ = [
     "DocumentType",
     "Favorite",
     "FeatureKind",
+    "LocationPlace",
     "MediaKind",
     "ModerationAction",
     "ModerationLog",
+    "Notification",
     "Profile",
     "Property",
     "PropertyFeature",

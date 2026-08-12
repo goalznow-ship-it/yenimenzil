@@ -117,6 +117,10 @@ class Property(Base):
     expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    edit_count: Mapped[int] = mapped_column(Integer, server_default="0", default=0)
+    last_edited_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
@@ -184,6 +188,8 @@ class PropertyLocation(Base):
     settlement: Mapped[str | None] = mapped_column(String(100), nullable=True)
     neighborhood: Mapped[str | None] = mapped_column(String(100), nullable=True)
     metro: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    landmark: Mapped[str | None] = mapped_column(String(150), nullable=True, index=True)
+    street: Mapped[str | None] = mapped_column(String(150), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

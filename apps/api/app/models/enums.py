@@ -34,6 +34,7 @@ class PropertyStatus(StrEnum):
     RENTED = "rented"
     ARCHIVED = "archived"
     SUSPENDED = "suspended"
+    CHANGES_REQUESTED = "changes_requested"
 
 
 class Currency(StrEnum):
