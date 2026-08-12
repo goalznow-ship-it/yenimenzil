@@ -12,7 +12,10 @@ import {
   History,
   LayoutDashboard,
   LogOut,
+  MapPin,
+  Megaphone,
   TrendingUp,
+  UserCheck,
   UsersRound
 } from "lucide-react";
 import { cn } from "@yenimenzil/ui";
@@ -25,8 +28,11 @@ const NAV = [
   { href: "/admin/reports", label: "Şikayətlər", icon: Flag },
   { href: "/admin/users", label: "İstifadəçilər", icon: UsersRound },
   { href: "/admin/agencies", label: "Agentliklər", icon: Building2 },
+  { href: "/admin/agents", label: "Agentlər", icon: UserCheck },
+  { href: "/admin/promotions", label: "Promosiyalar", icon: Megaphone },
   { href: "/admin/analytics", label: "Analitika", icon: BarChart3 },
-  { href: "/admin/catalog", label: "Kataloq & lokasiyalar", icon: FolderCog },
+  { href: "/admin/features", label: "Kataloq", icon: FolderCog },
+  { href: "/admin/locations", label: "Lokasiyalar", icon: MapPin },
   { href: "/admin/audit", label: "Audit jurnalı", icon: History }
 ];
 

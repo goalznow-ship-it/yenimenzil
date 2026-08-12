@@ -74,8 +74,8 @@ export default function AdminDashboardPage() {
             <StatCard label="Aktiv elanlar" value={stats.active_listings} icon={Home} tone="good" />
             <StatCard label="Baxışda olan" value={stats.pending_review} icon={Clock} tone="warn" />
             <StatCard label="Rədd edilən" value={stats.rejected_listings} icon={ClipboardList} tone="danger" />
-            <StatCard label="Satılan" value={stats.sold_listings} icon={Building} />
-            <StatCard label="Şikayətlər" value={stats.total_reports} icon={Flag} tone="warn" />
+            <StatCard label="Satılan" value={stats.sold} icon={Building} />
+            <StatCard label="Şikayətlər" value={stats.reports_open} icon={Flag} tone="warn" />
           </div>
         </div>
       )}

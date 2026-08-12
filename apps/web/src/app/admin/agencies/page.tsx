@@ -14,13 +14,13 @@ export default function AdminAgenciesPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  const load = React.useCallback(async () => {
+  const load = React.useCallback(async (args: { page?: number; search?: string } = {}) => {
     setLoading(true);
     setError(null);
     try {
       const res = await adminApi.agencies({
-        page,
-        search: search || undefined
+        page: args.page ?? page,
+        search: args.search ?? (search || undefined)
       });
       setData(res.data);
       setPagination(res.pagination);
@@ -61,7 +61,7 @@ export default function AdminAgenciesPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setPage(1);
-                load();
+                void load({ page: 1, search });
               }
             }}
           />

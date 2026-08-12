@@ -19,8 +19,10 @@ const STATUS_LABELS: Record<string, string> = {
   suspended: "Dayandırılıb"
 };
 
-function formatPrice(price: number | null): string {
-  return price != null ? `${Math.round(price).toLocaleString("az")} ₼` : "—";
+function formatPrice(price: number | null, currency?: string): string {
+  return price != null
+    ? `${Math.round(price).toLocaleString("az")} ${currency === "USD" ? "$" : "₼"}`
+    : "—";
 }
 
 export default function AdminListingsPage() {
@@ -60,10 +62,20 @@ export default function AdminListingsPage() {
 
   const runAction = async (id: string, action: "approve" | "reject" | "suspend" | "archive") => {
     if (action === "approve" && !window.confirm("Elanı təsdiqləyin?")) return;
-    if (action === "reject" && !window.confirm("Elanı rədd edin?")) return;
+    let reason: string | undefined;
+    if (action === "reject") {
+      reason = window.prompt("Rədd etmə səbəbi:") ?? undefined;
+      if (!reason) return;
+    } else if (action === "suspend") {
+      reason = window.prompt("Dayandırma səbəbi:") ?? undefined;
+      if (!reason) return;
+    } else if (action === "archive") {
+      reason = window.prompt("Arxivləmə səbəbi:") ?? undefined;
+      if (!reason) return;
+    }
     setActingId(id);
     try {
-      await adminApi.listingAction(id, action);
+      await adminApi.listingAction(id, action, reason ? { reason } : {});
       await load();
     } catch (err) {
       window.alert(err instanceof Error ? err.message : "Xəta");
@@ -192,11 +204,8 @@ export default function AdminListingsPage() {
                     </Link>
                     <p className="text-xs text-foreground/40">{listing.reference_code}</p>
                   </td>
-                  <td className="px-4 py-3 font-medium">{formatPrice(listing.price)}</td>
-                  <td className="px-4 py-3 text-foreground/60">
-                    {listing.city}
-                    {listing.district ? `, ${listing.district}` : ""}
-                  </td>
+                  <td className="px-4 py-3 font-medium">{formatPrice(listing.price, listing.price_currency)}</td>
+                  <td className="px-4 py-3 text-foreground/60">{listing.location}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${

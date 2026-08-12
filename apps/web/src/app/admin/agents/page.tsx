@@ -18,7 +18,7 @@ export default function AdminAgentsPage() {
     setLoading(true);
     setError(null);
     try {
-       const res = await adminApi.agentReputation();
+       const res = await adminApi.agentReputation({ page, search: search || undefined });
       setData(res.data);
       setPagination(res.pagination);
     } catch (e) {

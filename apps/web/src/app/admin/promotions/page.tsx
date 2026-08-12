@@ -3,14 +3,14 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi } from "@/services/admin-api";
+import { adminApi, type PromotedListing } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 export default function AdminPromotionsPage() {
   const [page, setPage] = React.useState(1);
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
-  const [data, setData] = React.useState<any[]>([]); // TODO: Replace with proper type
+  const [data, setData] = React.useState<PromotedListing[]>([]);
   const [pagination, setPagination] = React.useState({ page: 1, pages: 1, total: 0, limit: 20 });
   const [tiers, setTiers] = React.useState<{ [key: string]: { label_az: string; days: number } }>({});
   const [loading, setLoading] = React.useState(true);
@@ -19,13 +19,18 @@ export default function AdminPromotionsPage() {
   const [deactivating, setDeactivating] = React.useState<{ [key: string]: boolean }>({});
   const isMountedRef = React.useRef(false);
 
-    const load = async () => {
+    const load = React.useCallback(async () => {
       if (isMountedRef.current) {
         setLoading(true);
         setError(null);
         try {
-          const res = await adminApi.promotedListings();
+          const res = await adminApi.promotedListings({
+            page,
+            search: search || undefined,
+            status: statusFilter || undefined
+          });
           setData(res.data);
+          setPagination(res.pagination);
           setTiers(res.tiers);
         } catch (e) {
           setError(e instanceof Error ? e.message : "Xəta");
@@ -33,7 +38,7 @@ export default function AdminPromotionsPage() {
           setLoading(false);
         }
       }
-    };
+    }, [page, search, statusFilter]);
 
    React.useEffect(() => {
      isMountedRef.current = true;
@@ -42,7 +47,7 @@ export default function AdminPromotionsPage() {
      return () => {
        isMountedRef.current = false;
      };
-   }, []);
+   }, [load]);
 
   const activatePromotion = async (id: string, tier: string, days: number | undefined) => {
     if (!window.confirm(`${tier} promo aktivləşdirilsin?`)) return;
@@ -131,7 +136,7 @@ export default function AdminPromotionsPage() {
                 </td>
               </tr>
             ) : (
-              data.map((promo: any) => (
+              data.map((promo) => (
                 <tr key={promo.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
                   <td className="px-4 py-3">
                     <p className="font-medium">{promo.title}</p>
@@ -166,7 +171,7 @@ export default function AdminPromotionsPage() {
                     ) : promo.promotion_status !== "active" ? (
                       <Button
                         size="sm"
-                        onClick={() => activatePromotion(promo.id, promo.tier, undefined)}
+                        onClick={() => activatePromotion(promo.id, promo.tier ?? "standard", undefined)}
                       >
                         Aktivləşdir
                       </Button>

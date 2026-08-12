@@ -48,6 +48,18 @@ export interface Pagination {
   pages: number;
 }
 
+export interface PromotedListing {
+  id: string;
+  title: string;
+  reference_code: string;
+  status: string;
+  tier: string | null;
+  is_premium: boolean;
+  is_promoted: boolean;
+  promotion_status: string;
+  expires_at: string | null;
+}
+
 export interface AdminStats {
   total_users: number;
   active_users: number;
@@ -55,29 +67,30 @@ export interface AdminStats {
   active_listings: number;
   pending_review: number;
   rejected_listings: number;
-  sold_listings: number;
-  rented_listings: number;
-  suspended_listings: number;
-  total_reports: number;
+  sold: number;
+  rented: number;
+  total_agencies: number;
+  total_agents: number;
+  reports_open: number;
+  listings_created_today: number;
+  listings_created_this_week: number;
   [key: string]: number | string | boolean | null;
 }
 
 export interface AdminListing {
   id: string;
   reference_code: string;
+  cover_image: string | null;
   title: string;
-  price: number | null;
-  currency: string;
-  deal_type: string;
-  property_type: string;
+  owner: { id: string | null; name: string; email: string } | null;
+  agency: { id: string | null; name: string } | null;
+  price: number;
+  price_currency: string;
+  location: string;
   status: string;
-  rooms: number;
-  area_total: number | null;
-  city: string | null;
-  district: string | null;
-  seller: string | null;
   created_at: string | null;
   views: number;
+  reports_count: number;
 }
 
 export interface AdminUser {
@@ -294,9 +307,11 @@ export const adminApi = {
     action: "bulk-approve" | "bulk-suspend" | "bulk-archive",
     ids: string[]
   ): Promise<unknown> {
-    return request(`/admin/listings/${action}`, {
-      method: "POST",
-      body: JSON.stringify({ property_ids: ids })
+    const query = ids.length
+      ? `?property_ids=${ids.map((id) => encodeURIComponent(id)).join("&property_ids=")}`
+      : "";
+    return request(`/admin/listings/${action}${query}`, {
+      method: "POST"
     });
   },
 
@@ -357,12 +372,16 @@ export const adminApi = {
     });
   },
 
-  async agentReputation(): Promise<{
+  async agentReputation(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  } = {}): Promise<{
     data: AgentReputation[];
     pagination: Pagination;
     formula: string;
   }> {
-    return request("/admin/agents/reputation");
+    return request(`/admin/agents/reputation${qs({ page: 1, limit: 20, ...params })}`);
   },
 
   async reports(params: {
@@ -393,7 +412,11 @@ export const adminApi = {
     limit?: number;
     action?: string;
     entity_type?: string;
-  } = {}): Promise<{ data: AuditEntry[]; pagination: Pagination }> {
+  } = {}): Promise<{
+    data: AuditEntry[];
+    pagination: Pagination;
+    filters: { entity_types: string[] };
+  }> {
     return request(`/admin/audit-logs${qs({ page: 1, limit: 50, ...params })}`);
   },
 
@@ -489,19 +512,17 @@ export const adminApi = {
     });
   },
 
-  async promotedListings(): Promise<{
-    data: {
-      id: string;
-      title: string;
-      tier: string | null;
-      is_premium: boolean;
-      is_promoted: boolean;
-      promotion_status: string;
-      expires_at: string | null;
-    }[];
+  async promotedListings(params: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  } = {}): Promise<{
+    data: PromotedListing[];
+    pagination: Pagination;
     tiers: Record<string, { label_az: string; days: number }>;
   }> {
-    return request("/admin/promotions/listings");
+    return request(`/admin/promotions/listings${qs({ page: 1, limit: 20, ...params })}`);
   },
 
   ApiError

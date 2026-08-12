@@ -14,39 +14,38 @@ export default function AdminFeaturesPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
-  const [deleting, setDeleting] = React.useState<Record<string, boolean>>({});
   const [creating, setCreating] = React.useState(false);
   const [createCode, setCreateCode] = React.useState("");
   const [createLabel, setCreateLabel] = React.useState("");
   const isMountedRef = React.useRef(false);
 
-   const load = async () => {
-     if (isMountedRef.current) {
-       setLoading(true);
-       setError(null);
-       try {
-         const res = await adminApi.features({
-           page,
-           search: search || undefined
-         });
-         setData(res.data);
-         setPagination(res.pagination);
-       } catch (e) {
-         setError(e instanceof Error ? e.message : "Xəta");
-       } finally {
-         setLoading(false);
-       }
-     }
-   };
+   const load = React.useCallback(async () => {
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await adminApi.features({
+          page,
+          search: search || undefined
+        });
+        setData(res.data);
+        setPagination(res.pagination);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Xəta");
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [page, search]);
 
-    React.useEffect(() => {
-      isMountedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      load();
-      return () => {
-        isMountedRef.current = false;
-      };
-    }, [page, search]);
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [load]);
 
   const createFeature = async () => {
     if (!createCode || !createLabel) return;
@@ -78,21 +77,10 @@ export default function AdminFeaturesPage() {
 
   const deleteFeature = async (id: string) => {
     if (!window.confirm("Feature'i silmək istədiyinizdən əminsiniz?")) return;
-    setDeleting(prev => ({ ...prev, [id]: true }));
     try {
       await adminApi.featureDelete(id);
-      setDeleting(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
       await load();
     } catch (err) {
-      setDeleting(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
       window.alert(err instanceof Error ? err.message : "Xəta");
     }
   };
@@ -207,7 +195,7 @@ export default function AdminFeaturesPage() {
                       <form onClick={(e) => e.preventDefault()} className="flex gap-2">
                         <Input
                           value={feature.label_az}
-                          onChange={(e) => {
+                          onChange={() => {
                             // We would need to update state, but for simplicity we'll just call updateFeature on blur or enter
                             // We'll do it on blur for now.
                           }}

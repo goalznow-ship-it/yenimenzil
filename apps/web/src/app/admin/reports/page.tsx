@@ -17,34 +17,34 @@ export default function AdminReportsPage() {
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
   const isMountedRef = React.useRef(false);
 
-   const load = async () => {
-     if (isMountedRef.current) {
-       setLoading(true);
-       setError(null);
-       try {
-         const res = await adminApi.reports({
-           page,
-           search: search || undefined,
-           status: statusFilter || undefined
-         });
-         setData(res.data);
-         setPagination(res.pagination);
-       } catch (e) {
-         setError(e instanceof Error ? e.message : "Xəta");
-       } finally {
-         setLoading(false);
-       }
-     }
-   };
+   const load = React.useCallback(async () => {
+    if (isMountedRef.current) {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await adminApi.reports({
+          page,
+          search: search || undefined,
+          status: statusFilter || undefined
+        });
+        setData(res.data);
+        setPagination(res.pagination);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Xəta");
+      } finally {
+        setLoading(false);
+      }
+    }
+  }, [page, search, statusFilter]);
 
-   React.useEffect(() => {
-     isMountedRef.current = true;
-     // eslint-disable-next-line react-hooks/set-state-in-effect
-     load();
-     return () => {
-       isMountedRef.current = false;
-     };
-   }, [page, search, statusFilter]);
+  React.useEffect(() => {
+    isMountedRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    load();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, [load]);
 
   const updateReport = async (id: string, status: string, resolution_note: string, description: string) => {
     setUpdating(prev => ({ ...prev, [id]: true }));
@@ -171,7 +171,7 @@ export default function AdminReportsPage() {
                           <label className="block text-xs font-medium text-foreground/50 mb-1">Status</label>
                           <select
                             value={report.status}
-                            onChange={(e) => {
+                            onChange={() => {
                               // We would need to update state, but for simplicity we'll just call updateReport on submit
                             }}
                             className="w-full rounded-lg border border-border/60 bg-surface px-2 py-1 text-sm"
@@ -186,7 +186,7 @@ export default function AdminReportsPage() {
                           <label className="block text-xs font-medium text-foreground/50 mb-1">Resolution note</label>
                           <textarea
                             value={report.resolution_note ?? ""}
-                            onChange={(e) => {
+                            onChange={() => {
                               // We would need to update state
                             }}
                             className="w-full rounded-lg border border-border/60 bg-surface px-2 py-1 text-sm"

@@ -27,14 +27,14 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = React.useState(true);
   const [err, setErr] = React.useState<string | null>(null);
 
-  const load = React.useCallback(async () => {
+  const load = React.useCallback(async (args: { page?: number; search?: string; role?: string } = {}) => {
     setLoading(true);
     setErr(null);
     try {
       const res = await adminApi.users({
-        page,
-        search: search || undefined,
-        role: role || undefined
+        page: args.page ?? page,
+        search: args.search ?? (search || undefined),
+        role: args.role ?? (role || undefined)
       });
       setData(res.data);
       setPagination(res.pagination);
@@ -88,7 +88,7 @@ export default function AdminUsersPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setPage(1);
-                load();
+                void load({ page: 1, search });
               }
             }}
           />

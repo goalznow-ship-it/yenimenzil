@@ -64,9 +64,14 @@ export default function AdminListingDetailPage() {
     action: "approve" | "reject" | "suspend" | "archive" | "mark-sold"
   ) => {
     if (!window.confirm(`Əməliyyat: ${ACTION_LABELS[action] ?? action} — davam edilsin?`)) return;
+    let reason: string | undefined;
+    if (action === "reject" || action === "suspend" || action === "archive") {
+      reason = window.prompt("Səbəb (məcburi):") ?? undefined;
+      if (!reason) return;
+    }
     setActing(action);
     try {
-      await adminApi.listingAction(params.id, action);
+      await adminApi.listingAction(params.id, action, reason ? { reason } : {});
       setDetail(null);
       await load();
     } catch (err) {

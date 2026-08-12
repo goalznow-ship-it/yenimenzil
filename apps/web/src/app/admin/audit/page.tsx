@@ -6,12 +6,32 @@ import { Button, Input } from "@yenimenzil/ui";
 import { adminApi, type AuditEntry } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
+const ACTION_OPTIONS = [
+  "user.update",
+  "user.deactivate",
+  "agency.update",
+  "agency.deactivate",
+  "feature.create",
+  "feature.update",
+  "feature.delete",
+  "promotion.activate",
+  "promotion.deactivate",
+  "deleted",
+  "moderation.approved",
+  "moderation.rejected",
+  "moderation.changes_requested",
+  "moderation.suspended",
+  "moderation.activated",
+  "moderation.archived"
+];
+
 export default function AdminAuditPage() {
   const [page, setPage] = React.useState(1);
   const [search, setSearch] = React.useState("");
   const [actionFilter, setActionFilter] = React.useState("");
   const [entityTypeFilter, setEntityTypeFilter] = React.useState("");
   const [data, setData] = React.useState<AuditEntry[]>([]);
+  const [entityTypes, setEntityTypes] = React.useState<string[]>([]);
   const [pagination, setPagination] = React.useState({ page: 1, pages: 1, total: 0, limit: 50 });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -30,6 +50,7 @@ export default function AdminAuditPage() {
         if (isMounted) {
           setData(res.data);
           setPagination(res.pagination);
+          setEntityTypes(res.filters.entity_types);
         }
       } catch (e) {
         if (isMounted) {
@@ -47,7 +68,15 @@ export default function AdminAuditPage() {
     return () => {
       isMounted = false;
     };
-  }, [page, search, actionFilter, entityTypeFilter]);
+  }, [page, actionFilter, entityTypeFilter]);
+
+  const filtered = search
+    ? data.filter((entry) =>
+        [entry.actor, entry.action, entry.entity_type, entry.entity_id]
+          .filter(Boolean)
+          .some((v) => v!.toLowerCase().includes(search.toLowerCase()))
+      )
+    : data;
 
   return (
     <div>
@@ -76,7 +105,11 @@ export default function AdminAuditPage() {
           className="h-10 rounded-xl border border-border/60 bg-surface px-3 text-sm outline-none focus:border-brand/50"
         >
           <option value="">Bütün əməliyyatlar</option>
-          {/* We'll leave it empty for now; ideally we'd fetch the list of actions */}
+          {ACTION_OPTIONS.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
+          ))}
         </select>
         <select
           value={entityTypeFilter}
@@ -87,7 +120,11 @@ export default function AdminAuditPage() {
           className="h-10 rounded-xl border border-border/60 bg-surface px-3 text-sm outline-none focus:border-brand/50"
         >
           <option value="">Bütün varliq tipleri</option>
-          {/* We'll leave it empty for now */}
+          {entityTypes.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -113,14 +150,14 @@ export default function AdminAuditPage() {
                   Yüklənir...
                 </td>
               </tr>
-            ) : data.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
                   Audit logu tapılmadı
                 </td>
               </tr>
             ) : (
-              data.map((entry) => (
+              filtered.map((entry) => (
                 <tr key={entry.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
                   <td className="px-4 py-3">{entry.actor ?? "Sistem"}</td>
                   <td className="px-4 py-3">{entry.action}</td>
