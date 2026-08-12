@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search, UserRound } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi, AdminUser } from "@/services/admin-api";
+import { adminApi, type AdminUser } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 import { useAuth } from "@/store/auth";
 
@@ -45,10 +45,11 @@ export default function AdminUsersPage() {
     }
   }, [page, search, role]);
 
-  React.useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, role]);
+   React.useEffect(() => {
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [page, role]);
 
   const toggleActive = async (u: AdminUser) => {
     if (!window.confirm(`${u.full_name} — istifadəçini ${u.is_active ? "deaktiv" : "aktiv"} et?`)) return;

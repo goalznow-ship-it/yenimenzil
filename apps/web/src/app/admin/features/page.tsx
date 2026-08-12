@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Search, Plus, Trash2, Edit } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi, FeatureRow } from "@/services/admin-api";
+import { adminApi, type FeatureRow } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 export default function AdminFeaturesPage() {
@@ -18,38 +18,35 @@ export default function AdminFeaturesPage() {
   const [creating, setCreating] = React.useState(false);
   const [createCode, setCreateCode] = React.useState("");
   const [createLabel, setCreateLabel] = React.useState("");
+  const isMountedRef = React.useRef(false);
 
-  React.useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await adminApi.features({
-          page,
-          search: search || undefined
-        });
-        if (isMounted) {
-          setData(res.data);
-          setPagination(res.pagination);
-        }
-      } catch (e) {
-        if (isMounted) {
-          setError(e instanceof Error ? e.message : "Xəta");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
+   const load = async () => {
+     if (isMountedRef.current) {
+       setLoading(true);
+       setError(null);
+       try {
+         const res = await adminApi.features({
+           page,
+           search: search || undefined
+         });
+         setData(res.data);
+         setPagination(res.pagination);
+       } catch (e) {
+         setError(e instanceof Error ? e.message : "Xəta");
+       } finally {
+         setLoading(false);
+       }
+     }
+   };
 
-    load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, search]);
+    React.useEffect(() => {
+      isMountedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      load();
+      return () => {
+        isMountedRef.current = false;
+      };
+    }, [page, search]);
 
   const createFeature = async () => {
     if (!createCode || !createLabel) return;
@@ -80,7 +77,7 @@ export default function AdminFeaturesPage() {
   };
 
   const deleteFeature = async (id: string) => {
-    if (!window.open("Feature'i silmək istədiyinizdən əminsiniz?")) return;
+    if (!window.confirm("Feature'i silmək istədiyinizdən əminsiniz?")) return;
     setDeleting(prev => ({ ...prev, [id]: true }));
     try {
       await adminApi.featureDelete(id);
@@ -174,10 +171,10 @@ export default function AdminFeaturesPage() {
         <table className="w-full min-w-[600px] text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-foreground/40">
-              <th className="px-4 py-3>Kod</th>
-              <th className="px-4 py-3>Label (AZ)</th>
-              <th className="px-4 py-3>Yaradılma tarixi</th>
-              <th className="px-4 py-3>Əməliyyatlar</th>
+              <th className="px-4 py-3">Kod</th>
+              <th className="px-4 py-3">Label (AZ)</th>
+              <th className="px-4 py-3">Yaradılma tarixi</th>
+              <th className="px-4 py-3">Əməliyyatlar</th>
             </tr>
           </thead>
           <tbody>
@@ -186,22 +183,22 @@ export default function AdminFeaturesPage() {
                 <td colSpan={4} className="px-4 py-10 text-center text-foreground/40">
                   Yüklənir...
                 </td>
-              }
+              </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-4 py-10 text-center text-foreground/40">
                   Xüsusiyyət tapılmadı
                 </td>
-              }
+              </tr>
             ) : (
               data.map((feature) => (
                 <tr key={feature.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3>{feature.code}</td>
-                  <td className="px-4 py-3>{feature.label_az}</td>
-                  <td className="px-4 py-3 text-xs text-foreground/50>
+                  <td className="px-4 py-3">{feature.code}</td>
+                  <td className="px-4 py-3">{feature.label_az}</td>
+                  <td className="px-4 py-3 text-xs text-foreground/50">
                     {feature.created_at ? feature.created_at.slice(0, 10) : "—"}
                   </td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     {creating ? (
                       <Button size="sm" variant="secondary" disabled>
                         Yaratılır...
@@ -237,8 +234,6 @@ export default function AdminFeaturesPage() {
                       <>
                         <Button
                           onClick={() => {
-                            // We'll show a prompt for new label? For simplicity, we'll just alert that editing is not implemented.
-                            // But we have the form above, so we can just set the updating state.
                             setUpdating(prev => ({ ...prev, [feature.id]: true }));
                           }}
                           size="sm"
@@ -264,11 +259,11 @@ export default function AdminFeaturesPage() {
       </div>
 
       {pagination.pages > 1 ? (
-        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50>
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50">
           <span>
             {pagination.total} nəticə, {pagination.pages} səhifə
           </span>
-          <div className="flex gap-2>
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="secondary"

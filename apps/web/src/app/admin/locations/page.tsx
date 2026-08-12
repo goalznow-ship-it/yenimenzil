@@ -71,7 +71,7 @@ export default function AdminLocationsPage() {
       <div>
         <AdminPageHeader title="Location overview" subtitle="Şəhər, rayon və metro statistikaları" icon={Search} />
         <p className="text-center text-foreground/50">Heç bir məlumat yoxdur</p>
-      )
+      </div>
     );
   }
 
@@ -134,6 +134,6 @@ export default function AdminLocationsPage() {
           </p>
         </div>
       </>
-    );
-  }
+    </div>
+  );
 }

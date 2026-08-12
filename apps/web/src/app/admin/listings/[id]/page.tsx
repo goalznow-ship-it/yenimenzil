@@ -13,7 +13,7 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@yenimenzil/ui";
-import { adminApi, ComparableListing, PropertyDetail } from "@/services/admin-api";
+import { adminApi, type ComparableListing, type PropertyDetail } from "@/services/admin-api";
 import { AdminPageHeader } from "../../layout";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -55,9 +55,10 @@ export default function AdminListingDetailPage() {
     }
   }, [params.id]);
 
-  React.useEffect(() => {
-    load();
-  }, [load]);
+   React.useEffect(() => {
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+   }, [load]);
 
   const runAction = async (
     action: "approve" | "reject" | "suspend" | "archive" | "mark-sold"

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi, AgencyRow } from "@/services/admin-api";
+import { adminApi, type AgencyRow } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 export default function AdminAgenciesPage() {
@@ -31,10 +31,11 @@ export default function AdminAgenciesPage() {
     }
   }, [page, search]);
 
-  React.useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+   React.useEffect(() => {
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [page, search]);
 
   const toggleVerification = async (agency: AgencyRow) => {
     if (!window.confirm(`${agency.name} — təsdiqləmə statusunu ${agency.is_verified ? "geri alır" : "verir"}?`)) return;
@@ -73,39 +74,39 @@ export default function AdminAgenciesPage() {
         <table className="w-full min-w-[720px] text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-foreground/40">
-              <th className="px-4 py-3>Agentlik</th>
-              <th className="px-4 py-3>Email</th>
-              <th className="px-4 py-3>Telefon</th>
-              <th className="px-4 py-3>Vebsayt</th>
-              <th className="px-4 py-3>Təsdiqləmə</th>
-              <th className="px-4 py-3>Yaradılma tarixi</th>
-              <th className="px-4 py-3>Əməliyyatlar</th>
+              <th className="px-4 py-3">Agentlik</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Telefon</th>
+              <th className="px-4 py-3">Vebsayt</th>
+              <th className="px-4 py-3">Təsdiqləmə</th>
+              <th className="px-4 py-3">Yaradılma tarixi</th>
+              <th className="px-4 py-3">Əməliyyatlar</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
-                  Yüklənir...
-                </td>
-              }
-            ) : data.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
-                  Agentlik tapılmadı
-                }
-              )
-            ) : (
+             {loading ? (
+               <tr>
+                 <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
+                   Yüklənir...
+                 </td>
+               </tr>
+             ) : data.length === 0 ? (
+               <tr>
+                 <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
+                   Agentlik tapılmadı
+                 </td>
+               </tr>
+             ) : (
               data.map((agency) => (
                 <tr key={agency.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     <p className="font-medium">{agency.name}</p>
-                    <p className="text-xs text-foreground/50>{agency.slug}</p>
+                    <p className="text-xs text-foreground/50">{agency.slug}</p>
                   </td>
-                  <td className="px-4 py-3>{agency.email ?? "—"}</td>
-                  <td className="px-4 py-3>{agency.phone ?? "—"}</td>
-                  <td className="px-4 py-3>{agency.website ?? "—"}</td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">{agency.email ?? "—"}</td>
+                  <td className="px-4 py-3">{agency.phone ?? "—"}</td>
+                  <td className="px-4 py-3">{agency.website ?? "—"}</td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         agency.is_verified
@@ -116,10 +117,10 @@ export default function AdminAgenciesPage() {
                       {agency.is_verified ? "Təsdiqlənib" : "Təsdiqlənməyib"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-foreground/50>
+                  <td className="px-4 py-3 text-xs text-foreground/50">
                     {agency.created_at ? agency.created_at.slice(0, 10) : "—"}
                   </td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     <Button
                       size="sm"
                       variant="secondary"
@@ -135,12 +136,12 @@ export default function AdminAgenciesPage() {
         </table>
       </div>
 
-      {pagination.pages > 1 ? (
-        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50>
+        {pagination.pages > 1 ? (
+         <div className="mt-4 flex items-center justify-between text-sm text-foreground/50">
           <span>
             {pagination.total} nəticə, {pagination.pages} səhifə
           </span>
-          <div className="flex gap-2>
+           <div className="flex gap-2">
             <Button
               size="sm"
               variant="secondary"
@@ -160,6 +161,6 @@ export default function AdminAgenciesPage() {
           </div>
         </div>
       ) : null}
-    )
+    </div>
   );
 }

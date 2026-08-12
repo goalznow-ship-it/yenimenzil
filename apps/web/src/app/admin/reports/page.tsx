@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi, AdminReport } from "@/services/admin-api";
+import { adminApi, type AdminReport } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 export default function AdminReportsPage() {
@@ -15,39 +15,36 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
+  const isMountedRef = React.useRef(false);
 
-  React.useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await adminApi.reports({
-          page,
-          search: search || undefined,
-          status: statusFilter || undefined
-        });
-        if (isMounted) {
-          setData(res.data);
-          setPagination(res.pagination);
-        }
-      } catch (e) {
-        if (isMounted) {
-          setError(e instanceof Error ? e.message : "Xəta");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
+   const load = async () => {
+     if (isMountedRef.current) {
+       setLoading(true);
+       setError(null);
+       try {
+         const res = await adminApi.reports({
+           page,
+           search: search || undefined,
+           status: statusFilter || undefined
+         });
+         setData(res.data);
+         setPagination(res.pagination);
+       } catch (e) {
+         setError(e instanceof Error ? e.message : "Xəta");
+       } finally {
+         setLoading(false);
+       }
+     }
+   };
 
-    load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, search, statusFilter]);
+   React.useEffect(() => {
+     isMountedRef.current = true;
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+     return () => {
+       isMountedRef.current = false;
+     };
+   }, [page, search, statusFilter]);
 
   const updateReport = async (id: string, status: string, resolution_note: string, description: string) => {
     setUpdating(prev => ({ ...prev, [id]: true }));
@@ -62,7 +59,7 @@ export default function AdminReportsPage() {
   };
 
   const deleteReport = async (id: string) => {
-    if (!window.open("Report'u silmək istədiyinizdən əminsiniz?")) return;
+    if (!window.confirm("Report'u silmək istədiyinizdən əminsiniz?")) return;
     setUpdating(prev => ({ ...prev, [id]: true })); // Reuse updating state for deleting
     try {
       await adminApi.reportDelete(id);
@@ -73,11 +70,10 @@ export default function AdminReportsPage() {
       });
       await load();
     } catch (err) {
-      setUpdating(prev => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
+      setUpdating(prev => ({
+        ...prev,
+        [id]: false
+      }));
       window.alert(err instanceof Error ? err.message : "Xəta");
     }
   };
@@ -122,11 +118,11 @@ export default function AdminReportsPage() {
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-foreground/40">
-              <th className="px-4 py-3>Şikayət</th>
-              <th className="px-4 py-3>Ərazı</th>
-              <th className="px-4 py-3>Status</th>
-              <th className="px-4 py-3>Tarix</th>
-              <th className="px-4 py-3>Əməliyyatlar</th>
+              <th className="px-4 py-3">Şikayət</th>
+              <th className="px-4 py-3">Ərazı</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Tarix</th>
+              <th className="px-4 py-3">Əməliyyatlar</th>
             </tr>
           </thead>
           <tbody>
@@ -134,25 +130,25 @@ export default function AdminReportsPage() {
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-foreground/40">
                   Yüklənir...
-                }
-              )
+                </td>
+              </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-10 text-center text-foreground/40">
                   Şikayət tapılmadı
-                }
-              )
+                </td>
+              </tr>
             ) : (
               data.map((report) => (
                 <tr key={report.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     <p className="font-medium">{report.reason}</p>
                     {report.description ? (
-                      <p className="text-xs text-foreground/50>{report.description}</p>
+                      <p className="text-xs text-foreground/50">{report.description}</p>
                     ) : null}
                   </td>
-                  <td className="px-4 py-3>{report.property_id ?? "—"}</td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">{report.property_id ?? "—"}</td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         report.status === "resolved"
@@ -165,14 +161,14 @@ export default function AdminReportsPage() {
                       {report.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-foreground/50>
+                  <td className="px-4 py-3 text-xs text-foreground/50">
                     {report.created_at ? report.created_at.slice(0, 10) : "—"}
                   </td>
-                  <td className="px-4 py-3>
+                   <td className="px-4 py-3">
                     {updating[report.id] ? (
                       <form onClick={(e) => e.preventDefault()} className="space-y-2">
                         <div>
-                          <label className="block text-xs font-medium text-foreground/50 mb-1>Status</label>
+                          <label className="block text-xs font-medium text-foreground/50 mb-1">Status</label>
                           <select
                             value={report.status}
                             onChange={(e) => {
@@ -187,7 +183,7 @@ export default function AdminReportsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-foreground/50 mb-1>Resolution note</label>
+                          <label className="block text-xs font-medium text-foreground/50 mb-1">Resolution note</label>
                           <textarea
                             value={report.resolution_note ?? ""}
                             onChange={(e) => {
@@ -246,11 +242,11 @@ export default function AdminReportsPage() {
       </div>
 
       {pagination.pages > 1 ? (
-        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50>
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50">
           <span>
             {pagination.total} nəticə, {pagination.pages} səhifə
           </span>
-          <div className="flex gap-2>
+           <div className="flex gap-2">
             <Button
               size="sm"
               variant="secondary"
@@ -270,6 +266,6 @@ export default function AdminReportsPage() {
           </div>
         </div>
       ) : null}
-    )
+    </div>
   );
 }

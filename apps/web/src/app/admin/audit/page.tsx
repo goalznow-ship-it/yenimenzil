@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi, AuditEntry } from "@/services/admin-api";
+import { adminApi, type AuditEntry } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 export default function AdminAuditPage() {
@@ -24,7 +24,6 @@ export default function AdminAuditPage() {
       try {
         const res = await adminApi.auditLogs({
           page,
-          search: search || undefined,
           action: actionFilter || undefined,
           entity_type: entityTypeFilter || undefined
         });
@@ -52,7 +51,7 @@ export default function AdminAuditPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Audit logları" subtitle="Sistem əməliyyatlarının tarixçəsi" icon={Search} />
+      <AdminPageHeader title="Audit logları" subtitle="Sistem əməliyyatların tarixçəsi" icon={Search} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-52">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
@@ -87,7 +86,7 @@ export default function AdminAuditPage() {
           }}
           className="h-10 rounded-xl border border-border/60 bg-surface px-3 text-sm outline-none focus:border-brand/50"
         >
-          <option value="">Bütün varlıq tipləri</option>
+          <option value="">Bütün varliq tipleri</option>
           {/* We'll leave it empty for now */}
         </select>
       </div>
@@ -98,13 +97,13 @@ export default function AdminAuditPage() {
         <table className="w-full min-w-[900px] text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-foreground/40">
-              <th className="px-4 py-3>İtirən</th>
-              <th className="px-4 py-3>Əməliyyat</th>
-              <th className="px-4 py-3>Varlıq tipi</th>
-              <th className="px-4 py-3>Varlıq ID</th>
-              <th className="px-4 py-3>Ətraflı</th>
-              <th className="px-4 py-3>Mənbə</th>
-              <th className="px-4 py-3>Tarix</th>
+              <th className="px-4 py-3">İtirən</th>
+              <th className="px-4 py-3">Əməliyyat</th>
+              <th className="px-4 py-3">Varlıq tipi</th>
+              <th className="px-4 py-3">Varlıq ID</th>
+              <th className="px-4 py-3">Ətraflı</th>
+              <th className="px-4 py-3">Mənbə</th>
+              <th className="px-4 py-3">Tarix</th>
             </tr>
           </thead>
           <tbody>
@@ -113,28 +112,28 @@ export default function AdminAuditPage() {
                 <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
                   Yüklənir...
                 </td>
-              }
+              </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-10 text-center text-foreground/40">
                   Audit logu tapılmadı
                 </td>
-              }
+              </tr>
             ) : (
               data.map((entry) => (
                 <tr key={entry.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3>{entry.actor ?? "Sistem"}</td>
-                  <td className="px-4 py-3>{entry.action}</td>
-                  <td className="px-4 py-3>{entry.entity_type}</td>
-                  <td className="px-4 py-3>{entry.entity_id ?? "—"}</td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">{entry.actor ?? "Sistem"}</td>
+                  <td className="px-4 py-3">{entry.action}</td>
+                  <td className="px-4 py-3">{entry.entity_type}</td>
+                  <td className="px-4 py-3">{entry.entity_id ?? "—"}</td>
+                  <td className="px-4 py-3">
                     {/* TODO: Format details */}
                     {JSON.stringify(entry.details)}
                   </td>
-                  <td className="px-4 py-3>
-                    {entry.source === "admin_actions" ? "Admin azioni" : "Moderasiyə"}
+                  <td className="px-4 py-3">
+                    {entry.source === "admin_actions" ? "Admin acciones" : "Moderasiyə"}
                   </td>
-                  <td className="px-4 py-3 text-xs text-foreground/50>
+                  <td className="px-4 py-3 text-xs text-foreground/50">
                     {entry.created_at ? entry.created_at.slice(0, 16) : "—"}
                   </td>
                 </tr>
@@ -145,11 +144,11 @@ export default function AdminAuditPage() {
       </div>
 
       {pagination.pages > 1 ? (
-        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50>
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50">
           <span>
             {pagination.total} nəticə, {pagination.pages} səhifə
           </span>
-          <div className="flex gap-2>
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="secondary"

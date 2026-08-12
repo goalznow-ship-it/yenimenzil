@@ -12,45 +12,37 @@ export default function AdminPromotionsPage() {
   const [statusFilter, setStatusFilter] = React.useState("");
   const [data, setData] = React.useState<any[]>([]); // TODO: Replace with proper type
   const [pagination, setPagination] = React.useState({ page: 1, pages: 1, total: 0, limit: 20 });
-  const [tiers, setTiers] = React.useState<Record<string, { label_az: string; days: number }>({});
+  const [tiers, setTiers] = React.useState<{ [key: string]: { label_az: string; days: number } }>({});
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [activating, setActivating] = React.useState<Record<string, boolean>>({});
-  const [deactivating, setDeactivating] = React.useState<Record<string, boolean>>({});
+  const [activating, setActivating] = React.useState<{ [key: string]: boolean }>({});
+  const [deactivating, setDeactivating] = React.useState<{ [key: string]: boolean }>({});
+  const isMountedRef = React.useRef(false);
 
-  React.useEffect(() => {
-    let isMounted = true;
     const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await adminApi.promotedListings({
-          page,
-          search: search || undefined,
-          status: statusFilter || undefined
-        });
-        if (isMounted) {
+      if (isMountedRef.current) {
+        setLoading(true);
+        setError(null);
+        try {
+          const res = await adminApi.promotedListings();
           setData(res.data);
-          setPagination(res.pagination);
           setTiers(res.tiers);
-        }
-      } catch (e) {
-        if (isMounted) {
+        } catch (e) {
           setError(e instanceof Error ? e.message : "Xəta");
-        }
-      } finally {
-        if (isMounted) {
+        } finally {
           setLoading(false);
         }
       }
     };
 
-    load();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, search, statusFilter]);
+   React.useEffect(() => {
+     isMountedRef.current = true;
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+     return () => {
+       isMountedRef.current = false;
+     };
+   }, []);
 
   const activatePromotion = async (id: string, tier: string, days: number | undefined) => {
     if (!window.confirm(`${tier} promo aktivləşdirilsin?`)) return;
@@ -80,7 +72,7 @@ export default function AdminPromotionsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Promo təkmiləşdirmələri" subtitle="Elanların promoción statusu" icon={Search} />
+      <AdminPageHeader title="Promo təkmiləşdirmələri" subtitle="Elanların promocion statusu" icon={Search} />
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-52">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
@@ -117,12 +109,12 @@ export default function AdminPromotionsPage() {
         <table className="w-full min-w-[800px] text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-foreground/40">
-              <th className="px-4 py-3>Elan</th>
-              <th className="px-4 py-3>Status</th>
-              <th className="px-4 py-3>Promo tieri</th>
-              <th className="px-4 py-3>Promo statusu</th>
-              <th className="px-4 py-3>Son kullanma tarixi</th>
-              <th className="px-4 py-3>Əməliyyatlar</th>
+              <th className="px-4 py-3">Elan</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Promo tieri</th>
+              <th className="px-4 py-3">Promo statusu</th>
+              <th className="px-4 py-3">Son kullanma tarixi</th>
+              <th className="px-4 py-3">Əməliyyatlar</th>
             </tr>
           </thead>
           <tbody>
@@ -131,26 +123,26 @@ export default function AdminPromotionsPage() {
                 <td colSpan={6} className="px-4 py-10 text-center text-foreground/40">
                   Yüklənir...
                 </td>
-              }
+              </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-10 text-center text-foreground/40">
                   Elan tapılmadı
                 </td>
-              }
+              </tr>
             ) : (
               data.map((promo: any) => (
                 <tr key={promo.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     <p className="font-medium">{promo.title}</p>
-                    <p className="text-xs text-foreground/50>{promo.reference_code}</p>
+                    <p className="text-xs text-foreground/50">{promo.reference_code}</p>
                   </td>
-                  <td className="px-4 py-3 text-xs>
+                  <td className="px-4 py-3 text-xs">
                     {/* Assuming promo.status is the property status */}
                     {promo.status}
                   </td>
-                  <td className="px-4 py-3>{promo.tier ?? "—"}</td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">{promo.tier ?? "—"}</td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         promo.promotion_status === "active"
@@ -163,10 +155,10 @@ export default function AdminPromotionsPage() {
                       {promo.promotion_status ?? "none"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-foreground/50>
+                  <td className="px-4 py-3 text-xs text-foreground/50">
                     {promo.expires_at ? new Date(promo.expires_at).toLocaleDateString() : "—"}
                   </td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     {activating[promo.id] ? (
                       <Button size="sm" variant="secondary" disabled>
                         Aktivləşdirilir...
@@ -201,11 +193,11 @@ export default function AdminPromotionsPage() {
       </div>
 
       {pagination.pages > 1 ? (
-        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50>
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50">
           <span>
             {pagination.total} nəticə, {pagination.pages} səhifə
           </span>
-          <div className="flex gap-2>
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="secondary"
@@ -229,7 +221,7 @@ export default function AdminPromotionsPage() {
       {/* Tiers info */}
       {Object.keys(tiers).length > 0 && (
         <div className="mt-6 rounded-2xl border border-border/60 bg-surface p-4">
-          <h2 className="mb-3 font-semibold>Promo tierləri</h2>
+          <h2 className="mb-3 font-semibold">Promo tierləri</h2>
           <div className="space-y-3">
             {Object.entries(tiers).map(([tier, info]) => (
               <div key={tier} className="flex items-center justify-between rounded-xl border border-border/50 p-3">

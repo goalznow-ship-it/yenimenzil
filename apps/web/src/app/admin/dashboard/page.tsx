@@ -10,7 +10,7 @@ import {
   Home,
   Users
 } from "lucide-react";
-import { adminApi, AdminStats } from "@/services/admin-api";
+import { adminApi, type AdminStats } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 function StatCard({

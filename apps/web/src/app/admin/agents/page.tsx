@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { Button, Input } from "@yenimenzil/ui";
-import { adminApi, AgentReputation } from "@/services/admin-api";
+import { adminApi, type AgentReputation } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 export default function AdminAgentsPage() {
@@ -18,10 +18,7 @@ export default function AdminAgentsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await adminApi.agentReputation({
-        page,
-        search: search || undefined
-      });
+       const res = await adminApi.agentReputation();
       setData(res.data);
       setPagination(res.pagination);
     } catch (e) {
@@ -31,10 +28,11 @@ export default function AdminAgentsPage() {
     }
   }, [page, search]);
 
-  React.useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, search]);
+   React.useEffect(() => {
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [page, search]);
 
   return (
     <div>
@@ -63,14 +61,14 @@ export default function AdminAgentsPage() {
         <table className="w-full min-w-[800px] text-sm">
           <thead>
             <tr className="border-b border-border/60 text-left text-xs uppercase tracking-wider text-foreground/40">
-              <th className="px-4 py-3>Agent</th>
-              <th className="px-4 py-3>Agentlik</th>
-              <th className="px-4 py-3>Təsdiqlənmə identitéti</th>
-              <th className="px-4 py-3>Təsdiqlənmə telefunu</th>
-              <th className="px-4 py-3>Elan sayı</th>
-              <th className="px-4 py-3>Aktiv elanlar</th>
-              <th className="px-4 py-3>Baxışlar</th>
-              <th className="px-4 py-3>Reputation skoru</th>
+              <th className="px-4 py-3">Agent</th>
+              <th className="px-4 py-3">Agentlik</th>
+              <th className="px-4 py-3">Təsdiqlənmə identitéti</th>
+              <th className="px-4 py-3">Təsdiqlənmə telefunu</th>
+              <th className="px-4 py-3">Elan sayı</th>
+              <th className="px-4 py-3">Aktiv elanlar</th>
+              <th className="px-4 py-3">Baxışlar</th>
+              <th className="px-4 py-3">Reputation skoru</th>
             </tr>
           </thead>
           <tbody>
@@ -79,22 +77,22 @@ export default function AdminAgentsPage() {
                 <td colSpan={8} className="px-4 py-10 text-center text-foreground/40">
                   Yüklənir...
                 </td>
-              }
+              </tr>
             ) : data.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-10 text-center text-foreground/40">
                   Agent tapılmadı
-                }
-              )
+                </td>
+              </tr>
             ) : (
               data.map((agent) => (
                 <tr key={agent.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     <p className="font-medium">{agent.name}</p>
-                    <p className="text-xs text-foreground/50>{agent.email ?? "—"}</p>
+                    <p className="text-xs text-foreground/50">{agent.email ?? "—"}</p>
                   </td>
-                  <td className="px-4 py-3>{agent.agency_id ? "Var" : "Yox"}</td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">{agent.agency_id ? "Var" : "Yox"}</td>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         agent.verified_identity
@@ -105,7 +103,7 @@ export default function AdminAgentsPage() {
                       {agent.verified_identity ? "Bəli" : "Xeyr"}
                     </span>
                   </td>
-                  <td className="px-4 py-3>
+                  <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                         agent.verified_phone
@@ -116,10 +114,10 @@ export default function AdminAgentsPage() {
                       {agent.verified_phone ? "Bəli" : "Xeyr"}
                     </span>
                   </td>
-                  <td className="px-4 py-3>{agent.listing_count}</td>
-                  <td className="px-4 py-3>{agent.active_listings}</td>
-                  <td className="px-4 py-3>{agent.total_views}</td>
-                  <td className="px-4 py-3 font-medium>
+                  <td className="px-4 py-3">{agent.listing_count}</td>
+                  <td className="px-4 py-3">{agent.active_listings}</td>
+                  <td className="px-4 py-3">{agent.total_views}</td>
+                  <td className="px-4 py-3 font-medium">
                     {agent.reputation_score}
                   </td>
                 </tr>
@@ -130,11 +128,11 @@ export default function AdminAgentsPage() {
       </div>
 
       {pagination.pages > 1 ? (
-        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50>
+        <div className="mt-4 flex items-center justify-between text-sm text-foreground/50">
           <span>
             {pagination.total} nəticə, {pagination.pages} səhifə
           </span>
-          <div className="flex gap-2>
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="secondary"
@@ -154,6 +152,6 @@ export default function AdminAgentsPage() {
           </div>
         </div>
       ) : null}
-    )
+    </div>
   );
 }

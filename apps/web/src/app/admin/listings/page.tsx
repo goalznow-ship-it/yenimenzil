@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Check, Eye, Search, ShieldCheck, X } from "lucide-react";
 import { Input, Button } from "@yenimenzil/ui";
-import { adminApi, AdminListing } from "@/services/admin-api";
+import { adminApi, type AdminListing } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -52,10 +52,11 @@ export default function AdminListingsPage() {
     }
   }, [page, search, status]);
 
-  React.useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, status]);
+   React.useEffect(() => {
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     load();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [page, status]);
 
   const runAction = async (id: string, action: "approve" | "reject" | "suspend" | "archive") => {
     if (action === "approve" && !window.confirm("Elanı təsdiqləyin?")) return;
