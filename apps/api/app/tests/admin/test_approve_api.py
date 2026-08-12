@@ -1,12 +1,12 @@
+
 import pytest
-from uuid import UUID
 
 
 @pytest.mark.asyncio
 async def test_admin_listing_approve_via_api(client, auth_user):
     """Test that approving a listing works when created via API."""
     # Create a super admin user
-    _super_admin_user = await auth_user(email="superadmin@test.az", role="super_admin")
+    _super_admin = await auth_user(email="superadmin@test.az", role="super_admin")
     
     # Login as super admin
     login_response = await client.post(
@@ -16,7 +16,7 @@ async def test_admin_listing_approve_via_api(client, auth_user):
     assert login_response.status_code == 200
     
     # Create a regular user to own the property
-    owner_user = await auth_user(email="owner@test.az", role="user")
+    _owner = await auth_user(email="owner@test.az", role="user")
     
     # Login as owner to create property
     owner_login = await client.post(

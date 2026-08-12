@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.dependencies.auth import get_current_user, require_roles
+from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
-from app.models.enums import UserRole, ReportStatus
+from app.models.agency import Agency, Agent
+from app.models.enums import ReportStatus, UserRole
 from app.models.property import Property
 from app.models.report import Report
 from app.models.user import User
-from app.models.agency import Agency, Agent
 
 router = APIRouter(tags=["admin-dashboard"])
 
@@ -278,7 +277,26 @@ async def get_property_type_distribution_chart(
 admin_router = APIRouter()
 admin_router.include_router(router)
 # Import and include other admin routers here to avoid circular imports
-from .listings import admin_listings_router
+from .agency import admin_agencies_router
+from .analytics import admin_analytics_router
+from .audit import admin_audit_router
 from .detail import admin_detail_router
+from .features import admin_features_router
+from .intelligence import admin_intelligence_router
+from .listings import admin_listings_router
+from .locations import admin_locations_router
+from .promotions import admin_promotions_router
+from .report import admin_reports_router
+from .users import admin_users_router
+
 admin_router.include_router(admin_listings_router)
 admin_router.include_router(admin_detail_router)
+admin_router.include_router(admin_users_router)
+admin_router.include_router(admin_agencies_router)
+admin_router.include_router(admin_reports_router)
+admin_router.include_router(admin_audit_router)
+admin_router.include_router(admin_promotions_router)
+admin_router.include_router(admin_features_router)
+admin_router.include_router(admin_locations_router)
+admin_router.include_router(admin_intelligence_router)
+admin_router.include_router(admin_analytics_router)

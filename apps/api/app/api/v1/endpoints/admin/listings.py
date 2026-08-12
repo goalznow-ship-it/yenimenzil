@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, cast, func, or_, select, String
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
-from app.models.enums import UserRole, PropertyStatus, DealType, PropertyType
+from app.models.enums import DealType, PropertyStatus, PropertyType, UserRole
+from app.models.moderation import ModerationAction, ModerationLog
 from app.models.property import Property
-from app.models.user import User
 from app.models.report import Report
-from app.models.agency import Agency, Agent
-from app.models.moderation import ModerationLog, ModerationAction
+from app.models.user import User
 
 router = APIRouter(tags=["admin-listings"])
 
@@ -40,24 +39,24 @@ async def admin_list_properties(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=20, ge=1, le=100),
     # Search
-    search: Optional[str] = Query(default=None),
+    search: str | None = Query(default=None),
     # Filters
-    status: Optional[PropertyStatus] = Query(default=None),
-    deal_type: Optional[DealType] = Query(default=None),
-    property_type: Optional[PropertyType] = Query(default=None),
-    city: Optional[str] = Query(default=None),
-    district: Optional[str] = Query(default=None),
-    owner_id: Optional[uuid.UUID] = Query(default=None),
-    agent_id: Optional[uuid.UUID] = Query(default=None),
-    agency_id: Optional[uuid.UUID] = Query(default=None),
-    verified: Optional[bool] = Query(default=None),
-    promoted: Optional[bool] = Query(default=None),
+    status: PropertyStatus | None = Query(default=None),
+    deal_type: DealType | None = Query(default=None),
+    property_type: PropertyType | None = Query(default=None),
+    city: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    owner_id: uuid.UUID | None = Query(default=None),
+    agent_id: uuid.UUID | None = Query(default=None),
+    agency_id: uuid.UUID | None = Query(default=None),
+    verified: bool | None = Query(default=None),
+    promoted: bool | None = Query(default=None),
     # Date range
-    created_after: Optional[datetime] = Query(default=None),
-    created_before: Optional[datetime] = Query(default=None),
+    created_after: datetime | None = Query(default=None),
+    created_before: datetime | None = Query(default=None),
     # Price range
-    min_price: Optional[float] = Query(default=None, ge=0),
-    max_price: Optional[float] = Query(default=None, ge=0),
+    min_price: float | None = Query(default=None, ge=0),
+    max_price: float | None = Query(default=None, ge=0),
     # Sorting
     sort_by: str = Query(default="created_at", pattern="^(created_at|title|price|status|views)$"),
     sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
@@ -596,7 +595,6 @@ async def bulk_approve_listings(
     for prop in properties:
         # Only approve properties that can be approved
         if prop.status in [PropertyStatus.PENDING_REVIEW.value, PropertyStatus.REJECTED.value]:
-            old_status = prop.status
             prop.status = PropertyStatus.ACTIVE.value
             prop.published_at = prop.published_at or datetime.now(UTC)
             
@@ -648,7 +646,6 @@ async def bulk_suspend_listings(
     for prop in properties:
         # Only suspend properties that are active
         if prop.status == PropertyStatus.ACTIVE.value:
-            old_status = prop.status
             prop.status = PropertyStatus.SUSPENDED.value
             
             # Create moderation log
@@ -699,7 +696,6 @@ async def bulk_archive_listings(
     for prop in properties:
         # Only archive properties that are not already archived
         if prop.status != PropertyStatus.ARCHIVED.value:
-            old_status = prop.status
             prop.status = PropertyStatus.ARCHIVED.value
             
             # Create moderation log

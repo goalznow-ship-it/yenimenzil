@@ -1,75 +1,80 @@
 from __future__ import annotations
 
 import uuid
-from datetime = UTC, datetime
-from typing: Any, List, Optional
+from typing import Any
 
-from fastapi = APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy = and_, func, select
-from sqlalchemy.ext.asyncio = AsyncSession
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import Field
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.dependencies.auth = get_current_user
-from app.db.session = get_db
-from app.models.enums = WorkerRole, ReportStatus, ModerationAction
-from app.models.property = Property, PropertyLocation, PropertyMedia, PropertyPriceHistory, PropertyFeature
-from app.models.report = Report
-from app.models.user = Worker
-from app.models.agency = Agency, Agent
-from app.models.moderation = ModerationLog
-from app.schemas.property = PropertyRead, PropertyLocationRead, PropertyMediaRead, PropertyPriceHistoryRead
-from app.schemas.report = ReportRead
-from app.schemas.agency = AgencyRead
-from app.schemas.agent = AgentRead
-from app.schemas.auth = WorkerRead, ProfileRead
+from app.api.v1.dependencies.auth import get_current_user
+from app.db.session import get_db
+from app.models.agency import Agency, Agent
+from app.models.enums import UserRole
+from app.models.moderation import ModerationLog
+from app.models.property import (
+    Property,
+    PropertyLocation,
+)
+from app.models.report import Report
+from app.models.user import User
+from app.schemas.agency import AgencyRead
+from app.schemas.agent import AgentRead
+from app.schemas.auth import UserRead
+from app.schemas.property import (
+    PropertyRead,
+)
+from app.schemas.report import ReportRead
 
 router = APIRouter(tags=["admin-moderation-detail"])
 
 
 # Dependency to check for admin/moderator/super_admin access
-def get_admin_worker(
-    current_worker: Worker = Depends(get_current_worker),
-) -> Worker:
-    if current_worker.role not in (WorkerRole.MODERATOR, WorkerRole.ADMIN, WorkerRole.SUPER_ADMIN):
+def get_admin_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
         )
-    return current_worker
+    return current_user
 
 
 # Schema for admin property detail response
 class AdminPropertyDetailRead(PropertyRead):
     """Extended property detail for admin/moderator view."""
     # Seller information
-    seller: WorkerRead
+    seller: UserRead
     
     # Agency information (if applicable)
-    agency: Optional[AgencyRead] = None
-    agent: Optional[AgentRead] = None
+    agency: AgencyRead | None = None
+    agent: AgentRead | None = None
     
     # Reports
-    reports: List[ReportRead] = []
+    reports: list[ReportRead] = Field(default_factory=list)
     
     # Moderation timeline/history
-    moderation_timeline: List[dict] = []
+    moderation_timeline: list[dict] = Field(default_factory=list)
     
     # Analytics counters
-    analytics: dict[str, Any] = {}
+    analytics: dict[str, Any] = Field(default_factory=dict)
     
     # Duplicate detection signals
-    duplicate_signs: List[dict] = []
+    duplicate_signals: list[dict] = Field(default_factory=list)
 
 
 @router.get("/admin/listings/{property_id}")
 async def get_admin_property_detail(
     property_id: uuid.UUID,
-    admin_worker: Worker = Depends(get_current_worker),
+    admin_user: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db),
 ) -> AdminPropertyDetailRead:
     """Get detailed property information for admin/moderator review."""
     
     # Get the property with relationships
-    from app.repositories.property = PropertyRepository
+    from app.repositories.property import PropertyRepository
     repo = PropertyRepository(db)
     prop = await repo.get_by_id(property_id)
     if not prop:
@@ -85,11 +90,11 @@ async def get_admin_property_detail(
     seller = None
     if prop.owner:
         seller_result = await db.execute(
-            select(Worker).where(V.id == prop.owner.id)
+            select(User).where(User.id == prop.owner.id)
         )
         seller_user = seller_result.scalar_one_or_none()
         if seller_user:
-            seller = V.Read.model_validate(seller_user)
+            seller = UserRead.model_validate(seller_user)
     
     # Get agency information
     agency = None
@@ -114,7 +119,7 @@ async def get_admin_property_detail(
     # Get reports for this property
     reports_result = await db.execute(
         select(Report)
-        .where(Report.property_id == piper.id)
+        .where(Report.property_id == prop.id)
         .order_by(Report.created_at.desc())
     )
     reports = reports_result.scalars().all()
@@ -122,8 +127,8 @@ async def get_admin_property_detail(
     
     # Get moderation timeline/history
     moderation_result = await db.execute(
-        select(ModerationLog, V.full_name)
-        .join(V, ModerationLog.moderator_id == V.id)
+        select(ModerationLog, User.full_name)
+        .join(User, ModerationLog.moderator_id == User.id)
         .where(ModerationLog.property_id == prop.id)
         .order_by(ModerationLog.created_at.desc())
     )
@@ -146,20 +151,92 @@ async def get_admin_property_detail(
         # Could add more analytics here like favorites count, etc.
     }
     
-    # TODO: Add duplicate detection signals
-    # For now, we'll leave this empty and implement in Batch M
-    duplicate_signs: List[dict] = []
+    # Duplicate detection signals: search for other listings that look like
+    # the same offer (same city/district, same deal/property type, similar
+    # rooms, price and area, and similar title).
+    duplicate_signals: list[dict] = []
+    find_dupes = select(Property)
+    loc_clauses = []
+    if prop.location:
+        if prop.location.city:
+            loc_clauses.append(PropertyLocation.city == prop.location.city)
+        if prop.location.district:
+            loc_clauses.append(PropertyLocation.district == prop.location.district)
+    if loc_clauses:
+        find_dupes = find_dupes.join(PropertyLocation, PropertyLocation.property_id == Property.id).where(and_(*loc_clauses))
+    find_dupes = find_dupes.where(
+        Property.id != prop.id,
+        Property.deal_type == prop.deal_type,
+        Property.status.in_(["active", "pending_review", "suspended"]),
+    )
+    if prop.rooms:
+        min_rooms = max(prop.rooms - 1, 0)
+        find_dupes = find_dupes.where(Property.rooms.between(min_rooms, prop.rooms + 1))
+    similar = (await db.execute(find_dupes.limit(50))).scalars().all()
+
+    target_price = float(prop.price) if prop.price is not None else None
+    target_area = float(prop.area_total) if prop.area_total is not None else None
+
+    def _norm_title(title: str) -> str:
+        return "".join(ch.lower() for ch in str(title) if ch.isalnum())
+
+    target_title = _norm_title(prop.title)
+    for candidate in similar:
+        signals = []
+        candidate_price = float(candidate.price) if candidate.price is not None else None
+        candidate_area = float(candidate.area_total) if candidate.area_total is not None else None
+        if candidate.owner_id == prop.owner_id:
+            signals.append("same_owner")
+        if target_price and candidate_price and abs(candidate_price - target_price) <= max(target_price * 0.05, 100):
+            signals.append("price_within_5pct")
+        if target_area and candidate_area and abs(candidate_area - target_area) <= max(target_area * 0.1, 2):
+            signals.append("area_within_10pct")
+        if target_title and _norm_title(candidate.title) == target_title:
+            signals.append("identical_title")
+        elif target_title and (
+            target_title in _norm_title(candidate.title) or _norm_title(candidate.title) in target_title
+        ):
+            signals.append("similar_title")
+        if not signals:
+            continue
+        # Confidence: weighted overlap of the signals
+        weights = {
+            "same_owner": 0.35,
+            "price_within_5pct": 0.2,
+            "area_within_10pct": 0.15,
+            "similar_title": 0.15,
+            "identical_title": 0.3,
+        }
+        confidence = round(min(sum(weights[s] for s in signals), 1.0) * 100, 1)
+        only_if = confidence >= 40
+        duplicate_signals.append({
+            "id": str(candidate.id),
+            "reference_code": candidate.reference_code,
+            "title": candidate.title,
+            "price": candidate_price,
+            "area_total": candidate_area,
+            "rooms": candidate.rooms,
+            "status": candidate.status.value if hasattr(candidate.status, "value") else str(candidate.status),
+            "owner_id": str(candidate.owner_id),
+            "same_owner": "same_owner" in signals,
+            "signals": signals,
+            "confidence": confidence,
+            "flag_for_review": only_if,
+        })
+    duplicate_signals.sort(key=lambda s: -s["confidence"])
     
     # Construct the response by extending the base property data
+    # Exclude the seller field from base property as we're providing a more detailed one
+    base_property_data = base_property.model_dump(exclude={'seller'})
     response_data = AdminPropertyDetailRead(
-        **base_property.model_dump(),
+        **base_property_data,
         seller=seller,
         agency=agency,
         agent=agent,
         reports=reports_read,
-        moderation_timeline=mediation_timetime,
+        moderation_timeline=moderation_timeline,
         analytics=analytics,
-        duplicate_signs=duplicate_signs,
+        duplicate_signals=duplicate_signals,
     )
     
     return response_data

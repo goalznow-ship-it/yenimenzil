@@ -1,13 +1,12 @@
-import pytest
-from datetime import UTC, datetime
-from uuid import UUID, uuid4
+from uuid import uuid4
 
-from app.models.enums import PropertyStatus, DealType, PropertyType, UserRole, Currency
-from app.models.property import Property, PropertyLocation
+import pytest
+from sqlalchemy import select
+
+from app.models.enums import Currency, DealType, PropertyStatus, PropertyType
 from app.models.user import User
 from app.repositories.property import PropertyRepository
 from app.schemas.property import PropertyCreate, PropertyLocationCreate
-from sqlalchemy import select
 
 
 @pytest.mark.asyncio
@@ -21,7 +20,7 @@ async def test_admin_listings_requires_auth(client):
 async def test_admin_listings_requires_admin_role(client, auth_user):
     """Test that admin listings endpoint requires admin/moderator/super_admin role."""
     # Create a regular user
-    _regular_user = await auth_user(email="regular@test.az", role="user")
+    _regular = await auth_user(email="regular@test.az", role="user")
     
     # Login as regular user
     login_response = await client.post(
@@ -39,7 +38,7 @@ async def test_admin_listings_requires_admin_role(client, auth_user):
 async def test_admin_listings_allows_moderator(client, auth_user):
     """Test that admin listings endpoint allows moderator role."""
     # Create a moderator user
-    _moderator_user = await auth_user(email="moderator@test.az", role="moderator")
+    _moderator = await auth_user(email="moderator@test.az", role="moderator")
     
     # Login as moderator
     login_response = await client.post(
@@ -74,7 +73,7 @@ async def test_admin_listing_approve_requires_auth(client):
 async def test_admin_listing_approve_requires_admin_role(client, auth_user):
     """Test that approving a listing requires admin/moderator/super_admin role."""
     # Create a regular user
-    _regular_user = await auth_user(email="regular@test.az", role="user")
+    _regular = await auth_user(email="regular@test.az", role="user")
     
     # Login as regular user
     login_response = await client.post(
@@ -85,7 +84,7 @@ async def test_admin_listing_approve_requires_admin_role(client, auth_user):
     
     # Create a property to test with
     # First create a user to own the property
-    owner_user = await auth_user(email="owner@test.az", role="user")
+    _owner = await auth_user(email="owner@test.az", role="user")
     
     # Login as owner to create property (simplified - in reality we'd need to create the property)
     # For this test, we'll just test the authorization aspect
@@ -101,7 +100,7 @@ async def test_admin_listing_approve_requires_admin_role(client, auth_user):
 async def test_admin_listing_approve_success(client, auth_user, db):
     """Test that approving a listing works correctly for authorized users."""
     # Create a super admin user
-    _super_admin_user = await auth_user(email="superadmin@test.az", role="super_admin")
+    _super_admin = await auth_user(email="superadmin@test.az", role="super_admin")
     
     # Login as super admin
     login_response = await client.post(
@@ -111,13 +110,20 @@ async def test_admin_listing_approve_success(client, auth_user, db):
     assert login_response.status_code == 200
     
     # Create a user to own the property
-    owner_user = await auth_user(email="owner@test.az", role="user")
+    _owner = await auth_user(email="owner@test.az", role="user")
     
     # Get the owner user from database
     owner_result = await db.execute(
         select(User).where(User.email == "owner@test.az")
     )
     owner = owner_result.scalar_one()
+    
+    # Re-login as super admin to override the cookies set by auth_user for owner_user
+    login_response = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "superadmin@test.az", "password": "supersecret1"},
+    )
+    assert login_response.status_code == 200
     
     # Create a property using the repository (which will generate reference_code and slug)
     property_create = PropertyCreate(
@@ -177,7 +183,7 @@ async def test_admin_listing_approve_success(client, auth_user, db):
 async def test_admin_listing_reject_requires_reason(client, auth_user):
     """Test that rejecting a listing requires a reason."""
     # Create a moderator user
-    _moderator_user = await auth_user(email="moderator@test.az", role="moderator")
+    _moderator = await auth_user(email="moderator@test.az", role="moderator")
     
     # Login as moderator
     login_response = await client.post(
@@ -204,7 +210,7 @@ async def test_admin_listings_bulk_actions_require_auth(client):
 async def test_admin_listings_bulk_actions_require_admin_role(client, auth_user):
     """Test that bulk actions require admin/moderator/super_admin role."""
     # Create a regular user
-    _regular_user = await auth_user(email="regular@test.az", role="user")
+    _regular = await auth_user(email="regular@test.az", role="user")
     
     # Login as regular user
     login_response = await client.post(
