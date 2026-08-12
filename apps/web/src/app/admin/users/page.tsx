@@ -46,7 +46,7 @@ export default function AdminUsersPage() {
   }, [page, search, role]);
 
   React.useEffect(() => {
-    void load();
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, role]);
 
@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setPage(1);
-                void load();
+                load();
               }
             }}
           />

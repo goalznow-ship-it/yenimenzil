@@ -53,7 +53,7 @@ export default function AdminListingsPage() {
   }, [page, search, status]);
 
   React.useEffect(() => {
-    void load();
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, status]);
 

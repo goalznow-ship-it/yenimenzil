@@ -56,7 +56,7 @@ export default function AdminListingDetailPage() {
   }, [params.id]);
 
   React.useEffect(() => {
-    void load();
+    load();
   }, [load]);
 
   const runAction = async (
