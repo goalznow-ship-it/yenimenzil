@@ -1,15 +1,18 @@
 import type { Property } from "@yenimenzil/types";
 import Link from "next/link";
-import { Camera, Heart, BedDouble, Ruler } from "lucide-react";
+import { Camera, Heart, BedDouble, Ruler, Scale } from "lucide-react";
 import { cn } from "@yenimenzil/ui";
 import { formatPricePerSqm, formatPriceWithPeriod, timeAgo } from "@/lib/format";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import { useComparisonStore } from "@/stores/comparison-store";
 import { ImageWithFallback } from "@/components/common/image-with-fallback";
 import { PropertyBadge } from "../properties/property-badge";
 
 export function PropertyListRow({ property }: { property: Property }) {
   const has = useFavoritesStore((s) => s.has(property.id));
   const toggle = useFavoritesStore((s) => s.toggle);
+  const inCompare = useComparisonStore((s) => s.has(property.id));
+  const toggleCompare = useComparisonStore((s) => s.toggle);
   const hero = property.images[0];
   const hasPriceDrop =
     property.priceHistory.length >= 2 &&
@@ -65,6 +68,22 @@ export function PropertyListRow({ property }: { property: Property }) {
               {property.location.addressText}
             </p>
           </div>
+          <button
+            type="button"
+            aria-label={inCompare ? "Müqayisədən sil" : "Müqayisəyə əlavə et"}
+            aria-pressed={inCompare}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleCompare(property.id);
+            }}
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 shadow-[0_2px_8px_rgba(20,23,22,0.12)] ring-1 ring-black/5 transition-all duration-150 hover:scale-110 hover:text-foreground active:scale-95",
+              inCompare && "bg-brand/10 ring-brand/30 text-brand"
+            )}
+          >
+            <Scale className="h-[18px] w-[18px]" strokeWidth={2} />
+          </button>
           <button
             type="button"
             aria-label={has ? "Seçilmişlərdən sil" : "Seçilmişlərə əlavə et"}

@@ -4,13 +4,14 @@ import Link from "next/link";
 import type { Property } from "@yenimenzil/types";
 import { PROPERTY_TYPE_LABELS } from "@yenimenzil/types";
 import { cn } from "@yenimenzil/ui";
-import { Camera, Heart, Ruler } from "lucide-react";
+import { Camera, Heart, Ruler, Scale } from "lucide-react";
 import {
   formatPricePerSqm,
   formatPriceWithPeriod,
   timeAgo
 } from "@/lib/format";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import { useComparisonStore } from "@/stores/comparison-store";
 import { ImageWithFallback } from "@/components/common/image-with-fallback";
 import { PropertyBadge } from "./property-badge";
 
@@ -65,6 +66,38 @@ function FavoriteButton({ property }: { property: Property }) {
   );
 }
 
+function CompareButton({ property }: { property: Property }) {
+  const has = useComparisonStore((s) => s.has(property.id));
+  const toggle = useComparisonStore((s) => s.toggle);
+  const atLimit = useComparisonStore((s) => s.atLimit());
+
+  return (
+    <button
+      type="button"
+      aria-label={has ? "Müqayisədən sil" : "Müqayisəyə əlavə et"}
+      aria-pressed={has}
+      title={atLimit && !has ? "Maksimum 4 elan müqayisə edilə bilər" : undefined}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        toggle(property.id);
+      }}
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-[0_2px_8px_rgba(20,23,22,0.16)] ring-1 ring-black/5 transition-all duration-150 hover:scale-110 active:scale-95",
+        has && "bg-brand/10 ring-brand/30"
+      )}
+    >
+      <Scale
+        className={cn(
+          "h-[17px] w-[17px]",
+          has ? "text-brand" : "text-foreground/70"
+        )}
+        strokeWidth={2}
+      />
+    </button>
+  );
+}
+
 interface PropertyCardProps {
   property: Property;
   className?: string;
@@ -105,8 +138,9 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
           {property.badges.includes("new") ? <PropertyBadge kind="new" /> : null}
         </div>
 
-        <div className="absolute right-2.5 top-2.5">
+        <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-1.5">
           <FavoriteButton property={property} />
+          <CompareButton property={property} />
         </div>
 
         {property.images.length > 1 ? (

@@ -304,6 +304,11 @@ class PropertyQueryParams(BaseModel):
     max_bathrooms: int | None = Field(default=None, ge=0)
     min_construction_year: int | None = Field(default=None, ge=1900, le=2100)
     max_construction_year: int | None = Field(default=None, ge=1900, le=2100)
+    min_year: int | None = Field(default=None, ge=1900, le=2100)
+    max_year: int | None = Field(default=None, ge=1900, le=2100)
+    min_floor: int | None = Field(default=None, ge=0)
+    max_floor: int | None = Field(default=None, ge=0)
+    with_photo: bool = False
     seller_kind: SellerKind | None = None
     agent_id: uuid.UUID | None = None
     agency_id: uuid.UUID | None = None

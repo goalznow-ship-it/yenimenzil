@@ -34,7 +34,18 @@ export function MapExplorer() {
       rooms: filters.rooms,
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
+      minArea: filters.minArea,
+      maxArea: filters.maxArea,
       metro: filters.metro,
+      buildingType: filters.buildingType,
+      repairStatus: filters.repairStatus,
+      ownerOnly: filters.ownerOnly,
+      verifiedOnly: filters.verifiedOnly,
+      withPhoto: filters.withPhoto,
+      minYear: filters.minYear,
+      maxYear: filters.maxYear,
+      minFloor: filters.minFloor,
+      maxFloor: filters.maxFloor,
       sort: "newest" as SortKey
     })
       .then((res) => {
@@ -87,6 +98,11 @@ export function MapExplorer() {
       setFilter({ repairStatus: repairStatus as typeof filters.repairStatus }),
     onOwnerOnlyChange: (ownerOnly: boolean) => setFilter({ ownerOnly }),
     onVerifiedChange: (verifiedOnly: boolean) => setFilter({ verifiedOnly }),
+    onWithPhotoChange: (withPhoto: boolean) => setFilter({ withPhoto }),
+    onYearChange: (minYear?: number, maxYear?: number) =>
+      setFilter({ minYear, maxYear }),
+    onFloorChange: (minFloor?: number, maxFloor?: number) =>
+      setFilter({ minFloor, maxFloor }),
     onSortChange: (sort: SortKey) => setFilter({ sort }),
     onReset: resetAll
   };

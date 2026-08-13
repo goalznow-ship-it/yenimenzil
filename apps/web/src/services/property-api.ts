@@ -265,6 +265,11 @@ function toSearchParams(filters: Partial<SearchFilters>): URLSearchParams {
   set("repair_status", filters.repairStatus);
   set("owner_only", filters.ownerOnly);
   set("verified_only", filters.verifiedOnly);
+  set("with_photo", filters.withPhoto);
+  set("min_year", filters.minYear);
+  set("max_year", filters.maxYear);
+  set("min_floor", filters.minFloor);
+  set("max_floor", filters.maxFloor);
   set("sort", filters.sort);
   return params;
 }
@@ -335,8 +340,7 @@ export async function fetchPremiumProperties(limit = 8): Promise<Property[]> {
   }
 }
 
-export interface FeaturedSections {
-  all: Property[];
+export interface FeaturedSections {  all: Property[];
   newest: Property[];
   premium: Property[];
   priceDropped: Property[];
@@ -414,5 +418,121 @@ export async function fetchMarketPool(
     return body.data.filter((p) => p.id !== property.id);
   } catch {
     return [];
+  }
+}
+
+/**
+ * Fetch all active properties for sitemap generation.
+ * Limited to reasonable number for sitemap size.
+ */
+export async function fetchAllProperties(options: { limit?: number } = {}): Promise<Property[]> {
+  const { limit = 50000 } = options;
+  if (USE_DEMO_DATA) {
+    return getDemoListings().filter((p) => p.status === "active").slice(0, limit);
+  }
+  try {
+    // Fetch in batches of 1000
+    const batchSize = 1000;
+    const allProperties: Property[] = [];
+    let page = 1;
+
+    while (allProperties.length < limit) {
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("page_size", String(batchSize));
+      params.set("status", "active");
+
+      const response = await fetch(`${API_URL}/properties?${params.toString()}`, { cache: "no-store" });
+      if (!response.ok) break;
+
+      const body = await response.json() as ApiPaginated<ApiListing>;
+      const properties = body.data.map(toProperty);
+      if (properties.length === 0) break;
+
+      allProperties.push(...properties);
+      if (page >= body.meta.pages) break;
+      page++;
+    }
+    return allProperties.slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
+// ── Agent / Agency public profiles ─────────────────────────────────────────
+
+export interface AgentProfile {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  verified_identity: boolean;
+  verified_phone: boolean;
+  member_since: string | null;
+  agency_id: string | null;
+}
+
+export interface AgencyProfile {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  logo_url: string | null;
+  verified: boolean;
+  member_since: string | null;
+  description: string | null;
+  website: string | null;
+}
+
+export interface AgentProfileData {
+  agent: AgentProfile;
+  listings: Property[];
+  is_favorite: boolean;
+  is_mine?: boolean;
+}
+
+export interface AgencyProfileData {
+  agency: AgencyProfile;
+  listings: Property[];
+  agents: AgentProfile[];
+  is_favorite: boolean;
+}
+
+export async function fetchAgentProfile(agentId: string): Promise<AgentProfileData | null> {
+  try {
+    const body = await fetchJson<{
+      agent: AgentProfile;
+      listings: ApiPaginated<ApiListing>;
+      is_favorite: boolean;
+      is_mine?: boolean;
+    }>(`/agents/${agentId}/public`);
+    return {
+      agent: body.agent,
+      listings: body.listings.data.map(toProperty),
+      is_favorite: body.is_favorite,
+      is_mine: body.is_mine
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAgencyProfile(agencyId: string): Promise<AgencyProfileData | null> {
+  try {
+    const body = await fetchJson<{
+      agency: AgencyProfile;
+      listings: ApiPaginated<ApiListing>;
+      agents: AgentProfile[];
+      is_favorite: boolean;
+    }>(`/agencies/${agencyId}/public`);
+    return {
+      agency: body.agency,
+      listings: body.listings.data.map(toProperty),
+      agents: body.agents,
+      is_favorite: body.is_favorite
+    };
+  } catch {
+    return null;
   }
 }

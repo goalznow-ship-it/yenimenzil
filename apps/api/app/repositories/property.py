@@ -276,6 +276,16 @@ def _apply_filters(
         stmt = stmt.where(Property.construction_year >= params.min_construction_year)
     if params.max_construction_year is not None:
         stmt = stmt.where(Property.construction_year <= params.max_construction_year)
+    if params.min_year is not None:
+        stmt = stmt.where(Property.construction_year >= params.min_year)
+    if params.max_year is not None:
+        stmt = stmt.where(Property.construction_year <= params.max_year)
+    if params.min_floor is not None:
+        stmt = stmt.where(Property.floor >= params.min_floor)
+    if params.max_floor is not None:
+        stmt = stmt.where(Property.floor <= params.max_floor)
+    if params.with_photo:
+        stmt = stmt.where(Property.media.any())
 
     if params.keyword:
         keyword = f"%{params.keyword}%"

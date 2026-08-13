@@ -14,11 +14,14 @@ import { propertyMetadata, jsonLdProperty } from "@/lib/seo";
 import { formatPricePerSqm, formatPriceWithPeriod, formatDate, timeAgo } from "@/lib/format";
 import { PropertyGallery } from "@/features/properties/property-gallery";
 import { ContactCard } from "@/features/properties/contact-card";
+import { ShareBar } from "@/features/properties/share-bar";
+import { MortgageCalculator } from "@/features/properties/mortgage-calculator";
 import { PriceAnalysisCard } from "@/features/properties/price-analysis-card";
 import { PriceHistoryCard } from "@/features/properties/price-history-card";
 import { AreaIntelligence } from "@/features/properties/area-intelligence";
 import { PropertyBadge } from "@/features/properties/property-badge";
 import { PropertyGrid } from "@/features/properties/property-grid";
+import { RecentlyViewedSection } from "@/features/properties/recently-viewed";
 import { PropertyViewTracker } from "@/features/properties/property-view-tracker";
 
 interface PageProps {
@@ -85,6 +88,10 @@ function PropertySummary({ property }: { property: Property }) {
         {timeAgo(property.publishedAt)} elan edilib ·{" "}
         {formatDate(property.publishedAt)}
       </p>
+
+      <div className="mt-3">
+        <ShareBar property={property} />
+      </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-6 divide-y divide-border/70 border-t border-border/70 md:grid-cols-3">
         {property.rooms > 0 ? (
@@ -275,6 +282,14 @@ export default async function PropertyPage({ params }: PageProps) {
         </ol>
       </nav>
 
+      {jsonLdProperty(property).map((schema, i) => (
+        <script
+          key={i}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
+
       <PropertyGallery property={property} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -289,6 +304,11 @@ export default async function PropertyPage({ params }: PageProps) {
 
         <aside className="lg:sticky lg:top-20 lg:h-fit">
           <ContactCard property={property} />
+          {property.mortgageAvailable ? (
+            <div className="mt-4">
+              <MortgageCalculator property={property} />
+            </div>
+          ) : null}
           {property.mortgageAvailable ? (
             <div className="mt-4 rounded-2xl bg-brand-soft p-4">
               <p className="text-sm font-semibold text-brand">İpoteka mümkündür</p>
@@ -312,6 +332,8 @@ export default async function PropertyPage({ params }: PageProps) {
           <PropertyGrid listings={similar} columns={4} />
         </section>
       ) : null}
+
+      <RecentlyViewedSection excludeId={property.id} />
     </div>
   );
 }

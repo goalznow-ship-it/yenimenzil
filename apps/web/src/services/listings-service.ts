@@ -79,6 +79,23 @@ export function filterListings(
       return false;
     if (filters.ownerOnly && p.seller.kind !== "owner") return false;
     if (filters.verifiedOnly && !p.isVerified) return false;
+    if (filters.withPhoto && p.images.length === 0) return false;
+    if (filters.minYear != null && (p.constructionYear ?? 0) < filters.minYear)
+      return false;
+    if (filters.maxYear != null && (p.constructionYear ?? 0) > filters.maxYear)
+      return false;
+    if (
+      filters.minFloor != null &&
+      (p.floor ?? 0) > 0 &&
+      (p.floor ?? 0) < filters.minFloor
+    )
+      return false;
+    if (
+      filters.maxFloor != null &&
+      (p.floor ?? 0) > 0 &&
+      (p.floor ?? 0) > filters.maxFloor
+    )
+      return false;
 
     return true;
   });

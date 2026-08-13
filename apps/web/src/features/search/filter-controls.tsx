@@ -41,6 +41,9 @@ interface FilterControlsProps {
   onRepairChange: (value: string) => void;
   onOwnerOnlyChange: (value: boolean) => void;
   onVerifiedChange: (value: boolean) => void;
+  onWithPhotoChange: (value: boolean) => void;
+  onYearChange: (min?: number, max?: number) => void;
+  onFloorChange: (min?: number, max?: number) => void;
   onSortChange: (value: SortKey) => void;
   onReset: () => void;
   onClose?: () => void;
@@ -94,6 +97,9 @@ export function FilterControls({
   onRepairChange,
   onOwnerOnlyChange,
   onVerifiedChange,
+  onWithPhotoChange,
+  onYearChange,
+  onFloorChange,
   onSortChange,
   onReset,
   onClose,
@@ -277,6 +283,46 @@ export function FilterControls({
             <div className="space-y-4">
               <div>
                 <span className="mb-1.5 block text-[13px] font-medium text-foreground/70">
+                  Tikili ili
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <NumberInput
+                    value={filters.minYear}
+                    onValueChange={(v) => onYearChange(v, filters.maxYear)}
+                    placeholder="Min il"
+                    ariaLabel="Minimum tikili ili"
+                  />
+                  <NumberInput
+                    value={filters.maxYear}
+                    onValueChange={(v) => onYearChange(filters.minYear, v)}
+                    placeholder="Maks il"
+                    ariaLabel="Maksimum tikili ili"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <span className="mb-1.5 block text-[13px] font-medium text-foreground/70">
+                  Mərtəbə
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <NumberInput
+                    value={filters.minFloor}
+                    onValueChange={(v) => onFloorChange(v, filters.maxFloor)}
+                    placeholder="Min mərtəbə"
+                    ariaLabel="Minimum mərtəbə"
+                  />
+                  <NumberInput
+                    value={filters.maxFloor}
+                    onValueChange={(v) => onFloorChange(filters.minFloor, v)}
+                    placeholder="Maks mərtəbə"
+                    ariaLabel="Maksimum mərtəbə"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <span className="mb-1.5 block text-[13px] font-medium text-foreground/70">
                   Tikili növü
                 </span>
                 <div className="flex gap-2">
@@ -336,6 +382,11 @@ export function FilterControls({
                     label: "Yalnız təsdiqlənmiş elanlar",
                     value: filters.verifiedOnly,
                     onChange: onVerifiedChange
+                  },
+                  {
+                    label: "Yalnız fotolu elanlar",
+                    value: filters.withPhoto,
+                    onChange: onWithPhotoChange
                   }
                 ].map((option) => (
                   <label
@@ -424,9 +475,38 @@ export function FilterControls({
               </SelectContent>
             </Select>
             <div className="flex items-center gap-2">
+              <NumberInput
+                value={filters.minYear}
+                onValueChange={(v) => onYearChange(v, filters.maxYear)}
+                placeholder="Min il"
+                ariaLabel="Minimum tikili ili"
+              />
+              <NumberInput
+                value={filters.maxYear}
+                onValueChange={(v) => onYearChange(filters.minYear, v)}
+                placeholder="Maks il"
+                ariaLabel="Maksimum tikili ili"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <NumberInput
+                value={filters.minFloor}
+                onValueChange={(v) => onFloorChange(v, filters.maxFloor)}
+                placeholder="Min mərtəbə"
+                ariaLabel="Minimum mərtəbə"
+              />
+              <NumberInput
+                value={filters.maxFloor}
+                onValueChange={(v) => onFloorChange(filters.minFloor, v)}
+                placeholder="Maks mərtəbə"
+                ariaLabel="Maksimum mərtəbə"
+              />
+            </div>
+            <div className="flex items-center gap-2">
               {[
                 { label: "Mülkiyyətçi", checked: filters.ownerOnly, onChange: onOwnerOnlyChange },
-                { label: "Təsdiqlənmiş", checked: filters.verifiedOnly, onChange: onVerifiedChange }
+                { label: "Təsdiqlənmiş", checked: filters.verifiedOnly, onChange: onVerifiedChange },
+                { label: "Fotolu", checked: filters.withPhoto, onChange: onWithPhotoChange }
               ].map((option) => (
                 <label
                   key={option.label}

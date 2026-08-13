@@ -64,6 +64,9 @@ function activeFilterCount(filters: ReturnType<typeof useSearchFilters>["filters
   if (filters.repairStatus) count += 1;
   if (filters.ownerOnly) count += 1;
   if (filters.verifiedOnly) count += 1;
+  if (filters.withPhoto) count += 1;
+  if (filters.minYear != null || filters.maxYear != null) count += 1;
+  if (filters.minFloor != null || filters.maxFloor != null) count += 1;
   return count;
 }
 
@@ -101,9 +104,14 @@ export function SearchClient() {
       metro: filters.metro,
       buildingType: filters.buildingType,
       repairStatus: filters.repairStatus,
-      ownerOnly: filters.ownerOnly,
-      verifiedOnly: filters.verifiedOnly,
-      sort: filters.sort
+    ownerOnly: filters.ownerOnly,
+    verifiedOnly: filters.verifiedOnly,
+    withPhoto: filters.withPhoto,
+    minYear: filters.minYear,
+    maxYear: filters.maxYear,
+    minFloor: filters.minFloor,
+    maxFloor: filters.maxFloor,
+    sort: filters.sort
     })
       .then((res) => {
         if (cancelled) return;
@@ -198,6 +206,11 @@ export function SearchClient() {
       setFilter({ repairStatus: repairStatus as typeof filters.repairStatus }),
     onOwnerOnlyChange: (ownerOnly: boolean) => setFilter({ ownerOnly }),
     onVerifiedChange: (verifiedOnly: boolean) => setFilter({ verifiedOnly }),
+    onWithPhotoChange: (withPhoto: boolean) => setFilter({ withPhoto }),
+    onYearChange: (minYear?: number, maxYear?: number) =>
+      setFilter({ minYear, maxYear }),
+    onFloorChange: (minFloor?: number, maxFloor?: number) =>
+      setFilter({ minFloor, maxFloor }),
     onSortChange: (sort: SortKey) => setFilter({ sort }),
     onReset: resetAll
   };

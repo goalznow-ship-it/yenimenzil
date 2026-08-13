@@ -27,6 +27,11 @@ export interface UrlFilters {
   repairStatus?: RepairStatus;
   ownerOnly: boolean;
   verifiedOnly: boolean;
+  withPhoto: boolean;
+  minYear?: number;
+  maxYear?: number;
+  minFloor?: number;
+  maxFloor?: number;
   sort: SortKey;
 }
 
@@ -87,6 +92,11 @@ export function useSearchFilters() {
         (params.get("repair_status") as RepairStatus) || undefined,
       ownerOnly: params.get("owner_only") === "1",
       verifiedOnly: params.get("verified_only") === "1",
+      withPhoto: params.get("with_photo") === "1",
+      minYear: parseNumber("min_year"),
+      maxYear: parseNumber("max_year"),
+      minFloor: parseNumber("min_floor"),
+      maxFloor: parseNumber("max_floor"),
       sort
     };
   }, [params]);
@@ -133,6 +143,12 @@ export function useSearchFilters() {
         next.owner_only = updates.ownerOnly ? "1" : undefined;
       if (updates.verifiedOnly !== undefined)
         next.verified_only = updates.verifiedOnly ? "1" : undefined;
+      if (updates.withPhoto !== undefined)
+        next.with_photo = updates.withPhoto ? "1" : undefined;
+      if (updates.minYear !== undefined) next.min_year = updates.minYear;
+      if (updates.maxYear !== undefined) next.max_year = updates.maxYear;
+      if (updates.minFloor !== undefined) next.min_floor = updates.minFloor;
+      if (updates.maxFloor !== undefined) next.max_floor = updates.maxFloor;
       if (updates.sort !== undefined) next.sort = updates.sort;
       push(next);
     },

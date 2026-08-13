@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Property } from "@yenimenzil/types";
 import {
@@ -97,6 +98,25 @@ export function ContactCard({ property }: { property: Property }) {
             )}
           </p>
         </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap gap-2">
+        {seller.kind !== "owner" && seller.id ? (
+          <Link
+            href={`/agencies/${seller.id}`}
+            className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand transition-colors hover:text-brand-hover"
+          >
+            Agentliyin profili
+          </Link>
+        ) : null}
+        {seller.kind === "agent" && seller.id ? (
+          <Link
+            href={`/agents/${seller.id}`}
+            className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand transition-colors hover:text-brand-hover"
+          >
+            Agentin profili
+          </Link>
+        ) : null}
       </div>
 
       <div className="mt-3 flex flex-wrap gap-1.5">

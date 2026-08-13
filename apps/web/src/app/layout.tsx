@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -69,6 +70,7 @@ export default function RootLayout({
               <main className="flex-1 pb-20 md:pb-0">{children}</main>
               <Footer />
               <MobileNav />
+              <CookieConsent />
             </div>
           </AuthProvider>
         </TooltipProvider>

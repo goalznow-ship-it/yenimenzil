@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { EmptyState } from "@yenimenzil/ui";
-import { MessageCircle } from "lucide-react";
+import { Suspense } from "react";
+import { MessagesTab } from "@/features/dashboard/messages-tab";
+import { RequireAuth } from "@/components/auth/auth-provider";
 
 export const metadata: Metadata = {
   title: "Mesajlar",
@@ -10,20 +10,18 @@ export const metadata: Metadata = {
 
 export default function MessagesPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-16 lg:px-6">
-      <EmptyState
-        icon={<MessageCircle className="h-7 w-7" />}
-        title="Mesajlarınız burada olacaq"
-        description="Satıcılar və alıcılarla əlaqə mesajları burada toplanacaq. Demo rejimində messencer xidməti hələ aktiv deyil."
-        action={
-          <Link
-            href="/search"
-            className="inline-flex h-11 items-center justify-center rounded-[10px] bg-brand px-6 text-sm font-medium text-white hover:bg-brand-hover"
-          >
-            Elanlara bax
-          </Link>
-        }
-      />
-    </div>
+    <RequireAuth>
+      <div className="mx-auto max-w-5xl px-4 py-8 lg:px-6">
+        <h1 className="text-2xl font-semibold tracking-tight">Mesajlar</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          Satıcılar və alıcılarla yazışmalarınız.
+        </p>
+        <div className="mt-6">
+          <Suspense fallback={null}>
+            <MessagesTab />
+          </Suspense>
+        </div>
+      </div>
+    </RequireAuth>
   );
 }

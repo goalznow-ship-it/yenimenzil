@@ -151,6 +151,10 @@ export interface SearchFilters {
   ownerOnly?: boolean;
   verifiedOnly?: boolean;
   withPhoto?: boolean;
+  minYear?: number;
+  maxYear?: number;
+  minFloor?: number;
+  maxFloor?: number;
   sort: SortKey;
 }
 
