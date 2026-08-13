@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
+from app.core.storage import upload_file
 from app.db.session import get_db
 from app.models.favorite import Favorite
 from app.models.notification import Notification
 from app.models.property import Property
-from app.models.user import User
+from app.models.user import Profile, User
 from app.schemas.auth import UserRead, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -38,6 +39,34 @@ async def update_me(
             profile.location = payload.city
         if payload.preferred_language is not None:
             profile.preferred_language = payload.preferred_language
+        if payload.avatar_url is not None:
+            profile.avatar_url = payload.avatar_url
+    await db.commit()
+    await db.refresh(user)
+    return UserRead.model_validate(user)
+
+
+@router.post("/me/avatar", response_model=UserRead)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserRead:
+    if file.content_type not in ("image/jpeg", "image/png", "image/webp"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar must be JPEG, PNG or WebP",
+        )
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Avatar must be smaller than 5MB",
+        )
+    url = upload_file(data, file.filename or "avatar", file.content_type)
+    if user.profile is None:
+        user.profile = Profile(user_id=user.id)
+    user.profile.avatar_url = url
     await db.commit()
     await db.refresh(user)
     return UserRead.model_validate(user)
@@ -73,12 +102,9 @@ async def get_user_dashboard(
     total_favorites = result.scalar() or 0
 
     # Unread notifications count
-    stmt = (
-        select(func.count(Notification.id))
-        .where(
-            Notification.user_id == current_user.id,
-            Notification.is_read == False,
-        )
+    stmt = select(func.count(Notification.id)).where(
+        Notification.user_id == current_user.id,
+        Notification.is_read == False,
     )
     result = await db.execute(stmt)
     unread_notifications = result.scalar() or 0

@@ -10,6 +10,8 @@ class NotificationBase(BaseModel):
     title: str = Field(..., max_length=200)
     message: str = Field(...)
     is_read: bool = False
+    kind: str = "general"
+    link: str | None = None
 
 
 class NotificationCreate(NotificationBase):
@@ -20,6 +22,8 @@ class NotificationUpdate(BaseModel):
     title: str | None = Field(None, max_length=200)
     message: str | None = None
     is_read: bool | None = None
+    kind: str | None = None
+    link: str | None = None
 
 
 class NotificationRead(NotificationBase):
@@ -28,3 +32,7 @@ class NotificationRead(NotificationBase):
     id: uuid.UUID
     user_id: uuid.UUID
     created_at: datetime
+
+
+class NotificationUnreadCount(BaseModel):
+    unread: int = 0

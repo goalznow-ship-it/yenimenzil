@@ -5,10 +5,12 @@ from app.api.v1.endpoints import (
     agency,
     agent,
     analytics,
+    appointments,
     auth,
     favorite,
     health,
     location,
+    messaging,
     moderation,
     notification,
     price_history,
@@ -16,6 +18,7 @@ from app.api.v1.endpoints import (
     report,
     saved_search,
     users,
+    wallet,
 )
 
 api_router = APIRouter()
@@ -33,4 +36,7 @@ api_router.include_router(analytics.router)
 api_router.include_router(moderation.router)
 api_router.include_router(report.router)
 api_router.include_router(location.router)
+api_router.include_router(messaging.router)
+api_router.include_router(appointments.router)
+api_router.include_router(wallet.router)
 api_router.include_router(admin.admin_router)

@@ -22,11 +22,15 @@ from app.models.enums import UserRole
 if TYPE_CHECKING:
     from app.models.agency import Agent
     from app.models.analytics import AnalyticsEvent
+    from app.models.appointment import ViewingAppointment
     from app.models.auth import RefreshToken
     from app.models.favorite import Favorite
+    from app.models.messaging import Conversation, Message
     from app.models.notification import Notification
     from app.models.property import Property
     from app.models.saved_search import SavedSearch
+    from app.models.verification import NotificationPreference, VerificationToken
+    from app.models.wallet import Wallet
 
 
 class User(Base):
@@ -65,14 +69,44 @@ class User(Base):
     saved_searches: Mapped[list[SavedSearch]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
-    analytics_events: Mapped[list[AnalyticsEvent]] = relationship(
-        back_populates="user"
-    )
+    analytics_events: Mapped[list[AnalyticsEvent]] = relationship(back_populates="user")
     notifications: Mapped[list[Notification]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
     agent_records: Mapped[list[Agent]] = relationship(
         foreign_keys="Agent.user_id", lazy="selectin"
+    )
+    wallet: Mapped[Wallet | None] = relationship(
+        back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    verification_tokens: Mapped[list[VerificationToken]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    notification_preferences: Mapped[list[NotificationPreference]] = relationship(
+        cascade="all, delete-orphan"
+    )
+    conversations_as_buyer: Mapped[list[Conversation]] = relationship(
+        foreign_keys="Conversation.buyer_id",
+        back_populates="buyer",
+        cascade="all, delete-orphan",
+    )
+    conversations_as_seller: Mapped[list[Conversation]] = relationship(
+        foreign_keys="Conversation.seller_id",
+        back_populates="seller",
+        cascade="all, delete-orphan",
+    )
+    sent_messages: Mapped[list[Message]] = relationship(
+        back_populates="sender", cascade="all, delete-orphan"
+    )
+    viewing_requests: Mapped[list[ViewingAppointment]] = relationship(
+        foreign_keys="ViewingAppointment.requester_id",
+        back_populates="requester",
+        cascade="all, delete-orphan",
+    )
+    viewing_hosting: Mapped[list[ViewingAppointment]] = relationship(
+        foreign_keys="ViewingAppointment.owner_id",
+        back_populates="owner",
+        cascade="all, delete-orphan",
     )
 
 

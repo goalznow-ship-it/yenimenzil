@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import secrets
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -24,7 +26,15 @@ from app.db.session import get_db
 from app.models.auth import RefreshToken
 from app.models.enums import UserRole
 from app.models.user import Profile, User
+from app.models.verification import VerificationToken
 from app.schemas.auth import AuthSuccess, LoginRequest, RegisterRequest, UserRead
+from app.schemas.verification import (
+    ForgotPasswordRequest,
+    PasswordChangeRequest,
+    ResetPasswordRequest,
+    VerificationStatusRead,
+    VerifyTokenRequest,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,6 +52,23 @@ register_limiter = RateLimiter(
     window_seconds=60,
     burst_limit=settings.RATE_LIMIT_LOGIN_BURST,
 )
+
+
+def _hash_token(raw: str) -> str:
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+
+def _issue_verification_token(db: AsyncSession, user: User, kind: str) -> str:
+    raw = secrets.token_urlsafe(32)
+    db.add(
+        VerificationToken(
+            user_id=user.id,
+            kind=kind,
+            token_hash=_hash_token(raw),
+            expires_at=datetime.now(UTC) + timedelta(hours=24),
+        )
+    )
+    return raw
 
 
 async def _issue_tokens(
@@ -144,9 +171,7 @@ async def login(
                 detail="Too many attempts, try again later",
             )
 
-    result = await db.execute(
-        select(User).where(User.email == payload.email.lower())
-    )
+    result = await db.execute(select(User).where(User.email == payload.email.lower()))
     user = result.scalar_one_or_none()
     if user is None or not verify_password(payload.password, user.password_hash):
         raise HTTPException(
@@ -228,3 +253,171 @@ async def me(
     user: User = Depends(get_current_user),
 ) -> UserRead:
     return _user_response(user)
+
+
+@router.patch("/password", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def change_password(
+    payload: PasswordChangeRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    if not verify_password(payload.current_password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Current password is incorrect",
+        )
+    user.password_hash = hash_password(payload.new_password)
+    # Revoke all refresh tokens so other sessions must log in again
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.user_id == user.id, RefreshToken.revoked_at.is_(None)
+        )
+    )
+    for token in result.scalars().all():
+        token.revoked_at = datetime.now(UTC)
+    await db.commit()
+
+
+@router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Issue a password-reset token. Always returns 202 even if the email
+    does not exist (no user enumeration)."""
+    result = await db.execute(
+        select(User).where(User.email == payload.email.strip().lower())
+    )
+    user = result.scalar_one_or_none()
+    if user is not None:
+        _issue_verification_token(db, user, "password_reset")
+        await db.commit()
+    return {"detail": "If the email exists, a reset link has been issued."}
+
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def reset_password(
+    payload: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    token_hash = _hash_token(payload.token.strip())
+    result = await db.execute(
+        select(VerificationToken).where(
+            VerificationToken.token_hash == token_hash,
+            VerificationToken.kind == "password_reset",
+        )
+    )
+    token = result.scalar_one_or_none()
+    if (
+        token is None
+        or token.used_at is not None
+        or token.expires_at < datetime.now(UTC)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset token is invalid or expired",
+        )
+    user = await db.get(User, token.user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.password_hash = hash_password(payload.new_password)
+    token.used_at = datetime.now(UTC)
+    # Revoke all refresh tokens
+    result = await db.execute(
+        select(RefreshToken).where(
+            RefreshToken.user_id == user.id, RefreshToken.revoked_at.is_(None)
+        )
+    )
+    for rt in result.scalars().all():
+        rt.revoked_at = datetime.now(UTC)
+    await db.commit()
+
+
+@router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def verify_email(
+    payload: VerifyTokenRequest,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    token_hash = _hash_token(payload.token.strip())
+    result = await db.execute(
+        select(VerificationToken).where(
+            VerificationToken.token_hash == token_hash,
+            VerificationToken.kind == "email",
+        )
+    )
+    token = result.scalar_one_or_none()
+    if (
+        token is None
+        or token.used_at is not None
+        or token.expires_at < datetime.now(UTC)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification token is invalid or expired",
+        )
+    user = await db.get(User, token.user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_verified = True
+    token.used_at = datetime.now(UTC)
+    await db.commit()
+
+
+@router.post("/verify-phone", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+async def verify_phone(
+    payload: VerifyTokenRequest,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    token_hash = _hash_token(payload.token.strip())
+    result = await db.execute(
+        select(VerificationToken).where(
+            VerificationToken.token_hash == token_hash,
+            VerificationToken.kind == "phone",
+        )
+    )
+    token = result.scalar_one_or_none()
+    if (
+        token is None
+        or token.used_at is not None
+        or token.expires_at < datetime.now(UTC)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification token is invalid or expired",
+        )
+    user = await db.get(User, token.user_id)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.profile:
+        user.profile.phone_verified = True
+    token.used_at = datetime.now(UTC)
+    await db.commit()
+
+
+@router.post("/resend-verification", status_code=status.HTTP_202_ACCEPTED)
+async def resend_verification(
+    kind: str,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Issue a new verification token for the current user."""
+    if kind not in ("email", "phone"):
+        raise HTTPException(status_code=400, detail="Unknown verification kind")
+    _issue_verification_token(db, user, kind)
+    await db.commit()
+    return {"detail": "Verification token issued."}
+
+
+@router.get("/verification-status", response_model=VerificationStatusRead)
+async def verification_status(
+    user: User = Depends(get_current_user),
+) -> VerificationStatusRead:
+    profile = user.profile
+    return VerificationStatusRead(
+        email_verified=user.is_verified,
+        phone_verified=bool(profile and profile.phone_verified),
+        email_pending=not user.is_verified,
+        phone_pending=bool(user.phone and (not profile or not profile.phone_verified)),
+        verification_pending=False,
+        verification_rejected=False,
+    )

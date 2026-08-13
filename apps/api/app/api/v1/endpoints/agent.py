@@ -6,12 +6,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.v1.dependencies.auth import get_current_user
+from app.api.v1.dependencies.auth import get_current_user, get_optional_user
 from app.db.session import get_db
 from app.models.agency import Agent
 from app.models.enums import UserRole
 from app.models.user import User
+from app.repositories.property import PropertyRepository
 from app.schemas.agent import AgentCreate, AgentRead, AgentUpdate
+from app.schemas.property import PropertyQueryParams
 
 router = APIRouter(prefix="/agents", tags=["agents"])
 
@@ -64,6 +66,32 @@ async def get_agent(
     return agent
 
 
+@router.get(
+    "/{agent_id}/public",
+    response_model=dict,
+)
+async def get_agent_public_profile(
+    agent_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
+) -> dict:
+    """Public agent profile with their active listings (for /agents/[id])."""
+    result = await db.execute(select(Agent).where(Agent.id == agent_id))
+    agent = result.scalar_one_or_none()
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+
+    params = PropertyQueryParams(agent_id=agent_id, page=1, page_size=24)
+    listings = await PropertyRepository(db).list(params)
+    user_id = current_user.id if current_user else None
+    return {
+        "agent": AgentRead.model_validate(agent),
+        "listings": listings,
+        "is_favorite": False,
+        "is_mine": bool(user_id and agent.user_id == user_id),
+    }
+
+
 @router.patch("/{agent_id}", response_model=AgentRead)
 async def update_agent(
     agent_id: uuid.UUID,
@@ -83,7 +111,9 @@ async def update_agent(
     return agent
 
 
-@router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.delete(
+    "/{agent_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def delete_agent(
     agent_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

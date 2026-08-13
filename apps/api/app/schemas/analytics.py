@@ -28,3 +28,18 @@ class AnalyticsEventRead(AnalyticsEventBase):
     user_id: uuid.UUID | None = None
     property_id: uuid.UUID | None = None
     created_at: datetime
+
+
+class PopularSearchRead(BaseModel):
+    query: str
+    count: int
+
+
+class ListingAnalyticsRead(BaseModel):
+    property_id: uuid.UUID
+    views: int = 0
+    favorites: int = 0
+    phone_reveals: int = 0
+    whatsapp_clicks: int = 0
+    messages: int = 0
+    viewing_requests: int = 0

@@ -109,6 +109,10 @@ class Property(Base):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     is_promoted: Mapped[bool] = mapped_column(Boolean, default=False)
+    promotion_tier: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    promotion_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     views: Mapped[int] = mapped_column(Integer, default=0)
 
     published_at: Mapped[datetime | None] = mapped_column(
@@ -228,7 +232,9 @@ class PropertyPriceHistory(Base):
         ForeignKey("properties.id", ondelete="CASCADE"), index=True
     )
     price: Mapped[float] = mapped_column(Numeric(14, 2))
-    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     property: Mapped[Property] = relationship(back_populates="price_history")
 

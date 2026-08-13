@@ -209,6 +209,8 @@ class PropertySummaryRead(BaseModel):
     is_verified: bool
     is_premium: bool
     is_promoted: bool
+    promotion_tier: str | None = None
+    promotion_expires_at: datetime | None = None
     status: PropertyStatus
     published_at: datetime | None
     city: str | None
@@ -303,6 +305,8 @@ class PropertyQueryParams(BaseModel):
     min_construction_year: int | None = Field(default=None, ge=1900, le=2100)
     max_construction_year: int | None = Field(default=None, ge=1900, le=2100)
     seller_kind: SellerKind | None = None
+    agent_id: uuid.UUID | None = None
+    agency_id: uuid.UUID | None = None
     keyword: str | None = None
     published_after: datetime | None = None
     features: list[str] = Query(default=[])

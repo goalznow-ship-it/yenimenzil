@@ -10,6 +10,7 @@ from .locations import admin_locations_router
 from .promotions import admin_promotions_router
 from .report import admin_reports_router
 from .users import admin_users_router
+from .wallet import router as admin_wallet_router
 
 __all__ = [
     "admin_agencies_router",
@@ -24,4 +25,5 @@ __all__ = [
     "admin_reports_router",
     "admin_router",
     "admin_users_router",
+    "admin_wallet_router",
 ]

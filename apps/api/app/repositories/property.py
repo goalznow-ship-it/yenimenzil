@@ -3,6 +3,7 @@
 All query logic (filters, spatial bounding box, sorting, eager loading, and
 shaping of the summary rows) lives here so the endpoint stays thin.
 """
+
 from __future__ import annotations
 
 import math
@@ -116,7 +117,9 @@ def _apply_filters(
     if params.district and params.district != "all":
         needle = normalize_az(params.district)
         like = f"%{needle}%"
-        translated = func.translate(func.lower(PropertyLocation.district), "əşğçöüı", "esgcouii")
+        translated = func.translate(
+            func.lower(PropertyLocation.district), "əşğçöüı", "esgcouii"
+        )
         translated_neigh = func.translate(
             func.lower(PropertyLocation.neighborhood), "əşğçöüı", "esgcouii"
         )
@@ -164,9 +167,7 @@ def _apply_filters(
         stmt = stmt.where(PropertyLocation.metro == params.metro)
 
     if params.landmark:
-        stmt = stmt.where(
-            PropertyLocation.landmark.ilike(f"%{params.landmark}%")
-        )
+        stmt = stmt.where(PropertyLocation.landmark.ilike(f"%{params.landmark}%"))
 
     if params.building_type is not None:
         stmt = stmt.where(Property.building_type == params.building_type)
@@ -179,6 +180,12 @@ def _apply_filters(
 
     if params.seller_kind is not None:
         stmt = stmt.where(Property.seller_kind == params.seller_kind)
+
+    if params.agent_id is not None:
+        stmt = stmt.where(Property.agent_id == params.agent_id)
+
+    if params.agency_id is not None:
+        stmt = stmt.where(Property.agency_id == params.agency_id)
 
     if params.verified_only:
         stmt = stmt.where(Property.is_verified.is_(True))
@@ -194,32 +201,26 @@ def _apply_filters(
             .group_by(PropertyPriceHistory.property_id)
             .having(func.count(PropertyPriceHistory.id) >= 2)
         )
-        latest_sub = (
-            select(
-                PropertyPriceHistory.property_id,
-                func.row_number()
-                .over(
-                    partition_by=PropertyPriceHistory.property_id,
-                    order_by=PropertyPriceHistory.recorded_at.desc(),
-                )
-                .label("rn"),
-                PropertyPriceHistory.price.label("latest_price"),
+        latest_sub = select(
+            PropertyPriceHistory.property_id,
+            func.row_number()
+            .over(
+                partition_by=PropertyPriceHistory.property_id,
+                order_by=PropertyPriceHistory.recorded_at.desc(),
             )
-            .subquery()
-        )
-        first_sub = (
-            select(
-                PropertyPriceHistory.property_id,
-                func.row_number()
-                .over(
-                    partition_by=PropertyPriceHistory.property_id,
-                    order_by=PropertyPriceHistory.recorded_at.asc(),
-                )
-                .label("rn"),
-                PropertyPriceHistory.price.label("first_price"),
+            .label("rn"),
+            PropertyPriceHistory.price.label("latest_price"),
+        ).subquery()
+        first_sub = select(
+            PropertyPriceHistory.property_id,
+            func.row_number()
+            .over(
+                partition_by=PropertyPriceHistory.property_id,
+                order_by=PropertyPriceHistory.recorded_at.asc(),
             )
-            .subquery()
-        )
+            .label("rn"),
+            PropertyPriceHistory.price.label("first_price"),
+        ).subquery()
         dropped_ids = (
             select(latest_sub.c.property_id)
             .join(
@@ -354,9 +355,7 @@ def _apply_sort(stmt: Select[tuple[Property]], sort: PropertySort) -> Select:
             Property.published_at.asc().nullsfirst(), Property.id.asc()
         )
     # NEWEST (default): published_at desc, nulls last, deterministic tie-break
-    return stmt.order_by(
-        Property.published_at.desc().nullslast(), Property.id.asc()
-    )
+    return stmt.order_by(Property.published_at.desc().nullslast(), Property.id.asc())
 
 
 class PropertyRepository:
@@ -372,9 +371,9 @@ class PropertyRepository:
         filtered = _apply_filters(filtered, params)
 
         count_stmt = _apply_filters(
-            select(func.count(Property.id)).select_from(Property).join(
-                Property.location, isouter=False
-            ),
+            select(func.count(Property.id))
+            .select_from(Property)
+            .join(Property.location, isouter=False),
             params,
         )
         total = (await self.session.execute(count_stmt)).scalar_one()
@@ -477,9 +476,15 @@ class PropertyRepository:
             area_land=payload.area_land,
             floor=payload.floor,
             total_floors=payload.total_floors,
-            building_type=_enum(payload.building_type) if payload.building_type else None,
-            repair_status=_enum(payload.repair_status) if payload.repair_status else None,
-            document_type=_enum(payload.document_type) if payload.document_type else None,
+            building_type=_enum(payload.building_type)
+            if payload.building_type
+            else None,
+            repair_status=_enum(payload.repair_status)
+            if payload.repair_status
+            else None,
+            document_type=_enum(payload.document_type)
+            if payload.document_type
+            else None,
             mortgage_available=payload.mortgage_available,
             furnished=payload.furnished,
             heating=payload.heating,
@@ -534,9 +539,7 @@ class PropertyRepository:
         await self.session.refresh(prop, attribute_names=["created_at", "updated_at"])
         return await self.get_by_id(prop.id)  # type: ignore[return-value]
 
-    async def update(
-        self, prop: Property, payload: PropertyUpdate
-    ) -> Property:
+    async def update(self, prop: Property, payload: PropertyUpdate) -> Property:
         data = payload.model_dump(exclude_unset=True)
 
         scalar_fields = [
@@ -580,11 +583,15 @@ class PropertyRepository:
             status_value = data["status"]
             if hasattr(status_value, "value"):
                 status_value = status_value.value
-            if status_value == PropertyStatus.ACTIVE.value and prop.published_at is None:
+            if (
+                status_value == PropertyStatus.ACTIVE.value
+                and prop.published_at is None
+            ):
                 prop.published_at = datetime.now(UTC)
 
         if "edit_count" in data or any(
-            k in data for k in ("title", "description", "price", "status", "property_type")
+            k in data
+            for k in ("title", "description", "price", "status", "property_type")
         ):
             prop.edit_count = (prop.edit_count or 0) + 1
             prop.last_edited_at = datetime.now(UTC)
@@ -704,11 +711,17 @@ class PropertyRepository:
             phone = owner.phone if owner is not None else None
             verified_phone = bool(profile and profile.phone_verified)
             verified_identity = bool(profile and profile.identity_verified)
-            member_since = profile.member_since.year if profile and profile.member_since else None
+            member_since = (
+                profile.member_since.year if profile and profile.member_since else None
+            )
             active_listings = sum(
                 1 for p in (owner.properties or []) if p.status == PropertyStatus.ACTIVE
             )
-            seller_id = owner.id if owner is not None else (prop.agency.id if prop.agency else prop.owner_id)
+            seller_id = (
+                owner.id
+                if owner is not None
+                else (prop.agency.id if prop.agency else prop.owner_id)
+            )
 
         return PropertySellerRead(
             id=seller_id,
@@ -756,6 +769,8 @@ class PropertyRepository:
             is_verified=prop.is_verified,
             is_premium=prop.is_premium,
             is_promoted=prop.is_promoted,
+            promotion_tier=prop.promotion_tier,
+            promotion_expires_at=prop.promotion_expires_at,
             status=prop.status,
             published_at=prop.published_at,
             city=prop.location.city if prop.location else None,
@@ -787,7 +802,9 @@ class PropertyRepository:
             description=prop.description,
             bedrooms=prop.bedrooms,
             bathrooms=prop.bathrooms,
-            area_living=float(prop.area_living) if prop.area_living is not None else None,
+            area_living=float(prop.area_living)
+            if prop.area_living is not None
+            else None,
             area_land=float(prop.area_land) if prop.area_land is not None else None,
             document_type=prop.document_type,
             mortgage_available=prop.mortgage_available,

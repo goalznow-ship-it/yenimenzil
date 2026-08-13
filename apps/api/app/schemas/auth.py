@@ -36,12 +36,11 @@ class UserRead(BaseModel):
 
 class UserUpdate(BaseModel):
     full_name: str | None = Field(None, min_length=2, max_length=150)
-    phone: str | None = Field(
-        None, pattern=r"^\+994\d{9}$"
-    )
+    phone: str | None = Field(None, pattern=r"^\+994\d{9}$")
     bio: str | None = Field(None, max_length=1000)
     city: str | None = Field(None, max_length=200)
     preferred_language: str | None = Field(None, pattern=r"^(az|ru|en)$")
+    avatar_url: str | None = Field(None, max_length=500)
 
 
 class RegisterRequest(BaseModel):

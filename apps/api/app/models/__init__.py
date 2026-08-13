@@ -1,6 +1,7 @@
 from app.models.admin_log import AdminActionLog
 from app.models.agency import Agency, Agent
 from app.models.analytics import AnalyticsEvent
+from app.models.appointment import ViewingAppointment
 from app.models.auth import RefreshToken
 from app.models.enums import (
     AnalyticsEventType,
@@ -22,6 +23,7 @@ from app.models.enums import (
 )
 from app.models.favorite import Favorite
 from app.models.location import LocationPlace
+from app.models.messaging import Conversation, Message
 from app.models.moderation import ModerationLog
 from app.models.notification import Notification
 from app.models.property import (
@@ -35,6 +37,8 @@ from app.models.property import (
 from app.models.report import Report
 from app.models.saved_search import SavedSearch
 from app.models.user import Profile, User
+from app.models.verification import NotificationPreference, VerificationToken
+from app.models.wallet import Wallet, WalletTransaction
 
 __all__ = [
     "AdminActionLog",
@@ -43,6 +47,7 @@ __all__ = [
     "AnalyticsEvent",
     "AnalyticsEventType",
     "BuildingType",
+    "Conversation",
     "Currency",
     "DealType",
     "DocumentType",
@@ -50,9 +55,11 @@ __all__ = [
     "FeatureKind",
     "LocationPlace",
     "MediaKind",
+    "Message",
     "ModerationAction",
     "ModerationLog",
     "Notification",
+    "NotificationPreference",
     "Profile",
     "Property",
     "PropertyFeature",
@@ -72,4 +79,8 @@ __all__ = [
     "StrEnum",
     "User",
     "UserRole",
+    "VerificationToken",
+    "ViewingAppointment",
+    "Wallet",
+    "WalletTransaction",
 ]
