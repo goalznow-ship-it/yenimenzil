@@ -9,10 +9,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from app.main import app
-from app.core.security import ACCESS_TOKEN_COOKIE
 
+from app.core.security import ACCESS_TOKEN_COOKIE
+from app.main import app
 from app.tests.conftest import make_property_payload
+
 
 async def _create_authenticated_client(auth_user, email):
     """Create a new authenticated client for a user."""
@@ -144,7 +145,7 @@ async def test_cannot_message_own_listing(client, auth_user, feature_catalog, db
 @pytest.mark.asyncio
 async def test_archive_and_block_conversation(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-block@test.az", is_verified=True)
-    buyer = await auth_user(email="buyer-block@test.az")
+    await auth_user(email="buyer-block@test.az")
     prop = await _create_active_property(db, owner)
 
     response = await client.post(
@@ -243,7 +244,7 @@ async def test_viewing_request_lifecycle(client, auth_user, feature_catalog, db)
 @pytest.mark.asyncio
 async def test_viewing_requester_cannot_confirm(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-vr@test.az", is_verified=True)
-    requester = await auth_user(email="requester-vr@test.az")
+    await auth_user(email="requester-vr@test.az")
     prop = await _create_active_property(db, owner)
     future = (datetime.now(UTC) + timedelta(days=2)).isoformat()
 
@@ -283,7 +284,7 @@ async def test_viewing_past_time_rejected(client, auth_user, feature_catalog, db
 async def test_wallet_top_up_pending_then_admin_confirm(
     client, auth_user, feature_catalog
 ):
-    user = await auth_user(email="wallet-user@test.az")
+    await auth_user(email="wallet-user@test.az")
     response = await client.get("/api/v1/wallet")
     assert response.status_code == 200
     assert response.json()["balance"] == 0
@@ -302,7 +303,7 @@ async def test_wallet_top_up_pending_then_admin_confirm(
     )
     assert response.status_code == 403
 
-    admin = await auth_user(email="wallet-admin@test.az", role="admin")
+    await auth_user(email="wallet-admin@test.az", role="admin")
     response = await client.post(
         f"/api/v1/admin/wallet/top-ups/{transaction['id']}/confirm",
         json={"approve": True},
@@ -342,7 +343,7 @@ async def test_promotion_purchase_debits_wallet_and_marks_listing(
         "/api/v1/wallet/top-up", json={"amount": 10000}
     )
     tx = response.json()["transaction"]
-    admin = await auth_user(email="promo-admin@test.az", role="admin")
+    await auth_user(email="promo-admin@test.az", role="admin")
     await client.post(
         f"/api/v1/admin/wallet/top-ups/{tx['id']}/confirm",
         json={"approve": True},
@@ -385,7 +386,7 @@ async def test_promotion_catalog_available(client, auth_user):
 
 @pytest.mark.asyncio
 async def test_change_password_revokes_sessions(client, auth_user):
-    user = await auth_user(email="pw-change@test.az")
+    await auth_user(email="pw-change@test.az")
 
     response = await client.patch(
         "/api/v1/auth/password",
@@ -635,7 +636,7 @@ async def test_listing_views_increment_and_analytics(
     client, auth_user, feature_catalog, db
 ):
     owner = await auth_user(email="views-owner@test.az", is_verified=True)
-    viewer = await auth_user(email="views-viewer@test.az")
+    await auth_user(email="views-viewer@test.az")
     prop = await _create_active_property(db, owner)
 
     response = await client.get(f"/api/v1/properties/{prop.id}")
@@ -658,7 +659,7 @@ async def test_listing_views_increment_and_analytics(
 @pytest.mark.asyncio
 async def test_phone_reveal_tracked(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="phone-owner@test.az", is_verified=True)
-    viewer = await auth_user(email="phone-viewer@test.az")
+    await auth_user(email="phone-viewer@test.az")
     prop = await _create_active_property(db, owner)
 
     response = await client.post(f"/api/v1/properties/{prop.id}/phone-reveal")

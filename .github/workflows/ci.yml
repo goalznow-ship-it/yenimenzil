@@ -1,0 +1,169 @@
+name: YeniMenzil CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: "0 2 * * 0"  # Weekly Sunday run at 02:00 UTC
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: yenimenzil
+          POSTGRES_PASSWORD: yenimenzil
+          POSTGRES_DB: yenimenzil
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U yenimenzil"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies (root)
+        run: |
+          pip install -U pip
+          pip install setuptools
+
+      - name: Install dependencies (API)
+        working-directory: apps/api
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -U pip
+          .venv/bin/pip install -e ".[dev]"
+
+      - name: Install dependencies (web)
+        working-directory: apps/web
+        run: |
+          pnpm install
+
+      - name: Lint API (ruff)
+        working-directory: apps/api
+        run: .venv/bin/ruff check app
+
+      - name: Lint web (eslint)
+        working-directory: apps/web
+        run: pnpm lint
+
+      - name: Typecheck web
+        working-directory: apps/web
+        run: pnpm typecheck
+
+  test:
+    name: Run Tests
+    needs: lint-and-typecheck
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: yenimenzil
+          POSTGRES_PASSWORD: yenimenzil
+          POSTGRES_DB: yenimenzil
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U yenimenzil"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        working-directory: apps/api
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -U pip
+          .venv/bin/pip install -e ".[dev]"
+
+      - name: Run backend tests
+        working-directory: apps/api
+        run: .venv/bin/pytest app/tests -q
+
+      - name: Run migration safety tests
+        working-directory: apps/api
+        run: .venv/bin/pytest app/tests/test_migration_safety.py -q
+
+  build:
+    name: Build & Docker Validation
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-action@v3
+
+      - name: Validate API Dockerfile
+        working-directory: apps/api
+        run: |
+          docker build -f Dockerfile --platform linux/amd64 -t yenimenzil/api:test .
+          docker build -f Dockerfile.worker --platform linux/amd64 -t yenimenzil/worker:test .
+
+      - name: Validate web Dockerfile
+        working-directory: apps/web
+        run: |
+          docker build -f Dockerfile --platform linux/amd64 -t yenimenzil/web:test .
+
+      - name: Docker Compose validation
+        run: docker compose config
+
+  deployment-docs:
+    name: Generate Deployment Documentation
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate deployment docs
+        run: |
+          echo "Deployment documentation generation placeholder"
+          echo "See: docs/DEPLOYMENT.md"

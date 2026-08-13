@@ -4,10 +4,10 @@ services:
     container_name: yenimenzil-postgres
     environment:
       POSTGRES_USER: yenimenzil
-      POSTGRES_PASSWORD: yenimenzil
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yenimenzil}
       POSTGRES_DB: yenimenzil
     ports:
-      - "5434:5432"
+      - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
     image: redis:7-alpine
     container_name: yenimenzil-redis
     ports:
-      - "6381:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -32,13 +32,13 @@ services:
   minio:
     image: minio/minio:latest
     container_name: yenimenzil-minio
-    command: server /data --console-address ":9003"
+    command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "9002:9000"
-      - "9003:9001"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
     healthcheck:
@@ -47,7 +47,145 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    container_name: yenimenzil-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@postgres:5432/yenimenzil}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      SECRET_KEY: ${SECRET_KEY}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.yenimenzil.az/api/v1}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://yenimenzil.az}
+      S3_ENDPOINT: ${S3_ENDPOINT:-localhost:9002}
+      S3_BUCKET: ${S3_BUCKET:-yenimenzil-media}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9002}
+      S3_SECURE: ${S3_SECURE:-false}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-no-reply@yenimenzil.az}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-stripe}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      ADMIN_MFA_ISSUER: ${ADMIN_MFA_ISSUER:-YeniMenzil.az}
+      ADMIN_MFA_SMTP_SENDER: ${ADMIN_MFA_SMTP_SENDER:-no-reply@yenimenzil.az}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      RATE_LIMIT_LOGIN_PER_MINUTE: ${RATE_LIMIT_LOGIN_PER_MINUTE:-10}
+      RATE_LIMIT_LOGIN_BURST: ${RATE_LIMIT_LOGIN_BURST:-20}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    ports:
+      - "8000:8000"
+    volumes: []
+    networks:
+      - yenimenzil-net
+
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    container_name: yenimenzil-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.yenimenzil.az/api/v1}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://yenimenzil.az}
+    ports:
+      - "3000:3000"
+    networks:
+      - yenimenzil-net
+
+  adminer:
+    image: adminer
+    container_name: yenimenzil-adminer
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - yenimenzil-net
+
+  # Background worker for async tasks (email, payments, etc.)
+  worker:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile.worker
+    container_name: yenimenzil-worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@postgres:5432/yenimenzil}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      SECRET_KEY: ${SECRET_KEY}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-no-reply@yenimenzil.az}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-stripe}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND:-redis://redis:6379/1}
+      ADMIN_MFA_ISSUER: ${ADMIN_MFA_ISSUER:-YeniMenzil.az}
+      ADMIN_MFA_SMTP_SENDER: ${ADMIN_MFA_SMTP_SENDER:-no-reply@yenimenzil.az}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      RATE_LIMIT_LOGIN_PER_MINUTE: ${RATE_LIMIT_LOGIN_PER_MINUTE:-10}
+      RATE_LIMIT_LOGIN_BURST: ${RATE_LIMIT_LOGIN_BURST:-20}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes: []
+    networks:
+      - yenimenzil-net
+
+  # Rate limiter / observability sidecar
+  redis-exporter:
+    image: oliver006/redis-exporter:latest
+    container_name: yenimenzil-redis-exporter
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: redis:6379
+    networks:
+      - yenimenzil-net
+
 volumes:
   pg_data:
   redis_data:
   minio_data:
+
+networks:
+  yenimenzil-net:
+    driver: bridge

@@ -13,7 +13,7 @@ from app.db.session import get_db
 from app.models.appointment import ViewingAppointment
 from app.models.enums import PropertyStatus
 from app.models.notification import Notification
-from app.models.property import Property, PropertyMedia
+from app.models.property import Property
 from app.models.user import User
 from app.schemas.appointment import (
     ViewingAppointmentCreate,

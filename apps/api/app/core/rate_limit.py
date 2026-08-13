@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class RateLimiter:
+    """Redis-backed sliding-window rate limiter with in-memory fallback."""
+
     def __init__(
         self,
         prefix: str,
