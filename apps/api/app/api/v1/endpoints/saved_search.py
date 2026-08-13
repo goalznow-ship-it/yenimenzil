@@ -77,7 +77,7 @@ async def update_saved_search(
     return search
 
 
-@router.delete("/{search_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{search_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def delete_saved_search(
     search_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

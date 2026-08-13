@@ -53,7 +53,7 @@ async def add_favorite(
     await db.commit()
 
 
-@router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def remove_favorite(
     property_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
