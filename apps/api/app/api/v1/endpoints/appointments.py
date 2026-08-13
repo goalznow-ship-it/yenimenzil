@@ -154,7 +154,7 @@ async def list_my_appointments(
         .limit(limit)
     )
     result = await db.execute(stmt)
-    appointments = result.scalars().all()
+    appointments = result.unique().scalars().all()
     return [_read(a) for a in appointments]
 
 

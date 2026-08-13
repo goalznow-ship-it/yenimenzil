@@ -50,7 +50,7 @@ def _conversation_read(
     conversation: Conversation, current_user_id: uuid.UUID
 ) -> ConversationRead:
     unread = sum(
-        1 for m in conversation.messages if not m.is_read
+        1 for m in conversation.messages if not m.is_read and m.sender_id != current_user_id
     )
     last = conversation.messages[-1] if conversation.messages else None
     return ConversationRead(

@@ -127,7 +127,7 @@ async def test_conversation_unread_counts(client, auth_user, feature_catalog, db
     assert unread.json() == {"total": 1, "conversations": 1}
 
     response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
-    assert response.json()["unread_count"] == 1
+    assert response.json()["unread_count"] == 0
 
 
 @pytest.mark.asyncio
@@ -195,30 +195,12 @@ async def test_conversation_requires_participant(client, auth_user, feature_cata
 @pytest.mark.asyncio
 async def test_viewing_request_lifecycle(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-view@test.az", is_verified=True)
-    from sqlalchemy import select, insert
-    from app.models.user import User
-
-    # Save owner cookies so they can be restored after requester auth
-    owner_cookies = dict(client.cookies)
     
-    # Register requester user in DB so _create_authenticated_client can log them in
-    await db.execute(
-        insert(User).values(
-            email="requester-view@test.az",
-            phone="+994500000001",
-            password_hash="not-a-real-hash",
-            full_name="Test Sahib",
-        )
-    )
-    await db.commit()
-    
-    requester = await db.execute(select(User).where(User.email == "requester-view@test.az"))
-    requester = requester.scalar_one()
+    requester = await auth_user(email="requester-view@test.az")
     requester_client = await _create_authenticated_client(auth_user, "requester-view@test.az")
     
-    # Restore owner cookies so subsequent client operations use the owner session
-    client.cookies.clear()
-    client.cookies.update(owner_cookies)
+    # Re-authenticate as owner so client has owner session for owner actions
+    await auth_user(email="owner-view@test.az", is_verified=True)
     
 
     
@@ -245,7 +227,7 @@ async def test_viewing_request_lifecycle(client, auth_user, feature_catalog, db)
     assert response.json()["status"] == "confirmed"
 
     # Requester lists their requests
-    response = await client.get("/api/v1/viewing-requests?role=requested")
+    response = await requester_client.get("/api/v1/viewing-requests?role=requested")
     assert response.status_code == 200
     assert len(response.json()) == 1
 
