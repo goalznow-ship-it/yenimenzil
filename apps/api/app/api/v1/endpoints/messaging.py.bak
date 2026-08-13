@@ -170,6 +170,7 @@ async def unread_counts(
 ) -> UnreadCountsRead:
     me_id = current_user.id
 
+    
     # Count unread messages for the current user
     total = (
         await db.execute(
@@ -206,33 +207,14 @@ async def unread_counts(
 
     return UnreadCountsRead(total=total, conversations=conversations)
 
+    return UnreadCountsRead(total=total, conversations=conversations)
+
 
 @router.get("/{conversation_id}", response_model=ConversationRead)
 async def get_conversation(
     conversation_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> ConversationRead:
-    conversation = await _get_conversation(db, conversation_id)
-    if conversation is None or not _is_participant(conversation, current_user):
-        raise HTTPException(status_code=404, detail="Conversation not found")
-    return _conversation_read(conversation, current_user.id)
-
-
-@router.get("/{conversation_id}/messages", response_model=list[MessageRead])
-async def list_messages(
-    conversation_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-    limit: int = Query(default=50, ge=1, le=200),
-    offset: int = Query(default=0, ge=0),
-) -> list[MessageRead]:
-    conversation = await _get_conversation(db, conversation_id)
-    if conversation is None or not _is_participant(conversation, current_user):
-        raise HTTPException(status_code=404, detail="Conversation not found")
-
-    # Mark all unread messages in the conversation as read for the current user
-    result = await db.execute(
         select(Message).where(
             Message.conversation_id == conversation_id,
             Message.is_read.is_(False),

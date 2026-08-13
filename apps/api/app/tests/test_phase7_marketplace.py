@@ -195,8 +195,30 @@ async def test_conversation_requires_participant(client, auth_user, feature_cata
 @pytest.mark.asyncio
 async def test_viewing_request_lifecycle(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-view@test.az", is_verified=True)
-    requester = await auth_user(email="requester-view@test.az")
+    from sqlalchemy import select, insert
+    from app.models.user import User
+
+    # Save owner cookies so they can be restored after requester auth
+    owner_cookies = dict(client.cookies)
+    
+    # Register requester user in DB so _create_authenticated_client can log them in
+    await db.execute(
+        insert(User).values(
+            email="requester-view@test.az",
+            phone="+994500000001",
+            password_hash="not-a-real-hash",
+            full_name="Test Sahib",
+        )
+    )
+    await db.commit()
+    
+    requester = await db.execute(select(User).where(User.email == "requester-view@test.az"))
+    requester = requester.scalar_one()
     requester_client = await _create_authenticated_client(auth_user, "requester-view@test.az")
+    
+    # Restore owner cookies so subsequent client operations use the owner session
+    client.cookies.clear()
+    client.cookies.update(owner_cookies)
     
 
     
