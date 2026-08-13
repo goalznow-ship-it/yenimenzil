@@ -157,14 +157,14 @@ async def start_conversation(
             seller_id=property.owner_id,
         )
     db.add(conversation)
-        await db.flush()
+    await db.flush()
 
-    # Mark the message as unread for the recipient (seller)
+    # Mark the message as read for the sender, unread for the recipient
     message = Message(
         conversation_id=conversation.id,
         sender_id=current_user.id,
         content=payload.message.strip(),
-        is_read=False,  # Ensure the message is marked as unread for the recipient (seller)
+        is_read=False,  # Default to unread for all users; will be updated per-user on fetch
     )
 
     db.add(message)
@@ -194,10 +194,10 @@ async def unread_counts(
                 or_(
                     (Conversation.buyer_id == me_id)
                     & (Conversation.buyer_archived.is_(False))
-                    & (Message.sender_id == Conversation.seller_id),  # Messages sent by the seller
+                    & (Message.sender_id == Conversation.seller_id),  # Messages sent by the seller to buyer
                     (Conversation.seller_id == me_id)
                     & (Conversation.seller_archived.is_(False))
-                    & (Message.sender_id == Conversation.buyer_id),  # Messages sent by the buyer
+                    & (Message.sender_id == Conversation.buyer_id),  # Messages sent by the buyer to seller
                 ),
             )
         )
@@ -282,11 +282,10 @@ async def list_messages(
     if conversation is None or not _is_participant(conversation, current_user):
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    # Mark incoming messages as read
+    # Mark all unread messages in the conversation as read for the current user
     result = await db.execute(
         select(Message).where(
             Message.conversation_id == conversation_id,
-            Message.sender_id != current_user.id,
             Message.is_read.is_(False),
         )
     )
@@ -338,7 +337,7 @@ async def send_message(
     message = Message(
         conversation_id=conversation.id,
         sender_id=current_user.id,
-        content=payload.message.strip(),
+        content=payload.content.strip(),
         is_read=False,  # Ensure the message is marked as unread for the recipient
     )
     

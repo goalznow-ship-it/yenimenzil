@@ -195,6 +195,7 @@ async def test_conversation_requires_participant(client, auth_user, feature_cata
 @pytest.mark.asyncio
 async def test_viewing_request_lifecycle(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-view@test.az", is_verified=True)
+    requester = await auth_user(email="requester-view@test.az")
     requester_client = await _create_authenticated_client(auth_user, "requester-view@test.az")
     
 
