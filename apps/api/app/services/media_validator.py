@@ -2,7 +2,6 @@
 
 import logging
 from io import BytesIO
-from pathlib import Path
 
 from PIL import Image as PILImage
 
@@ -45,9 +44,9 @@ def validate_image_file(file_data: bytes, filename: str) -> tuple[bool, str | No
         im.verify()
 
         return True, None
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - untrusted file data, any decoder failure must be rejected
         logger.warning(f"Image validation error for {filename}: {e}")
-        return False, f"Invalid image file: {str(e)}"
+        return False, f"Invalid image file: {e!s}"
 
 
 def get_image_metadata(file_data: bytes) -> dict | None:
@@ -61,6 +60,6 @@ def get_image_metadata(file_data: bytes) -> dict | None:
             "mode": im.mode,
             "size_bytes": len(file_data),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - untrusted file data, any decoder failure must be handled
         logger.warning(f"Could not extract image metadata: {e}")
         return None

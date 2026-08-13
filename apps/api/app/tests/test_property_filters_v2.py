@@ -1,8 +1,5 @@
 """Tests for the Phase 5 search filters and sorts."""
-from datetime import datetime, timedelta, timezone
-
-from fastapi import status
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -203,13 +200,13 @@ async def test_list_published_after_filter(client, auth_user, feature_catalog, d
     new = await _create(client, owner, {"title": "Yeni"})
 
     old_prop = await db.get(Property, old["id"])
-    old_prop.published_at = datetime.now(timezone.utc) - timedelta(days=30)
+    old_prop.published_at = datetime.now(UTC) - timedelta(days=30)
     new_prop = await db.get(Property, new["id"])
-    new_prop.published_at = datetime.now(timezone.utc)
+    new_prop.published_at = datetime.now(UTC)
     await db.commit()
 
     response = await client.get(
-        "/api/v1/properties", params={"published_after": datetime.now(timezone.utc) - timedelta(days=7)}
+        "/api/v1/properties", params={"published_after": datetime.now(UTC) - timedelta(days=7)}
     )
     assert response.json()["meta"]["total"] == 1
     assert response.json()["data"][0]["id"] == new["id"]
@@ -222,9 +219,9 @@ async def test_list_sort_oldest(client, auth_user, feature_catalog, db):
     second = await _create(client, owner, {"title": "Yeni"})
 
     first_prop = await db.get(Property, first["id"])
-    first_prop.published_at = datetime.now(timezone.utc) - timedelta(days=10)
+    first_prop.published_at = datetime.now(UTC) - timedelta(days=10)
     second_prop = await db.get(Property, second["id"])
-    second_prop.published_at = datetime.now(timezone.utc) - timedelta(days=1)
+    second_prop.published_at = datetime.now(UTC) - timedelta(days=1)
     await db.commit()
 
     response = await client.get(

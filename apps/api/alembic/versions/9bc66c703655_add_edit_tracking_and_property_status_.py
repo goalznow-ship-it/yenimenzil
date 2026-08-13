@@ -5,16 +5,16 @@ Revises: 9295efd6838c
 Create Date: 2026-08-12 18:49:21.780644
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision: str = '9bc66c703655'
-down_revision: Union[str, None] = '9295efd6838c'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '9295efd6838c'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

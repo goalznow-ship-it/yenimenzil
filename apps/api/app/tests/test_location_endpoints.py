@@ -1,7 +1,6 @@
 """Tests for the DB-backed location catalog endpoints."""
 import pytest
 
-from app.models.location import LocationPlace
 from app.services.location_seed import build_seed
 
 

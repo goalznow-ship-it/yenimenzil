@@ -1,23 +1,23 @@
 """Background expiry watcher for property listings."""
 
-from datetime import datetime, timezone
+import asyncio
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 
 from app.db.session import async_session_factory
-from app.models.property import Property
 from app.models.enums import PropertyStatus
+from app.models.property import Property
 
 
 async def start_expiry_watcher() -> None:
     """Start the background expiry watcher loop."""
-    import asyncio
 
     async def watcher_loop() -> None:
         while True:
             try:
                 await _check_expiring_properties()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - watcher loop must never die
                 print(f"Expiry watcher error: {e}")
             await asyncio.sleep(3600)  # check every hour
 
@@ -40,7 +40,7 @@ async def stop_expiry_watcher() -> None:
 async def _check_expiring_properties() -> None:
     """Check for properties that have expired and update their status."""
     async with async_session_factory() as session:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Find properties with expires_at in the past and status still active
         result = await session.execute(
