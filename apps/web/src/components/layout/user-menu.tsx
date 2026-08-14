@@ -41,7 +41,7 @@ export function UserMenu() {
   if (!user) return null;
 
   const items = [
-    { href: "/dashboard", label: "İdarə paneli", icon: LayoutDashboard },
+    { href: "/profile", label: "İdarə paneli", icon: LayoutDashboard },
     { href: "/profile", label: "Profil", icon: Settings },
     ...(isStaff(user.role)
       ? [{ href: "/admin/listings", label: "Moderasiya", icon: ShieldCheck }]
@@ -134,7 +134,7 @@ export function UserAvatarLink() {
   if (status === "authenticated" && user) {
     return (
       <Link
-        href="/dashboard"
+        href="/profile"
         aria-label="Profil"
         className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
       >

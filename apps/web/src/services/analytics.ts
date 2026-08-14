@@ -17,7 +17,7 @@ export type AnalyticsEvent =
   | "COMPARE";
 
 const BUFFER_KEY = "ym-analytics-buffer";
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/analytics/events`;
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/analytics/events`;
 
 function bufferEvents() {
   try {
@@ -50,7 +50,7 @@ export async function track(event: AnalyticsEvent, payload?: Record<string, unkn
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        event_type: event,
+        event_type: event.toLowerCase(),
         payload: payload ?? {},
         // We don't have user_id, property_id, ip_address, user_agent here.
         // The backend can extract ip_address and user_agent from the request.

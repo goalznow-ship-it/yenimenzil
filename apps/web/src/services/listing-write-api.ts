@@ -40,7 +40,7 @@ export interface ListingInput {
   media: { url: string; alt?: string; is_cover?: boolean }[];
 }
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001/api/v1";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE}${path}`, {
@@ -67,7 +67,38 @@ export interface ListingWriteResult {
   published_at?: string | null;
 }
 
+export interface ListingDetail extends ListingWriteResult {
+  title: string;
+  description?: string;
+  deal_type: "sale" | "rent" | "daily";
+  property_type: string;
+  price: number;
+  currency: "AZN" | "USD" | "EUR";
+  rooms: number;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  area_total: number;
+  floor?: number | null;
+  total_floors?: number | null;
+  building_type?: "new" | "old" | null;
+  repair_status?: string | null;
+  document_type?: string | null;
+  mortgage_available: boolean;
+  features: string[];
+  location?: {
+    city: string | null;
+    district: string | null;
+    metro: string | null;
+    address_text: string | null;
+  } | null;
+  media?: { url: string }[];
+}
+
 export const listingWriteApi = {
+  async get(id: string): Promise<ListingDetail> {
+    return request(`/properties/${id}`);
+  },
+
   async create(input: ListingInput): Promise<ListingWriteResult> {
     return request("/properties", { method: "POST", body: JSON.stringify(input) });
   },

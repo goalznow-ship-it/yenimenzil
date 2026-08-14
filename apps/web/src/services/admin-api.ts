@@ -3,7 +3,7 @@
  * httpOnly cookie session as the rest of the app.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001/api/v1";
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export class ApiError extends Error {
   status: number;

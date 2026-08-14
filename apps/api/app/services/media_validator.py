@@ -11,9 +11,9 @@ settings = get_settings()
 logger = logging.getLogger(__name__)
 
 # Validation thresholds from settings
-MIN_RESOLUTION = getattr(settings, "min_image_resolution", (400, 300))
-MAX_FILE_SIZE = getattr(settings, "max_image_file_size_mb", 10)
-ALLOWED_FORMATS = getattr(settings, "allowed_image_formats", ["JPEG", "PNG", "WEBP"])
+MIN_RESOLUTION = (settings.MEDIA_MIN_WIDTH, settings.MEDIA_MIN_WIDTH * 3 // 4)
+MAX_FILE_SIZE = settings.MEDIA_MAX_SIZE_MB
+ALLOWED_FORMATS = ["JPEG", "PNG", "WEBP"]
 
 
 def validate_image_file(file_data: bytes, filename: str) -> tuple[bool, str | None]:
@@ -35,8 +35,11 @@ def validate_image_file(file_data: bytes, filename: str) -> tuple[bool, str | No
 
         # Check minimum resolution
         if width < MIN_RESOLUTION[0] or height < MIN_RESOLUTION[1]:
-            return (False,)
-            f"Resolution too small: {width}x{height}. Minimum: {MIN_RESOLUTION[0]}x{MIN_RESOLUTION[1]}"
+            msg = (
+                f"Resolution too small: {width}x{height}. "
+                f"Minimum: {MIN_RESOLUTION[0]}x{MIN_RESOLUTION[1]}"
+            )
+            return (False, msg)
 
         # Check file size
         file_size_mb = len(file_data) / (1024 * 1024)

@@ -29,12 +29,22 @@ class PaymentError(Exception):
 
 
 async def get_or_create_wallet(db: AsyncSession, user_id: uuid.UUID) -> Wallet:
-    wallet = await db.execute(select(Wallet).where(Wallet.user_id == user_id))
+    wallet = await db.execute(
+        select(Wallet).where(Wallet.user_id == user_id).with_for_update()
+    )
     wallet = wallet.scalar_one_or_none()
     if wallet is None:
-        wallet = Wallet(user_id=user_id, balance=0)
-        db.add(wallet)
-        await db.flush()
+        try:
+            async with db.begin_nested():
+                wallet = Wallet(user_id=user_id, balance=0)
+                db.add(wallet)
+                await db.flush()
+        except IntegrityError:
+            # Lost a race to create the wallet; fetch the committed row.
+            result = await db.execute(
+                select(Wallet).where(Wallet.user_id == user_id).with_for_update()
+            )
+            wallet = result.scalar_one()
     return wallet
 
 

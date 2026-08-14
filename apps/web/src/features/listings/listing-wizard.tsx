@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { RequireAuth } from "@/components/auth/auth-provider";
 import { CITIES, DISTRICTS, METRO_STATIONS } from "@/data/locations";
-import { listingWriteApi, type ListingInput } from "@/services/listing-write-api";
+import { listingWriteApi, type ListingInput, type ListingDetail } from "@/services/listing-write-api";
 
 const PROPERTY_TYPES = [
   { value: "apartment", label: "Mənzil" },
@@ -165,9 +165,44 @@ const INITIAL: WizardState = {
   description: ""
 };
 
-export function ListingWizard() {
+function fromDetail(d: ListingDetail): WizardState {
+  return {
+    deal_type: d.deal_type,
+    property_type: d.property_type,
+    city: d.location?.city ?? "Bakı",
+    district: d.location?.district ?? "",
+    metro: d.location?.metro ?? "",
+    address_text: d.location?.address_text ?? "",
+    price: d.price != null ? String(d.price) : "",
+    currency: d.currency,
+    rooms: d.rooms != null ? String(d.rooms) : "",
+    bedrooms: d.bedrooms != null ? String(d.bedrooms) : "",
+    bathrooms: d.bathrooms != null ? String(d.bathrooms) : "",
+    area_total: d.area_total != null ? String(d.area_total) : "",
+    floor: d.floor != null ? String(d.floor) : "",
+    total_floors: d.total_floors != null ? String(d.total_floors) : "",
+    building_type: d.building_type ?? "new",
+    repair_status: d.repair_status ?? "",
+    document_type: d.document_type ?? "",
+    mortgage_available: d.mortgage_available,
+    features: d.features ?? [],
+    mediaUrls: (d.media ?? []).map((m) => m.url),
+    title: d.title,
+    description: d.description ?? ""
+  };
+}
+
+export function ListingWizard({
+  listingId,
+  initialListing
+}: {
+  listingId?: string;
+  initialListing?: ListingDetail;
+}) {
   const [step, setStep] = React.useState(0);
-  const [state, setState] = React.useState<WizardState>(INITIAL);
+  const [state, setState] = React.useState<WizardState>(() =>
+    initialListing ? fromDetail(initialListing) : INITIAL
+  );
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
@@ -263,8 +298,12 @@ export function ListingWizard() {
           .filter((u) => u.trim())
           .map((url, i) => ({ url: url.trim(), is_cover: i === 0 }))
       };
-      const created = await listingWriteApi.create(input);
-      await listingWriteApi.submit(created.id);
+      if (listingId) {
+        await listingWriteApi.update(listingId, input);
+      } else {
+        const created = await listingWriteApi.create(input);
+        await listingWriteApi.submit(created.id);
+      }
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Elan yaradıla bilmədi");
@@ -279,13 +318,16 @@ export function ListingWizard() {
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft">
           <Check className="h-7 w-7 text-brand" />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold">Elan göndərildi</h1>
+        <h1 className="mt-5 text-2xl font-semibold">
+          {listingId ? "Elan yeniləndi" : "Elan göndərildi"}
+        </h1>
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
-          Elanınız baxış üçün moderatora göndərildi. Təsdiqləndikdən sonra
-          dərc olunacaq və sizə bildiriş göndəriləcək.
+          {listingId
+            ? "Dəyişikliklər yadda saxlanıldı. Elanınızın vəziyyəti qorunub saxlanıldı."
+            : "Elanınız baxış üçün moderatora göndərildi. Təsdiqləndikdən sonra dərc olunacaq və sizə bildiriş göndəriləcək."}
         </p>
         <div className="mt-6 flex gap-3">
-          <Button variant="outline" onClick={() => router.push("/dashboard")}>
+          <Button variant="outline" onClick={() => router.push("/profile")}>
             İdarə panelim
           </Button>
           <Button onClick={() => router.push("/")}>Ana səhifə</Button>

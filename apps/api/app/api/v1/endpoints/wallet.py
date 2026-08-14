@@ -6,6 +6,7 @@ from datetime import datetime as dt
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
@@ -221,6 +222,21 @@ async def purchase_promotion(
         )
 
     wallet = await get_or_create_wallet(db, current_user.id)
+
+    active_dup = await db.execute(
+        select(PromotionPurchase.id).where(
+            PromotionPurchase.property_id == property.id,
+            PromotionPurchase.product_id == product.id,
+            PromotionPurchase.status == "active",
+        )
+    )
+    if active_dup.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="This listing already has an active purchase of the same "
+            "promotion product",
+        )
+
     if wallet.balance < product.price:
         raise HTTPException(
             status_code=402,
@@ -264,7 +280,15 @@ async def purchase_promotion(
     )
     db.add(purchase)
 
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="This listing already has an active purchase of the same "
+            "promotion product",
+        ) from None
     await db.refresh(transaction)
     return PromotionPurchaseRead(
         transaction=transaction,

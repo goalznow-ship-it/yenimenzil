@@ -14,6 +14,7 @@ export default function AdminFeaturesPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
+  const [editLabel, setEditLabel] = React.useState<Record<string, string>>({});
   const [creating, setCreating] = React.useState(false);
   const [createCode, setCreateCode] = React.useState("");
   const [createLabel, setCreateLabel] = React.useState("");
@@ -194,16 +195,20 @@ export default function AdminFeaturesPage() {
                     ) : updating[feature.id] ? (
                       <form onClick={(e) => e.preventDefault()} className="flex gap-2">
                         <Input
-                          value={feature.label_az}
-                          onChange={() => {
-                            // We would need to update state, but for simplicity we'll just call updateFeature on blur or enter
-                            // We'll do it on blur for now.
-                          }}
+                          value={editLabel[feature.id] ?? feature.label_az}
+                          onChange={(e) =>
+                            setEditLabel(prev => ({ ...prev, [feature.id]: e.target.value }))
+                          }
                           className="flex-1"
                           placeholder="Label AZ"
                         />
                         <Button
-                          onClick={() => updateFeature(feature.id, feature.label_az)}
+                          onClick={() =>
+                            updateFeature(
+                              feature.id,
+                              editLabel[feature.id] ?? feature.label_az
+                            )
+                          }
                           size="sm"
                         >
                           Yadda saxla
@@ -211,6 +216,11 @@ export default function AdminFeaturesPage() {
                         <Button
                           onClick={() => {
                             setUpdating(prev => ({ ...prev, [feature.id]: false }));
+                            setEditLabel(prev => {
+                              const next = { ...prev };
+                              delete next[feature.id];
+                              return next;
+                            });
                           }}
                           size="sm"
                           variant="secondary"
@@ -222,6 +232,10 @@ export default function AdminFeaturesPage() {
                       <>
                         <Button
                           onClick={() => {
+                            setEditLabel(prev => ({
+                              ...prev,
+                              [feature.id]: feature.label_az
+                            }));
                             setUpdating(prev => ({ ...prev, [feature.id]: true }));
                           }}
                           size="sm"

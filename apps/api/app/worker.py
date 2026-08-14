@@ -26,6 +26,7 @@ async def run_forever() -> None:
     from app.services.expiry_watcher import (
         _check_expiring_promotions,
         _check_expiring_properties,
+        _run_saved_search_alerts,
     )
 
     stop = asyncio.Event()
@@ -41,6 +42,7 @@ async def run_forever() -> None:
         for job, name in (
             (_check_expiring_properties, "property expiry"),
             (_check_expiring_promotions, "promotion expiry"),
+            (_run_saved_search_alerts, "saved-search alerts"),
         ):
             try:
                 await job()

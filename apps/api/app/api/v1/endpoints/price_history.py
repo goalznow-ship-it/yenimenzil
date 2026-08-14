@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
-from app.models.property import PropertyPriceHistory
+from app.models.enums import UserRole
+from app.models.property import Property, PropertyPriceHistory
 from app.models.user import User
 from app.schemas.property import PropertyPriceHistoryRead
 
@@ -21,9 +22,19 @@ async def get_property_price_history(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[PropertyPriceHistoryRead]:
-    # Check if property exists and user has permission to view it (at least view)
-    # For now, we allow any authenticated user to view price history of any property?
-    # In reality, we might want to restrict to owner or agent, but for simplicity we allow.
+    prop = await db.get(Property, property_id)
+    if prop is None:
+        raise HTTPException(status_code=404, detail="Property not found")
+    is_staff = current_user.role in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    )
+    if prop.owner_id != current_user.id and not is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Price history is only available to the listing owner",
+        )
     result = await db.execute(
         select(PropertyPriceHistory)
         .where(PropertyPriceHistory.property_id == property_id)

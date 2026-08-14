@@ -36,12 +36,6 @@ class TopUpRead(BaseModel):
     )
 
 
-class PaymentConfirmRequest(BaseModel):
-    """Admin confirmation for manual/mock payments."""
-
-    note: str | None = Field(None, max_length=300)
-
-
 class PaymentListRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

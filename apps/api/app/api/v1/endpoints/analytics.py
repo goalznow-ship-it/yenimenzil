@@ -11,7 +11,11 @@ from app.db.session import get_db
 from app.models.analytics import AnalyticsEvent
 from app.models.enums import UserRole
 from app.models.user import User
-from app.schemas.analytics import AnalyticsEventRead, PopularSearchRead
+from app.schemas.analytics import (
+    AnalyticsEventCreate,
+    AnalyticsEventRead,
+    PopularSearchRead,
+)
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
@@ -51,18 +55,17 @@ async def list_analytics_events(
     "/events", response_model=AnalyticsEventRead, status_code=status.HTTP_201_CREATED
 )
 async def create_analytics_event(
-    payload: dict,
+    payload: AnalyticsEventCreate,
     current_user: User = Depends(get_optional_user),
     db: AsyncSession = Depends(get_db),
 ) -> AnalyticsEventRead:
-    # For simplicity, expect payload with required fields
     event = AnalyticsEvent(
         user_id=current_user.id if current_user else None,
-        property_id=payload.get("property_id"),
-        event_type=payload["event_type"],
-        payload=payload.get("payload", {}),
-        ip_address=payload.get("ip_address"),
-        user_agent=payload.get("user_agent"),
+        property_id=payload.property_id,
+        event_type=payload.event_type,
+        payload=payload.payload,
+        ip_address=payload.ip_address,
+        user_agent=payload.user_agent,
     )
     db.add(event)
     await db.commit()

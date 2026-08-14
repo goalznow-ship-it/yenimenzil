@@ -15,6 +15,8 @@ export default function AdminReportsPage() {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [updating, setUpdating] = React.useState<Record<string, boolean>>({});
+  const [editStatus, setEditStatus] = React.useState<Record<string, string>>({});
+  const [editNote, setEditNote] = React.useState<Record<string, string>>({});
   const isMountedRef = React.useRef(false);
 
    const load = React.useCallback(async () => {
@@ -56,6 +58,12 @@ export default function AdminReportsPage() {
       setUpdating(prev => ({ ...prev, [id]: false }));
       window.alert(err instanceof Error ? err.message : "Xəta");
     }
+  };
+
+  const startEdit = (report: AdminReport) => {
+    setEditStatus(prev => ({ ...prev, [report.id]: report.status }));
+    setEditNote(prev => ({ ...prev, [report.id]: report.resolution_note ?? "" }));
+    setUpdating(prev => ({ ...prev, [report.id]: true }));
   };
 
   const deleteReport = async (id: string) => {
@@ -170,10 +178,10 @@ export default function AdminReportsPage() {
                         <div>
                           <label className="block text-xs font-medium text-foreground/50 mb-1">Status</label>
                           <select
-                            value={report.status}
-                            onChange={() => {
-                              // We would need to update state, but for simplicity we'll just call updateReport on submit
-                            }}
+                            value={editStatus[report.id] ?? report.status}
+                            onChange={(e) =>
+                              setEditStatus(prev => ({ ...prev, [report.id]: e.target.value }))
+                            }
                             className="w-full rounded-lg border border-border/60 bg-surface px-2 py-1 text-sm"
                           >
                             <option value="pending">Gözləyir</option>
@@ -185,17 +193,24 @@ export default function AdminReportsPage() {
                         <div>
                           <label className="block text-xs font-medium text-foreground/50 mb-1">Resolution note</label>
                           <textarea
-                            value={report.resolution_note ?? ""}
-                            onChange={() => {
-                              // We would need to update state
-                            }}
+                            value={editNote[report.id] ?? report.resolution_note ?? ""}
+                            onChange={(e) =>
+                              setEditNote(prev => ({ ...prev, [report.id]: e.target.value }))
+                            }
                             className="w-full rounded-lg border border-border/60 bg-surface px-2 py-1 text-sm"
                             rows={3}
                           />
                         </div>
                         <div className="flex justify-end">
                           <Button
-                            onClick={() => updateReport(report.id, report.status, report.resolution_note ?? "", report.description ?? "")}
+                            onClick={() =>
+                              updateReport(
+                                report.id,
+                                editStatus[report.id] ?? report.status,
+                                editNote[report.id] ?? report.resolution_note ?? "",
+                                report.description ?? ""
+                              )
+                            }
                             size="sm"
                           >
                             Yadda saxla
@@ -214,11 +229,7 @@ export default function AdminReportsPage() {
                     ) : (
                       <>
                         <Button
-                          onClick={() => {
-                            // We'll implement edit by showing a form in the row
-                            // For now, we'll just set the updating state to show the form
-                            setUpdating(prev => ({ ...prev, [report.id]: true }));
-                          }}
+                          onClick={() => startEdit(report)}
                           size="sm"
                           variant="secondary"
                         >

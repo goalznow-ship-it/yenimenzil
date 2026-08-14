@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Uuid,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -54,6 +55,16 @@ class PromotionPurchase(Base):
     """History of promotion purchases per listing."""
 
     __tablename__ = "promotion_purchases"
+    __table_args__ = (
+        Index("ix_promotion_purchases_property_status", "property_id", "status"),
+        Index(
+            "uq_promotion_purchases_active",
+            "property_id",
+            "product_id",
+            unique=True,
+            postgresql_where=text("status = 'active'"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     property_id: Mapped[uuid.UUID] = mapped_column(
@@ -76,7 +87,3 @@ class PromotionPurchase(Base):
 
     property: Mapped[Property] = relationship()
     product: Mapped[PromotionProduct] = relationship(back_populates="purchases")
-
-    __table_args__ = (
-        Index("ix_promotion_purchases_property_status", "property_id", "status"),
-    )
