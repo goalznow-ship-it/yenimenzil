@@ -11,6 +11,7 @@ apps/web/src/data/listings.ts by scripts/extract-demo.mjs. The seed is
 idempotent: every run wipes the listing/seller tables and re-creates them
 from the JSON, so re-seeding always yields the same AB1001..AB10NN set.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -98,7 +99,9 @@ class Seed:
     async def run(self) -> None:
         listings = json.loads(DEMO_DATA.read_text(encoding="utf-8"))
         if not listings:
-            raise SystemExit("demo_listings.json is empty — regenerate it with scripts/extract-demo.mjs")
+            raise SystemExit(
+                "demo_listings.json is empty — regenerate it with scripts/extract-demo.mjs"
+            )
 
         await self._reset()
         await self._seed_feature_catalog()
@@ -298,9 +301,7 @@ class Seed:
             prop.views = int(listing.get("views", 0))
             published = listing.get("publishedAt")
             if published:
-                prop.published_at = datetime.fromisoformat(published).astimezone(
-                    UTC
-                )
+                prop.published_at = datetime.fromisoformat(published).astimezone(UTC)
             await self.session.flush()
 
 

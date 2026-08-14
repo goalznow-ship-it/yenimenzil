@@ -272,6 +272,7 @@ from .features import admin_features_router
 from .intelligence import admin_intelligence_router
 from .listings import admin_listings_router
 from .locations import admin_locations_router
+from .platform import admin_platform_router
 from .promotions import admin_promotions_router
 from .report import admin_reports_router
 from .users import admin_users_router
@@ -289,3 +290,4 @@ admin_router.include_router(admin_locations_router)
 admin_router.include_router(admin_intelligence_router)
 admin_router.include_router(admin_analytics_router)
 admin_router.include_router(admin_wallet_router)
+admin_router.include_router(admin_platform_router)

@@ -134,3 +134,56 @@ def upload_file(
         url = f"{protocol}://{settings.S3_ENDPOINT}/{settings.S3_BUCKET}/{object_name}"
 
     return url
+
+
+def _object_name_from_url(url: str) -> str | None:
+    """Extract the object name from a stored public URL."""
+    base = settings.S3_PUBLIC_URL or (
+        f"{'https' if settings.S3_SECURE else 'http'}://{settings.S3_ENDPOINT}"
+    )
+    prefix = f"{base}/{settings.S3_BUCKET}/"
+    if url.startswith(prefix):
+        return url[len(prefix) :]
+    return None
+
+
+def delete_file(url: str) -> None:
+    """
+    Delete an object from storage (MinIO or AWS S3) by its public URL.
+
+    No-op when the URL cannot be mapped to an object (e.g. external URLs).
+    """
+    object_name = _object_name_from_url(url)
+    if object_name is None:
+        return
+    if _is_minio_endpoint():
+        try:
+            minio_client = Minio(
+                settings.S3_ENDPOINT,
+                access_key=settings.S3_ACCESS_KEY,
+                secret_key=settings.S3_SECRET_KEY,
+                secure=settings.S3_SECURE,
+            )
+            minio_client.remove_object(
+                bucket_name=settings.S3_BUCKET, object_name=object_name
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to delete file from MinIO: {e}") from e
+    else:
+        try:
+            import boto3
+
+            s3_client = boto3.client(
+                "s3",
+                endpoint_url=settings.S3_ENDPOINT if settings.S3_SECURE else None,
+                aws_access_key_id=settings.S3_ACCESS_KEY,
+                aws_secret_access_key=settings.S3_SECRET_KEY,
+            )
+            s3_client.delete_object(Bucket=settings.S3_BUCKET, Key=object_name)
+        except ImportError:
+            raise RuntimeError(
+                "boto3 is required for production S3 support. "
+                "Install with: pip install boto3"
+            ) from None
+        except Exception as e:
+            raise RuntimeError(f"Failed to delete file from S3: {e}") from e

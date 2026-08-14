@@ -5,10 +5,11 @@ Revises: df2995367ac1
 Create Date: 2026-08-11 08:35:20.790681
 
 """
+
 from collections.abc import Sequence
 
-revision: str = '42d8525bb4fd'
-down_revision: str | None = 'df2995367ac1'
+revision: str = "42d8525bb4fd"
+down_revision: str | None = "df2995367ac1"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

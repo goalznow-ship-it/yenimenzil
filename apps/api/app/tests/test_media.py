@@ -156,3 +156,73 @@ async def test_media_ownership_enforced(
         f"/api/v1/properties/{listing['id']}/media/{media_id}",
     )
     assert denied.status_code == 403
+
+
+async def test_replace_media_replaces_file_and_cleans_old(
+    client, seller, listing, monkeypatch
+):
+    from app.api.v1 import endpoints
+
+    calls: dict[str, list] = {"uploads": [], "deletes": []}
+
+    def _fake_upload(content, name, ctype):
+        calls["uploads"].append(name)
+        return f"https://media.test/{len(calls['uploads'])}.jpg"
+
+    def _fake_delete(url):
+        calls["deletes"].append(url)
+
+    monkeypatch.setattr(endpoints.properties, "upload_file", _fake_upload)
+    monkeypatch.setattr(endpoints.properties, "delete_file", _fake_delete)
+
+    created = await client.post(
+        f"/api/v1/properties/{listing['id']}/media",
+        files={"files": ("a.png", _png_bytes(), "image/png")},
+    )
+    assert created.status_code == 201, created.text
+    media_id = created.json()[0]["media"][0]["id"]
+
+    replaced = await client.put(
+        f"/api/v1/properties/{listing['id']}/media/{media_id}",
+        files={"file": ("new.png", _png_bytes(), "image/png")},
+    )
+    assert replaced.status_code == 200, replaced.text
+    media = replaced.json()[0]["media"][0]
+    assert media["id"] == media_id
+    assert media["url"] == "https://media.test/3.jpg"
+    assert media["is_cover"] is True
+    assert calls["deletes"] == ["https://media.test/1.jpg", "https://media.test/2.jpg"]
+
+
+async def test_replace_media_validates_file(client, seller, listing, monkeypatch):
+    _fake_upload(monkeypatch)
+    created = await client.post(
+        f"/api/v1/properties/{listing['id']}/media",
+        files={"files": ("a.png", _png_bytes(), "image/png")},
+    )
+    media_id = created.json()[0]["media"][0]["id"]
+
+    resp = await client.put(
+        f"/api/v1/properties/{listing['id']}/media/{media_id}",
+        files={"file": ("evil.txt", b"not an image", "text/plain")},
+    )
+    assert resp.status_code == 400
+
+
+async def test_replace_media_ownership_enforced(
+    client, seller, listing, auth_user, monkeypatch
+):
+    _fake_upload(monkeypatch)
+    created = await client.post(
+        f"/api/v1/properties/{listing['id']}/media",
+        files={"files": ("a.png", _png_bytes(), "image/png")},
+    )
+    media_id = created.json()[0]["media"][0]["id"]
+
+    await auth_user(email="media3@test.az")
+
+    denied = await client.put(
+        f"/api/v1/properties/{listing['id']}/media/{media_id}",
+        files={"file": ("b.png", _png_bytes(), "image/png")},
+    )
+    assert denied.status_code == 403

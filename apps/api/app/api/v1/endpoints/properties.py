@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -23,7 +24,7 @@ from app.api.v1.dependencies.auth import (
 )
 from app.core.config import get_settings
 from app.core.rate_limit import RateLimiter
-from app.core.storage import upload_file
+from app.core.storage import delete_file, upload_file
 from app.db.session import get_db
 from app.models.analytics import AnalyticsEvent
 from app.models.appointment import ViewingAppointment
@@ -50,10 +51,10 @@ from app.schemas.property import (
     PropertyUpdate,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/properties", tags=["properties"])
-
 settings = get_settings()
-
 AUTO_PUBLISH_ROLES = (
     UserRole.AGENT,
     UserRole.AGENCY_ADMIN,
@@ -61,7 +62,6 @@ AUTO_PUBLISH_ROLES = (
     UserRole.ADMIN,
     UserRole.SUPER_ADMIN,
 )
-
 # Statuses a non-staff owner may set directly via PATCH.
 OWNER_ALLOWED_STATUSES = {
     PropertyStatus.DRAFT,
@@ -201,7 +201,6 @@ async def create_property(
     db: AsyncSession = Depends(get_db),
 ) -> PropertyRead:
     repo = _repo(db)
-
     if user.role not in AUTO_PUBLISH_ROLES and payload.status != PropertyStatus.DRAFT:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -210,7 +209,6 @@ async def create_property(
         )
     # Derive ownership from authenticated user; ignore any owner_id in payload.
     payload.owner_id = user.id
-
     try:
         prop = await repo.create(payload)
         await db.commit()
@@ -247,7 +245,6 @@ async def submit_property(
             detail=f"Yalnız qaralama və ya rədd edilmiş elan təsdiqə "
             f"göndərilə bilər (hazırki: {prop.status})",
         )
-
     auto_publish = user.role in AUTO_PUBLISH_ROLES or user.is_verified
     if auto_publish:
         prop.status = PropertyStatus.ACTIVE.value
@@ -368,7 +365,6 @@ async def upload_property_media(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Maksimum {settings.MEDIA_MAX_IMAGES} şəkil yüklənə bilər",
         )
-
     has_cover = (
         await db.execute(
             select(PropertyMedia.id)
@@ -379,7 +375,6 @@ async def upload_property_media(
             .limit(1)
         )
     ).scalar_one_or_none() is not None
-
     uploaded_media = []
     for file in files:
         content = await file.read()
@@ -438,7 +433,6 @@ async def update_property_media(
     media = await db.get(PropertyMedia, media_id)
     if media is None or media.property_id != prop.id:
         raise HTTPException(status_code=404, detail="Media not found")
-
     if payload.is_cover is True:
         await db.execute(
             update(PropertyMedia)
@@ -479,7 +473,6 @@ async def delete_property_media(
     media = await db.get(PropertyMedia, media_id)
     if media is None or media.property_id != prop.id:
         raise HTTPException(status_code=404, detail="Media not found")
-
     was_cover = media.is_cover
     await db.delete(media)
     if was_cover:
@@ -493,6 +486,67 @@ async def delete_property_media(
         if next_item is not None:
             next_item.is_cover = True
     await db.commit()
+    try:
+        delete_file(media.url)
+        if media.thumbnail_url:
+            delete_file(media.thumbnail_url)
+    except Exception:
+        logger.warning("Failed to clean up deleted media objects", exc_info=True)
+    db.expire(prop, ["media"])
+    return [repo.to_read(await repo.get_by_id(prop.id))]  # type: ignore[arg-type]
+
+
+@router.put(
+    "/{property_id}/media/{media_id}",
+    response_model=list[PropertyRead],
+)
+async def replace_property_media(
+    property_id: uuid.UUID,
+    media_id: uuid.UUID,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[PropertyRead]:
+    """Replace the file of an existing media item (validated + re-thumbnailed)."""
+    from app.services.image_processing import make_thumbnail, webp_suffix
+    from app.services.media_validator import validate_image_file
+
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    media = await db.get(PropertyMedia, media_id)
+    if media is None or media.property_id != prop.id:
+        raise HTTPException(status_code=404, detail="Media not found")
+    content = await file.read()
+    valid, error = validate_image_file(content, file.filename or "")
+    if not valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error or "Yanlış şəkil faylı",
+        )
+    old_url = media.url
+    old_thumb = media.thumbnail_url
+    media.url = upload_file(content, file.filename or "image", file.content_type)
+    thumbnail_url = None
+    thumb = make_thumbnail(content, file.filename or "image")
+    if thumb is not None:
+        thumb_name = f"{uuid.uuid4().hex}{webp_suffix()}"
+        try:
+            thumbnail_url = upload_file(thumb, thumb_name, "image/webp")
+        except Exception:  # noqa: BLE001 - thumbnails are best-effort
+            thumbnail_url = None
+    media.thumbnail_url = thumbnail_url
+    await db.commit()
+    try:
+        delete_file(old_url)
+        if old_thumb:
+            delete_file(old_thumb)
+    except Exception:
+        logger.warning("Failed to clean up old media objects", exc_info=True)
     db.expire(prop, ["media"])
     return [repo.to_read(await repo.get_by_id(prop.id))]  # type: ignore[arg-type]
 

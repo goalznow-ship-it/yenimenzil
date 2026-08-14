@@ -140,6 +140,28 @@ async def admin_update_flag(
     return flag
 
 
+@router.delete("/admin/platform/flags/{flag_id}")
+async def admin_delete_flag(
+    flag_id: uuid.UUID,
+    admin_user: User = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    flag = await db.get(FeatureFlag, flag_id)
+    if flag is None:
+        raise HTTPException(status_code=404, detail="Flag not found")
+    await db.delete(flag)
+    await db.flush()
+    await log_admin_action(
+        db,
+        admin_id=admin_user.id,
+        action="flag.delete",
+        entity_type="feature_flag",
+        entity_id=flag_id,
+    )
+    await db.commit()
+    return {"message": "Flag deleted"}
+
+
 @router.get("/public/platform/flags")
 async def public_list_flags(db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
     """Public feature flags for the frontend (enabled flags only)."""
@@ -332,6 +354,3 @@ async def admin_broadcast_announcement(
     )
     await db.commit()
     return {"message": "Announcement broadcast", "audience": payload.audience}
-
-
-admin_platform_router = router

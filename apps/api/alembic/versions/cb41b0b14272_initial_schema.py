@@ -5,6 +5,7 @@ Revises:
 Create Date: 2026-08-10 19:18:54.616627
 
 """
+
 from collections.abc import Sequence
 
 import geoalchemy2
@@ -158,7 +159,12 @@ def upgrade() -> None:
         sa.Column(
             "seller_kind",
             sa.Enum(
-                "OWNER", "AGENCY", "AGENT", name="sellerkind", native_enum=False, length=32
+                "OWNER",
+                "AGENCY",
+                "AGENT",
+                name="sellerkind",
+                native_enum=False,
+                length=32,
             ),
             nullable=False,
         ),
@@ -207,9 +213,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "currency",
-            sa.Enum(
-                "AZN", "USD", "EUR", name="currency", native_enum=False, length=32
-            ),
+            sa.Enum("AZN", "USD", "EUR", name="currency", native_enum=False, length=32),
             nullable=False,
         ),
         sa.Column("title", sa.String(length=300), nullable=False),
@@ -298,7 +302,9 @@ def upgrade() -> None:
         unique=True,
     )
     op.create_index(op.f("ix_properties_slug"), "properties", ["slug"], unique=True)
-    op.create_index(op.f("ix_properties_status"), "properties", ["status"], unique=False)
+    op.create_index(
+        op.f("ix_properties_status"), "properties", ["status"], unique=False
+    )
 
     op.create_table(
         "favorites",
@@ -330,9 +336,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["feature_id"], ["property_features.id"], ondelete="CASCADE"
         ),
-        sa.ForeignKeyConstraint(
-            ["property_id"], ["properties.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["property_id"], ["properties.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("property_id", "feature_id"),
     )
 
@@ -394,9 +398,7 @@ def upgrade() -> None:
         sa.Column("property_id", sa.Uuid(), nullable=False),
         sa.Column(
             "kind",
-            sa.Enum(
-                "IMAGE", "VIDEO", name="mediakind", native_enum=False, length=32
-            ),
+            sa.Enum("IMAGE", "VIDEO", name="mediakind", native_enum=False, length=32),
             nullable=False,
         ),
         sa.Column("url", sa.String(length=1000), nullable=False),
@@ -439,12 +441,15 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_index(
-        op.f("ix_property_price_history_property_id"), table_name="property_price_history"
+        op.f("ix_property_price_history_property_id"),
+        table_name="property_price_history",
     )
     op.drop_table("property_price_history")
     op.drop_index(op.f("ix_property_media_property_id"), table_name="property_media")
     op.drop_table("property_media")
-    op.drop_index(op.f("ix_property_locations_district"), table_name="property_locations")
+    op.drop_index(
+        op.f("ix_property_locations_district"), table_name="property_locations"
+    )
     op.drop_index(op.f("ix_property_locations_city"), table_name="property_locations")
     op.drop_index("idx_property_locations_point", table_name="property_locations")
     op.drop_table("property_locations")
