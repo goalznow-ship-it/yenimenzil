@@ -11,6 +11,7 @@ export interface ComplexUnitType {
 export interface ResidentialComplex {
   id: string; name: string; slug: string; description?: string | null;
   city: string; district?: string | null; address: string;
+  latitude?: number | null; longitude?: number | null;
   delivery_date?: string | null; delivery_status: string;
   min_price?: number | null; price_per_sqm_from?: number | null; currency: string;
   cover_url?: string | null; gallery: string[]; amenities: string[];

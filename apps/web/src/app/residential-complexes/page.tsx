@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Building2, Search } from "lucide-react";
-import { ComplexCard } from "@/features/developments/complex-card";
 import { fetchComplexes } from "@/services/development-api";
 import type { ResidentialComplex } from "@/services/development-api";
+import { ComplexCatalog } from "@/features/developments/complex-catalog";
 
 export const metadata: Metadata = { title: "Yaşayış kompleksləri", description: "Yeni tikililər, mənzil planları, qiymətlər və developer təklifləri." };
 
@@ -17,8 +17,7 @@ export default async function ResidentialComplexesPage({ searchParams }: { searc
       <form className="mt-8 flex max-w-2xl rounded-xl bg-white p-2"><Search className="ml-3 mt-3 h-5 w-5 text-slate-400" /><input name="q" defaultValue={q} placeholder="Kompleks və ya ünvan axtarın" className="min-w-0 flex-1 px-3 text-slate-900 outline-none"/><button className="rounded-lg bg-emerald-600 px-6 py-3 font-bold hover:bg-emerald-700">Axtar</button></form>
     </div></section>
     <section className="mx-auto max-w-7xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between"><h2 className="text-2xl font-bold text-slate-900">{items.length} kompleks</h2><span className="text-sm text-slate-500">Seçilmişlər əvvəl göstərilir</span></div>
-      {items.length ? <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => <ComplexCard key={item.id} item={item} />)}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-16 text-center"><Building2 className="mx-auto h-12 w-12 text-slate-300"/><h2 className="mt-4 text-xl font-bold">Komplekslər hazırlanır</h2><p className="mt-2 text-slate-500">Admin paneldən ilk yaşayış kompleksini əlavə edin.</p></div>}
+      {items.length ? <ComplexCatalog items={items} /> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-16 text-center"><Building2 className="mx-auto h-12 w-12 text-slate-300"/><h2 className="mt-4 text-xl font-bold">Komplekslər hazırlanır</h2><p className="mt-2 text-slate-500">Admin paneldən ilk yaşayış kompleksini əlavə edin.</p></div>}
     </section>
   </main>;
 }
