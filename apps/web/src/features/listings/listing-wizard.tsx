@@ -23,6 +23,7 @@ import { RequireAuth } from "@/components/auth/auth-provider";
 import { CITIES, DISTRICTS, METRO_STATIONS } from "@/data/locations";
 import { listingWriteApi, type ListingInput, type ListingDetail } from "@/services/listing-write-api";
 import { MapView } from "@/features/map/map-view";
+import { useAuth } from "@/store/auth";
 
 const PROPERTY_TYPES = [
   { value: "apartment", label: "Mənzil" },
@@ -238,6 +239,7 @@ export function ListingWizard({
   const [draftRestored, setDraftRestored] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const router = useRouter();
+  const user = useAuth((auth) => auth.user);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -353,6 +355,10 @@ export function ListingWizard({
   };
 
   const submit = async () => {
+    if (!user?.profile?.phone_verified) {
+      setError("Elan yerləşdirmək üçün profilinizdə telefon nömrəsini təsdiqləyin");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {

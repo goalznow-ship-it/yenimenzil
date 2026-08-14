@@ -138,5 +138,16 @@ export const authApi = {
     });
   },
 
+  async requestPhoneCode(): Promise<{ detail: string; dev_code?: string }> {
+    return request("/auth/resend-verification?kind=phone", { method: "POST" });
+  },
+
+  async verifyPhone(code: string): Promise<void> {
+    await request("/auth/verify-phone", {
+      method: "POST",
+      body: JSON.stringify({ token: code })
+    });
+  },
+
   ApiError
 };

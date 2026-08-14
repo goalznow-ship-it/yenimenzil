@@ -111,6 +111,26 @@ async def _issue_verification_token(
     return raw
 
 
+async def _issue_phone_code(db: AsyncSession, user: User) -> str:
+    """Issue a short-lived numeric phone OTP, stored only as a hash."""
+    await db.execute(
+        delete(VerificationToken).where(
+            VerificationToken.user_id == user.id,
+            VerificationToken.kind == "phone",
+        )
+    )
+    raw = f"{secrets.randbelow(1_000_000):06d}"
+    db.add(
+        VerificationToken(
+            user_id=user.id,
+            kind="phone",
+            token_hash=_hash_token(raw),
+            expires_at=datetime.now(UTC) + timedelta(minutes=10),
+        )
+    )
+    return raw
+
+
 async def _issue_tokens(
     db: AsyncSession, user: User, request: Request, response: Response
 ) -> None:
@@ -454,11 +474,21 @@ async def resend_verification(
     """Issue a new verification token for the current user."""
     if kind not in ("email", "phone"):
         raise HTTPException(status_code=400, detail="Unknown verification kind")
-    token = await _issue_verification_token(db, user, kind)
+    if kind == "phone" and not user.phone:
+        raise HTTPException(status_code=400, detail="Əvvəlcə telefon nömrəsi əlavə edin")
+    token = (
+        await _issue_phone_code(db, user)
+        if kind == "phone"
+        else await _issue_verification_token(db, user, kind)
+    )
     await db.commit()
     if kind == "email":
         _send_verification_email(user.email, token)
-    return {"detail": "Verification token issued."}
+    response = {"detail": "Verification token issued."}
+    # Local development has no SMS gateway. Never expose OTPs in production.
+    if kind == "phone" and settings.APP_ENV != "production":
+        response["dev_code"] = token
+    return response
 
 
 @router.get("/verification-status", response_model=VerificationStatusRead)

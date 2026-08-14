@@ -27,6 +27,42 @@ export function ProfilePage() {
   const setUser = useAuth((s) => s.setUser);
   const [saved, setSaved] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [phoneCode, setPhoneCode] = React.useState("");
+  const [phoneMessage, setPhoneMessage] = React.useState<string | null>(null);
+  const [phoneBusy, setPhoneBusy] = React.useState(false);
+
+  const requestPhoneCode = async () => {
+    setPhoneBusy(true);
+    setError(null);
+    try {
+      const result = await authApi.requestPhoneCode();
+      setPhoneMessage(result.dev_code ? `Lokal təsdiq kodu: ${result.dev_code}` : "Təsdiq kodu SMS ilə göndərildi.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kod göndərilə bilmədi");
+    } finally {
+      setPhoneBusy(false);
+    }
+  };
+
+  const verifyPhone = async () => {
+    if (!/^\d{6}$/.test(phoneCode)) {
+      setError("6 rəqəmli təsdiq kodunu daxil edin");
+      return;
+    }
+    setPhoneBusy(true);
+    setError(null);
+    try {
+      await authApi.verifyPhone(phoneCode);
+      const refreshed = await authApi.me();
+      setUser(refreshed);
+      setPhoneMessage("Telefon nömrəsi təsdiqləndi.");
+      setPhoneCode("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Kod təsdiqlənmədi");
+    } finally {
+      setPhoneBusy(false);
+    }
+  };
 
   const {
     register,
@@ -116,6 +152,23 @@ export function ProfilePage() {
               />
               {errors.phone ? (
                 <p className="mt-1 text-xs text-red-600">{errors.phone.message}</p>
+              ) : null}
+              {user?.phone ? (
+                <div className="mt-3 rounded-xl border border-border bg-background p-3">
+                  {user.profile?.phone_verified ? (
+                    <p className="flex items-center gap-2 text-sm font-medium text-brand"><ShieldCheck className="h-4 w-4" /> Telefon təsdiqlənib</p>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-foreground/70">Elan yerləşdirmək üçün telefon nömrənizi təsdiqləyin.</p>
+                      <div className="flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" size="sm" disabled={phoneBusy} onClick={requestPhoneCode}>Kodu göndər</Button>
+                        <Input className="w-36" value={phoneCode} onChange={(event) => setPhoneCode(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6 rəqəmli kod" inputMode="numeric" />
+                        <Button type="button" size="sm" disabled={phoneBusy || phoneCode.length !== 6} onClick={verifyPhone}>Təsdiqlə</Button>
+                      </div>
+                      {phoneMessage ? <p className="text-xs text-brand">{phoneMessage}</p> : null}
+                    </div>
+                  )}
+                </div>
               ) : null}
             </div>
             <div>

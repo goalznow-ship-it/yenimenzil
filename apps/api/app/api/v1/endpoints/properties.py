@@ -249,6 +249,13 @@ async def create_property(
     db: AsyncSession = Depends(get_db),
 ) -> PropertyRead:
     repo = _repo(db)
+    if user.role not in AUTO_PUBLISH_ROLES and not (
+        user.phone and user.profile and user.profile.phone_verified
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Elan yerləşdirmək üçün telefon nömrənizi təsdiqləyin",
+        )
     if user.role not in AUTO_PUBLISH_ROLES and payload.status != PropertyStatus.DRAFT:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -293,6 +300,26 @@ async def submit_property(
             detail=f"Yalnız qaralama və ya rədd edilmiş elan təsdiqə "
             f"göndərilə bilər (hazırki: {prop.status})",
         )
+    if user.role not in AUTO_PUBLISH_ROLES:
+        free_window_start = _now() - timedelta(days=30)
+        used_result = await db.execute(
+            select(func.count(Property.id)).where(
+                Property.owner_id == user.id,
+                Property.id != prop.id,
+                Property.created_at >= free_window_start,
+                Property.status.not_in(
+                    [PropertyStatus.DRAFT.value, PropertyStatus.REJECTED.value]
+                ),
+            )
+        )
+        if int(used_result.scalar_one() or 0) >= 1:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=(
+                    "Pulsuz elan limitiniz bitib. Standart hesabla 30 gündə "
+                    "1 pulsuz elan göndərmək olar."
+                ),
+            )
     auto_publish = user.role in AUTO_PUBLISH_ROLES or user.is_verified
     if auto_publish:
         prop.status = PropertyStatus.ACTIVE.value
