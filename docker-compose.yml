@@ -59,6 +59,7 @@ services:
       dockerfile: apps/api/Dockerfile
     container_name: yenimenzil-api
     restart: unless-stopped
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -115,8 +116,10 @@ services:
     container_name: yenimenzil-web
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     environment:
+      API_INTERNAL_URL: http://api:8000/api/v1
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.yenimenzil.az/api/v1}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://yenimenzil.az}
     ports:
@@ -144,6 +147,8 @@ services:
     container_name: yenimenzil-worker
     restart: unless-stopped
     depends_on:
+      api:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -180,7 +185,7 @@ services:
 
   # Rate limiter / observability sidecar
   redis-exporter:
-    image: oliver006/redis-exporter:latest
+    image: oliver006/redis_exporter:latest
     container_name: yenimenzil-redis-exporter
     ports:
       - "9121:9121"

@@ -4,7 +4,9 @@ ENV PNPM_HOME=/root/.pnpm
 ENV PNPM_STORE=/pnpm-store
 
 RUN corepack enable && \
-    apt-get update && \
+    # Docker Desktop VMs can briefly lag Debian mirror metadata after resume.
+    # Signatures are still verified; only the wall-clock freshness check is relaxed.
+    apt-get -o Acquire::Check-Date=false update && \
     apt-get install -y --no-install-recommends \
       python3 \
       make \
@@ -46,8 +48,8 @@ RUN groupadd -r appuser && useradd -r -g appuser --create-home appuser
 WORKDIR /home/app
 
 # Copy only the standalone build output from builder
-COPY --from=builder /home/app/apps/web/.next/standalone ./
-COPY --from=builder /home/app/apps/web/.next/static ./apps/web/.next/static
+COPY --chown=appuser:appuser --from=builder /home/app/apps/web/.next/standalone ./
+COPY --chown=appuser:appuser --from=builder /home/app/apps/web/.next/static ./apps/web/.next/static
 
 USER appuser
 
