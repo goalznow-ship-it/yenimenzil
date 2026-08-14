@@ -75,7 +75,7 @@ export default async function HomePage() {
         </section>
 
         {agencies.length > 0 ? <section aria-labelledby="agencies-title">
-          <SectionHeading title="Agentliklər" subtitle="Təsdiqlənmiş əmlak mütəxəssisləri" />
+          <SectionHeading title="Agentliklər" subtitle="Təsdiqlənmiş əmlak mütəxəssisləri" linkHref="/agencies" linkLabel="Bütün agentliklər" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{agencies.slice(0,4).map((agency) => <Link key={agency.id} href={`/agencies/${agency.id}`} className="group rounded-2xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-card"><div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft text-brand">{agency.logo_url ? <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-cover"/> : <Building2 className="h-8 w-8"/>}</div><p className="mt-4 flex items-center gap-1 font-semibold">{agency.name}{agency.is_verified && <ShieldCheck className="h-4 w-4 text-brand"/>}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{agency.description ?? "Daşınmaz əmlak agentliyi"}</p></Link>)}</div>
         </section> : null}
 
