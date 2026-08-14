@@ -11,7 +11,7 @@ const ALLOWED_PATHS = [
   "/sitemap.xml"
 ];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!MAINTENANCE_ENABLED) {

@@ -80,6 +80,18 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+async def _read_upload_limited(file: UploadFile) -> bytes:
+    """Read at most the configured upload limit plus one sentinel byte."""
+    max_bytes = settings.MEDIA_MAX_SIZE_MB * 1024 * 1024
+    content = await file.read(max_bytes + 1)
+    if len(content) > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Fayl maksimum {settings.MEDIA_MAX_SIZE_MB} MB ola bilər",
+        )
+    return content
+
+
 async def _get_property_or_404(
     repo: PropertyRepository, property_id: uuid.UUID
 ) -> Property:
@@ -377,7 +389,7 @@ async def upload_property_media(
     ).scalar_one_or_none() is not None
     uploaded_media = []
     for file in files:
-        content = await file.read()
+        content = await _read_upload_limited(file)
         valid, error = validate_image_file(content, file.filename or "")
         if not valid:
             raise HTTPException(
@@ -521,7 +533,7 @@ async def replace_property_media(
     media = await db.get(PropertyMedia, media_id)
     if media is None or media.property_id != prop.id:
         raise HTTPException(status_code=404, detail="Media not found")
-    content = await file.read()
+    content = await _read_upload_limited(file)
     valid, error = validate_image_file(content, file.filename or "")
     if not valid:
         raise HTTPException(

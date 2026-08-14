@@ -1,7 +1,15 @@
-localhost:80 {
+{$SITE_ADDRESS:localhost} {
   encode gzip
 
-  reverse_proxy api:8000
+  handle_path /media/* {
+    reverse_proxy minio:9000
+  }
 
-  reverse_proxy web:3000
+  handle /api/* {
+    reverse_proxy api:8000
+  }
+
+  handle {
+    reverse_proxy web:3000
+  }
 }

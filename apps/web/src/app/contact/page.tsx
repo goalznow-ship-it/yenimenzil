@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Əlaqə",
@@ -20,17 +20,8 @@ export default function ContactPage() {
           {
             icon: Mail,
             label: "E-poçt",
-            value: "info@yenimenzil.az"
-          },
-          {
-            icon: Phone,
-            label: "Telefon",
-            value: "+994 50 000 00 00"
-          },
-          {
-            icon: MapPin,
-            label: "Ünvan",
-            value: "Bakı, Azərbaycan"
+            value: "info@yenimenzil.az",
+            href: "mailto:info@yenimenzil.az"
           }
         ].map((item) => (
           <div
@@ -42,9 +33,9 @@ export default function ContactPage() {
             </span>
             <div>
               <p className="text-xs text-muted-foreground">{item.label}</p>
-              <p className="text-sm font-medium text-foreground">
+              <a className="text-sm font-medium text-brand hover:underline" href={item.href}>
                 {item.value}
-              </p>
+              </a>
             </div>
           </div>
         ))}

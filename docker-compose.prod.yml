@@ -26,6 +26,8 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS:-yenimenzil.az}
 
   migrate:
     build:
@@ -36,11 +38,14 @@ services:
     networks:
       - backend
     environment:
-      - DATABASE_URL=postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil
-    command: /bin/sh -c "echo \"sqlalchemy.url = postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil\" > /home/app/alembic.ini && alembic upgrade head"
+      - DATABASE_URL=postgresql+asyncpg://yenimenzil:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/yenimenzil
+    depends_on:
+      db:
+        condition: service_healthy
+    command: alembic upgrade head
 
   db:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4
     container_name: yenimenzil-db
     restart: unless-stopped
     networks:
@@ -50,7 +55,7 @@ services:
     environment:
       - POSTGRES_DB=yenimenzil
       - POSTGRES_USER=yenimenzil
-      - POSTGRES_PASSWORD=yenimenzil
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U yenimenzil"]
       interval: 10s
@@ -81,8 +86,8 @@ services:
     volumes:
       - yenimenzil_minio_data:/data
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=${S3_ACCESS_KEY:?S3_ACCESS_KEY must be set}
+      - MINIO_ROOT_PASSWORD=${S3_SECRET_KEY:?S3_SECRET_KEY must be set}
     command: server /data --console-address ":9001"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
@@ -101,12 +106,29 @@ services:
       - frontend
       - backend
     environment:
-      - S3_ENDPOINT=http://minio:9000
+      - APP_ENV=production
+      - DATABASE_URL=postgresql+asyncpg://yenimenzil:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/yenimenzil
+      - REDIS_URL=redis://redis:6379/0
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://yenimenzil.az}
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - COOKIE_SECURE=true
+      - PUBLIC_APP_URL=${PUBLIC_APP_URL:-https://yenimenzil.az}
+      - S3_ENDPOINT=minio:9000
       - S3_BUCKET=yenimenzil-media
       - S3_ACCESS_KEY=minioadmin
       - S3_SECRET_KEY=minioadmin
-      - S3_PUBLIC_URL=http://localhost:9000/media
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-https://yenimenzil.az/media}
       - S3_SECURE=false
+      - PAYMENT_PROVIDER=${PAYMENT_PROVIDER:-manual}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health/live"]
       interval: 30s
@@ -118,15 +140,16 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://yenimenzil.az/api/v1}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://yenimenzil.az}
     container_name: yenimenzil-web
     restart: unless-stopped
     networks:
       - frontend
     depends_on:
-      - migrate
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_USE_DEMO_DATA=false
+      api:
+        condition: service_healthy
 
   worker:
     build:
@@ -137,5 +160,23 @@ services:
     networks:
       - backend
     environment:
+      - APP_ENV=production
       - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil
+      - DATABASE_URL=postgresql+asyncpg://yenimenzil:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/yenimenzil
+      - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set}
+      - S3_ENDPOINT=minio:9000
+      - S3_BUCKET=yenimenzil-media
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY:?S3_ACCESS_KEY must be set}
+      - S3_SECRET_KEY=${S3_SECRET_KEY:?S3_SECRET_KEY must be set}
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-https://yenimenzil.az/media}
+      - S3_SECURE=false
+      - PAYMENT_PROVIDER=${PAYMENT_PROVIDER:-manual}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully

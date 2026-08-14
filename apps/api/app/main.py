@@ -14,12 +14,18 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Background tasks on startup/shutdown."""
-    # Start expiry watcher task
     from app.services.expiry_watcher import start_expiry_watcher, stop_expiry_watcher
 
-    start_expiry_watcher()
-    yield
-    stop_expiry_watcher()
+    # Development can run maintenance jobs in-process. Production uses the
+    # dedicated worker service; running both would duplicate saved-search alerts.
+    run_in_process_jobs = settings.APP_ENV != "production"
+    if run_in_process_jobs:
+        await start_expiry_watcher()
+    try:
+        yield
+    finally:
+        if run_in_process_jobs:
+            await stop_expiry_watcher()
 
 
 def create_app() -> FastAPI:

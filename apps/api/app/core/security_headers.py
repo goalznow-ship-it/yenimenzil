@@ -24,7 +24,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "max-age=31536000; includeSubDomains; preload"
         )
         response.headers["Permissions-Policy"] = (
-            "camera=(), microphone=(), geolocation()"
+            "camera=(), microphone=(), geolocation=()"
         )
 
         return response

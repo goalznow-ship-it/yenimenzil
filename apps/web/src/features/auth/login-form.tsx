@@ -69,7 +69,8 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
       } else {
         await login(values.email, values.password);
       }
-      router.push(next.startsWith("/") ? next : "/");
+      const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      router.push(safeNext);
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Xəta baş verdi, yenidən cəhd edin"
@@ -202,6 +203,16 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
                 <p className="mt-1 text-xs text-red-600">
                   {errors.password.message}
                 </p>
+              ) : null}
+              {!isRegister ? (
+                <div className="mt-2 text-right">
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-medium text-brand hover:underline"
+                  >
+                    Şifrəni unutmusunuz?
+                  </Link>
+                </div>
               ) : null}
             </div>
 

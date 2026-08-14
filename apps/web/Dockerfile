@@ -23,7 +23,12 @@ COPY packages/ ./packages/
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile
 
-# Set production env vars for build
+# Public variables are embedded by Next.js at build time. Keep them configurable
+# instead of relying on runtime environment variables that cannot change the bundle.
+ARG NEXT_PUBLIC_API_URL=https://yenimenzil.az/api/v1
+ARG NEXT_PUBLIC_APP_URL=https://yenimenzil.az
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_USE_DEMO_DATA=false
 
 # Build the Next.js app with standalone output
@@ -42,14 +47,13 @@ WORKDIR /home/app
 
 # Copy only the standalone build output from builder
 COPY --from=builder /home/app/apps/web/.next/standalone ./
-COPY --from=builder /home/app/apps/web/.next/static ./.next/static
-COPY --from=builder /home/app/apps/web/node_modules ./node_modules
+COPY --from=builder /home/app/apps/web/.next/static ./apps/web/.next/static
 
 USER appuser
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD curl -fsS http://localhost:3000/health || exit 1
+  CMD node -e "fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/web/server.js"]

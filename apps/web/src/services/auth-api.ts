@@ -117,5 +117,26 @@ export const authApi = {
     });
   },
 
+  async forgotPassword(email: string): Promise<void> {
+    await request("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email })
+    });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await request("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, new_password: newPassword })
+    });
+  },
+
+  async verifyEmail(token: string): Promise<void> {
+    await request("/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token })
+    });
+  },
+
   ApiError
 };

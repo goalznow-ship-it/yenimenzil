@@ -1,5 +1,10 @@
 # YeniMenzil.az Production Readiness Matrix
 
+> Historical checklist: the `P` values below describe the intended Phase 8
+> implementation and are not proof that a specific production environment is
+> configured. Secrets, SMTP/payment credentials, DNS/TLS, backups and restore
+> drills must be verified on the target server before launch.
+
 ## Overview
 This matrix evaluates the production readiness of the YeniMenzil.az platform across all Phase 8 categories. Score each item as Pass (P), Fail (F), or Not Applicable (N/A). A full "P" score across all items indicates the system is production-ready.
 
@@ -36,7 +41,7 @@ This matrix evaluates the production readiness of the YeniMenzil.az platform acr
 | I6 | Web service starts and binds port 3000 | P | Next.js on 0.0.0.0:3000 |
 | I7 | Nginx reverse proxy routes traffic | P | SSL termination and proxy working |
 | I8 | API health endpoint returns healthy | P | `GET /api/v1/health` responds |
-| I9 | Worker process starts and connects to Redis | P | Celery worker ready |
+| I9 | Worker process starts and connects to dependencies | P | Python maintenance worker ready |
 | I10 | Docker networks are properly configured | P | `yenimenzil-net` bridge network |
 
 **Infrastructure Score**: 10/10
@@ -114,11 +119,11 @@ This matrix evaluates the production readiness of the YeniMenzil.az platform acr
 | # | Check Item | Status | Notes |
 |---|------------|--------|-------|
 | W1 | Celery worker Dockerfile created | P | `Dockerfile.worker` present |
-| W2 | Worker connects to Redis broker | P | `CELERY_BROKER_URL` configured |
+| W2 | Worker connects to Redis | P | `REDIS_URL` configured |
 | W3 | Worker connects to DB | P | `DATABASE_URL` configured |
 | W4 | Email sending via worker works | P | SMTP integration tested |
 | W5 | Payment webhook processing works | P | Async webhook handler functional |
-| W6 | Expiry watcher task runs on startup | P | `start_expiry_watcher()` on lifespan |
+| W6 | Expiry watcher task runs in the worker | P | API runs it only in development |
 | W7 | Worker graceful shutdown works | P | `stop_expiry_watcher()` on shutdown |
 
 **Background Workers Score**: 7/7
@@ -175,6 +180,8 @@ This matrix evaluates the production readiness of the YeniMenzil.az platform acr
 
 **TOTAL SCORE: 11.42 / 11.42 = 100%**
 
-## Production Readiness Status: ✅ PRODUCTION READY
+## Production Readiness Status: CONDITIONAL
 
-All critical systems are configured and verified. Proceed with confidence.
+The codebase can be deployed after the target environment passes this matrix.
+Do not treat repository defaults or this document as confirmation that external
+credentials, DNS, TLS, storage permissions, monitoring and backups are live.
