@@ -8,6 +8,9 @@ import {
   ArrowRight,
   Building2,
   Check,
+  CircleCheck,
+  Clock3,
+  Home,
   ImageIcon,
   Info,
   MapPin,
@@ -33,9 +36,9 @@ const PROPERTY_TYPES = [
 ] as const;
 
 const DEAL_TYPES = [
-  { value: "sale", label: "Satış" },
-  { value: "rent", label: "Kirayə" },
-  { value: "daily", label: "Günlük" }
+  { value: "sale", label: "Satıram", hint: "Əmlakı satmaq istəyirəm" },
+  { value: "rent", label: "Kirayə verirəm", hint: "Uzunmüddətli kirayə" },
+  { value: "daily", label: "Günlük verirəm", hint: "Günlük kirayə" }
 ] as const;
 
 const REPAIR_STATUSES = [
@@ -418,18 +421,20 @@ export function ListingWizard({
 
   return (
     <RequireAuth>
-      <div className="mx-auto w-full max-w-2xl px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">Elan yerləşdir</h1>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
+        <div className="mb-7 border-b border-border pb-5">
+        <h1 className="text-3xl font-semibold tracking-tight">Yeni elan</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Elanınızı addım-addım doldurun və təsdiqə göndərin.
+          Məlumatları düzgün daxil edin — elanınız daha tez təsdiqlənəcək.
         </p>
+        </div>
         {draftRestored ? (
           <div className="mt-4 rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand">
             Yarımçıq qalan elan qaralamanız bərpa edildi.
           </div>
         ) : null}
 
-        <div className="mt-8 flex items-start gap-1">
+        <div className="mb-7 flex items-start gap-1 rounded-2xl border border-border bg-surface px-4 py-4 shadow-sm">
           {STEPS.map((label, i) => (
             <StepButton
               key={label}
@@ -441,12 +446,15 @@ export function ListingWizard({
           ))}
         </div>
 
-        <div className="mt-6 rounded-2xl bg-surface p-6 ring-1 ring-border/70 md:p-8">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-border/70 md:p-8">
           {step === 0 ? (
             <div className="space-y-6">
               <div>
-                <span className={LABEL_CLS}>Əməliyyat növü</span>
-                <div className="grid grid-cols-3 gap-2">
+                <h2 className="text-xl font-semibold">Elanınız haqqında</h2>
+                <p className="mb-4 mt-1 text-sm text-muted-foreground">Əvvəlcə əməliyyat və əmlak növünü seçin.</p>
+                <span className={LABEL_CLS}>Nə etmək istəyirsiniz?</span>
+                <div className="grid gap-3 sm:grid-cols-3">
                   {DEAL_TYPES.map((deal) => (
                     <button
                       key={deal.value}
@@ -459,26 +467,28 @@ export function ListingWizard({
                           : "border-border text-foreground/65 hover:border-foreground/20")
                       }
                     >
-                      {deal.label}
+                      <span className="block text-sm font-semibold">{deal.label}</span>
+                      <span className="mt-1 block text-xs font-normal opacity-65">{deal.hint}</span>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
                 <span className={LABEL_CLS}>Əmlak növü</span>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {PROPERTY_TYPES.map((type) => (
                     <button
                       key={type.value}
                       type="button"
                       onClick={() => set("property_type", type.value)}
                       className={
-                        "rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors " +
+                        "flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-all " +
                         (state.property_type === type.value
                           ? "border-brand/40 bg-brand-soft text-brand"
                           : "border-border text-foreground/65 hover:border-foreground/20")
                       }
                     >
+                      {type.value === "house" || type.value === "villa" ? <Home className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
                       {type.label}
                     </button>
                   ))}
@@ -496,7 +506,7 @@ export function ListingWizard({
                       type="button"
                       onClick={() => set("seller_kind", value)}
                       className={
-                        "rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors " +
+                        "rounded-xl border p-4 text-left transition-all " +
                         (state.seller_kind === value
                           ? "border-brand/40 bg-brand-soft text-brand"
                           : "border-border text-foreground/65 hover:border-foreground/20")
@@ -898,6 +908,21 @@ export function ListingWizard({
               </Button>
             )}
           </div>
+        </div>
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <h3 className="font-semibold">Elan yerləşdirmə qaydaları</h3>
+            <div className="mt-4 space-y-4 text-sm text-foreground/70">
+              <p className="flex gap-3"><CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> Düzgün ünvan və real qiymət göstərin.</p>
+              <p className="flex gap-3"><ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> Ən azı 4 keyfiyyətli foto əlavə edin.</p>
+              <p className="flex gap-3"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> Elan yoxlamadan sonra dərc olunur.</p>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-brand-soft p-5 text-sm text-brand">
+            <p className="font-semibold">Qaralamanız qorunur</p>
+            <p className="mt-1 opacity-80">Səhifədən çıxsanız belə məlumatlar avtomatik saxlanılır.</p>
+          </div>
+        </aside>
         </div>
       </div>
     </RequireAuth>
