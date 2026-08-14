@@ -12,6 +12,7 @@ import { formatPhoneDisplay } from "@/lib/format";
 export function AgencyProfilePage({ agencyId }: { agencyId: string }) {
   const [data, setData] = React.useState<Awaited<ReturnType<typeof fetchAgencyProfile>>>(null);
   const [loading, setLoading] = React.useState(true);
+  const [listingFilter, setListingFilter] = React.useState<"all" | "sale" | "rent" | "daily">("all");
 
   React.useEffect(() => {
     let cancelled = false;
@@ -48,13 +49,14 @@ export function AgencyProfilePage({ agencyId }: { agencyId: string }) {
   }
 
   const { agency, listings, agents } = data;
+  const visibleListings = listingFilter === "all" ? listings : listings.filter((item) => item.dealType === listingFilter);
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 lg:px-6">
       <div className="rounded-2xl bg-surface p-6 shadow-[0_1px_2px_rgba(20,23,22,0.04)] ring-1 ring-border/70 md:p-8">
         <div className="flex flex-wrap items-center gap-5">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-brand-soft text-2xl font-bold text-brand">
-            {agency.name
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft text-2xl font-bold text-brand">
+            {agency.logo_url ? <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-cover" /> : agency.name
               .split(/\s+/)
               .map((p) => p[0])
               .slice(0, 2)
@@ -138,14 +140,14 @@ export function AgencyProfilePage({ agencyId }: { agencyId: string }) {
         </>
       ) : null}
 
-      <h2 className="mt-8 mb-4 text-xl font-semibold tracking-tight">Agentliyin elanları</h2>
-      {listings.length === 0 ? (
+      <div className="mt-8 mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="text-xl font-semibold tracking-tight">Agentliyin elanları</h2><div className="flex flex-wrap gap-2">{([['all','Hamısı'],['sale','Satış'],['rent','Kirayə'],['daily','Günlük']] as const).map(([value,label]) => <button key={value} onClick={() => setListingFilter(value)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${listingFilter === value ? 'bg-brand text-white' : 'border border-border bg-surface text-foreground/65'}`}>{label} ({value === 'all' ? listings.length : listings.filter((item) => item.dealType === value).length})</button>)}</div></div>
+      {visibleListings.length === 0 ? (
         <p className="rounded-2xl bg-surface p-10 text-center text-sm text-muted-foreground ring-1 ring-border/70">
           Aktiv elan yoxdur.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {listings.map((listing) => (
+          {visibleListings.map((listing) => (
             <PropertyCard key={listing.id} property={listing} />
           ))}
         </div>

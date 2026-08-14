@@ -6,8 +6,8 @@ Yenilənmə: 2026-08-14
 |---|---|---|---|
 | Ana səhifə filtr paneli | Var | Var | Hazır |
 | Yan və üst reklamlar | Var | Var | Hazır, admin bannerləri ilə idarə olunur |
-| Yaşayış kompleksləri | Kataloq, xəritə, developer səhifəsi | Kataloq və detal var | Komplekslər üçün xəritə/siyahı keçidi əlavə edilməlidir |
-| Agentliklər | Kataloq, profil, bölmələr, təklif sayı | Kataloq və profil var | İş saatı, baxış və təklif statistikası genişləndirilməlidir |
+| Yaşayış kompleksləri | Kataloq, xəritə, developer səhifəsi | Kataloq, xəritə və detal var | Hazır |
+| Agentliklər | Kataloq, profil, bölmələr, təklif sayı | Kataloq, profil və elan bölmələri var | İş saatı və baxış statistikası DB sahələri qalıb |
 | Axtarış filtrləri | Ətraflı filtr, xəritə, sıralama | Ətraflı filtr, xəritə, sıralama var | Filtr kombinasiyaları üzrə regresiya testi lazımdır |
 | Seçilmiş elanlar | Var | Var | Hazır |
 | Müqayisə | Məhdud | Var | YeniMenzil üstünlüyü |
@@ -24,7 +24,7 @@ Yenilənmə: 2026-08-14
 | Telefon təsdiqi və pulsuz elan kvotası | Sərt qaydalar | Profil/auth var | Telefon OTP və 30 günlük kvota sərtləşdirilməlidir |
 | Elanı irəli çək / VIP / Premium | Var | Var | Hazır |
 | Biznes paketləri | Basic/Silver/Gold/Platinum | Ayrı paket məhsulu yoxdur | Əsas böyük kommersiya boşluğu |
-| Şikayət göndərmə | Elan detalından var | Admin idarəsi var | İstifadəçi üçün detal səhifəsində forma əlavə edilməlidir |
+| Şikayət göndərmə | Elan detalından var | İstifadəçi forması və admin idarəsi var | Hazır |
 | Moderasiya | Var | Admin moderasiya var | Hazır |
 | Çoxdillilik | AZ/RU | AZ/RU/EN | Tərcümə örtüyü ayrıca yoxlanmalıdır |
 
