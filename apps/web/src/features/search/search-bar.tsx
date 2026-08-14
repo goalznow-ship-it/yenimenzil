@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import type { DealType } from "@yenimenzil/types";
 import { PROPERTY_TYPE_LABELS, type PropertyType } from "@yenimenzil/types";
 import { Button, cn, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsList, TabsTrigger } from "@yenimenzil/ui";
-import { MapPin, Search } from "lucide-react";
+import { BriefcaseBusiness, Building2, House, Map, MapPin, Search, SlidersHorizontal, Warehouse } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { POPULAR_PLACES } from "@/data/locations";
 import { useI18n } from "@/components/i18n-provider";
 import { roomLabel, type MessageKey } from "@/lib/i18n";
@@ -23,6 +24,16 @@ const PRICE_OPTIONS = [
   { value: "100000-200000", label: "100 000 — 200 000 ₼" },
   { value: "200000-400000", label: "200 000 — 400 000 ₼" },
   { value: "400000-", label: "400 000 ₼-dən" }
+];
+
+const CATEGORY_OPTIONS: Array<{ value: string; label: string; icon: LucideIcon }> = [
+  { value: "new_building", label: "Yeni tikili", icon: Building2 },
+  { value: "old_building", label: "Köhnə tikili", icon: Building2 },
+  { value: "house", label: "Həyət evi/Bağ evi", icon: House },
+  { value: "office", label: "Ofis", icon: BriefcaseBusiness },
+  { value: "garage", label: "Qaraj", icon: Warehouse },
+  { value: "land", label: "Torpaq", icon: Map },
+  { value: "commercial", label: "Obyekt", icon: Building2 }
 ];
 
 export function SearchBar() {
@@ -75,7 +86,7 @@ export function SearchBar() {
       </Tabs>
 
       <div className="rounded-2xl border border-border bg-surface p-3 shadow-panel md:p-3.5">
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_0.8fr_1fr_auto]">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_0.8fr_1fr_auto_auto]">
           <div className="relative">
             <MapPin className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
             <Select value={city} onValueChange={setCity}>
@@ -139,6 +150,10 @@ export function SearchBar() {
             </SelectContent>
           </Select>
 
+          <Button onClick={() => router.push(`/search?${buildQuery().toString()}`)} size="lg" variant="secondary" className="gap-2">
+            <SlidersHorizontal className="h-4 w-4" /> Filtrlər
+          </Button>
+
           <Button onClick={submit} size="lg" className="gap-2 lg:px-8">
             <Search className="h-4 w-4" />
             {t("action.search")}
@@ -146,6 +161,9 @@ export function SearchBar() {
         </div>
       </div>
 
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {CATEGORY_OPTIONS.map(({ value, label, icon: Icon }) => <button key={value} type="button" onClick={() => router.push(`/search?deal=${deal}&property_type=${value}`)} className="flex items-center gap-2 rounded-full bg-foreground/[0.045] px-4 py-2 text-[13px] font-medium hover:bg-brand-soft hover:text-brand"><Icon className="h-4 w-4"/>{label}</button>)}
+      </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-[13px] text-muted-foreground">
           {t("search.popular")}

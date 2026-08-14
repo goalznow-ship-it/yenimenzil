@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Building2 } from "lucide-react";
+import { ArrowRight, Building2, ShieldCheck } from "lucide-react";
 import { SectionHeading } from "@yenimenzil/ui";
 import { fetchFeaturedSections } from "@/services/property-api";
 import { SearchBar } from "@/features/search/search-bar";
@@ -7,10 +7,20 @@ import { PropertyGrid } from "@/features/properties/property-grid";
 import { MapDiscover } from "@/features/map/map-discover";
 import { getPopularAreas } from "@/data/areas";
 import { getTranslations } from "@/lib/i18n-server";
+import { fetchComplexes } from "@/services/development-api";
+import { ComplexCard } from "@/features/developments/complex-card";
+import { fetchPublicBanners } from "@/services/platform-api";
+import { AdRail } from "@/features/advertising/ad-rail";
+import { fetchAgencyDirectory } from "@/services/agency-directory-api";
 
 export default async function HomePage() {
   const { t } = await getTranslations();
   const sections = await fetchFeaturedSections();
+  const [complexes, banners, agencies] = await Promise.all([
+    fetchComplexes().catch(() => []),
+    fetchPublicBanners(),
+    fetchAgencyDirectory()
+  ]);
   const all = sections.all;
   const activeCount = all.filter((p) => p.status === "active").length;
   const droppedCount = all.filter(
@@ -19,7 +29,6 @@ export default async function HomePage() {
       p.priceHistory.at(-1)!.price < p.priceHistory[0]!.price
   ).length;
   const popularAreas = getPopularAreas(all);
-
   const stats = [
     { value: `${activeCount}+`, label: t("home.active") },
     { value: String(popularAreas.length), label: t("home.popularArea") },
@@ -33,13 +42,13 @@ export default async function HomePage() {
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-foreground md:text-[42px]">
               {t("home.title.before")}{" "}
-              <span className="text-brand">{t("home.title.highlight")}</span>{t("home.title.after")}
+              <span className="text-brand">{t("home.title.highlight")}</span>{" "}{t("home.title.after")}
             </h1>
             <p className="mx-auto mt-2.5 max-w-xl text-[14px] leading-relaxed text-muted-foreground md:text-[15px]">
               {t("home.subtitle")}
             </p>
           </div>
-          <div className="mx-auto mt-6 max-w-4xl">
+          <div className="mx-auto mt-6 max-w-[1240px]">
             <SearchBar />
           </div>
           <dl className="mx-auto mt-6 flex max-w-lg items-center justify-center gap-6 text-center md:gap-10">
@@ -57,7 +66,19 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto max-w-[1440px] space-y-12 px-4 pt-8 md:space-y-14 lg:px-6">
+      <div className="mx-auto grid max-w-[1536px] gap-5 px-4 pt-7 lg:px-5 xl:grid-cols-[140px_minmax(0,1fr)_140px]">
+        <aside className="hidden xl:block"><AdRail banner={banners[0]} side="left" /></aside>
+        <div className="min-w-0 space-y-12 md:space-y-14">
+        <section aria-labelledby="complexes-title">
+          <SectionHeading title="Yaşayış kompleksləri" subtitle="Birbaşa developer təklifləri" linkHref="/residential-complexes" linkLabel={t("action.viewAll")} />
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{complexes.slice(0, 3).map((item) => <ComplexCard key={item.id} item={item} />)}</div>
+        </section>
+
+        {agencies.length > 0 ? <section aria-labelledby="agencies-title">
+          <SectionHeading title="Agentliklər" subtitle="Təsdiqlənmiş əmlak mütəxəssisləri" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{agencies.slice(0,4).map((agency) => <Link key={agency.id} href={`/agencies/${agency.id}`} className="group rounded-2xl border border-border bg-surface p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-card"><div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-brand-soft text-brand">{agency.logo_url ? <img src={agency.logo_url} alt={agency.name} className="h-full w-full object-cover"/> : <Building2 className="h-8 w-8"/>}</div><p className="mt-4 flex items-center gap-1 font-semibold">{agency.name}{agency.is_verified && <ShieldCheck className="h-4 w-4 text-brand"/>}</p><p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{agency.description ?? "Daşınmaz əmlak agentliyi"}</p></Link>)}</div>
+        </section> : null}
+
         <section aria-labelledby="new-listings-title">
           <SectionHeading
             title={t("home.new")}
@@ -145,6 +166,8 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+        </div>
+        <aside className="hidden xl:block"><AdRail banner={banners[1]} side="right" /></aside>
       </div>
     </div>
   );

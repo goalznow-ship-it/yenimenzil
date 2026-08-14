@@ -27,13 +27,11 @@ def _require_admin_or_above(user: User) -> User:
 
 @router.get("", response_model=list[AgencyRead])
 async def list_agencies(
-    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     limit: int = Query(default=100, ge=1, le=1000),
     offset: int = Query(default=0, ge=0),
 ) -> list[AgencyRead]:
-    # For now, allow any authenticated user to list agencies
-    stmt = select(Agency).offset(offset).limit(limit)
+    stmt = select(Agency).order_by(Agency.is_verified.desc(), Agency.name).offset(offset).limit(limit)
     result = await db.execute(stmt)
     agencies = result.scalars().all()
     return list(agencies)
