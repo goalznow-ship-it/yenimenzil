@@ -75,6 +75,7 @@ export function MapView({
   searchLabel = "Bu ərazidə axtar",
   highlightedId,
   initialBounds,
+  onMapClick,
   onMarkerClick,
   onMarkerHover,
   onBoundsChange,
@@ -125,6 +126,12 @@ export function MapView({
       new NavigationControl({ showCompass: false }),
       "top-right"
     );
+
+    if (onMapClick) {
+      map.on("click", (event) => {
+        onMapClick({ lat: event.lngLat.lat, lng: event.lngLat.lng });
+      });
+    }
 
     map.on("load", () => {
       setLoaded(true);

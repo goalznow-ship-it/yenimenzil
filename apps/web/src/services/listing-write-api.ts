@@ -87,6 +87,8 @@ export interface ListingDetail extends ListingWriteResult {
   mortgage_available: boolean;
   features: string[];
   location?: {
+    latitude?: number | null;
+    longitude?: number | null;
     city: string | null;
     district: string | null;
     metro: string | null;

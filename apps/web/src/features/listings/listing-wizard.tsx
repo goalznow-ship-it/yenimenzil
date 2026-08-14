@@ -22,6 +22,7 @@ import {
 import { RequireAuth } from "@/components/auth/auth-provider";
 import { CITIES, DISTRICTS, METRO_STATIONS } from "@/data/locations";
 import { listingWriteApi, type ListingInput, type ListingDetail } from "@/services/listing-write-api";
+import { MapView } from "@/features/map/map-view";
 
 const PROPERTY_TYPES = [
   { value: "apartment", label: "Mənzil" },
@@ -128,6 +129,8 @@ interface WizardState {
   district: string;
   metro: string;
   address_text: string;
+  latitude: number;
+  longitude: number;
   price: string;
   currency: "AZN" | "USD" | "EUR";
   rooms: string;
@@ -154,6 +157,8 @@ const INITIAL: WizardState = {
   district: "",
   metro: "",
   address_text: "",
+  latitude: 40.4093,
+  longitude: 49.8671,
   price: "",
   currency: "AZN",
   rooms: "",
@@ -194,6 +199,8 @@ function fromDetail(d: ListingDetail): WizardState {
     district: d.location?.district ?? "",
     metro: d.location?.metro ?? "",
     address_text: d.location?.address_text ?? "",
+    latitude: d.location?.latitude ?? 40.4093,
+    longitude: d.location?.longitude ?? 49.8671,
     price: d.price != null ? String(d.price) : "",
     currency: d.currency,
     rooms: d.rooms != null ? String(d.rooms) : "",
@@ -369,8 +376,8 @@ export function ListingWizard({
         mortgage_available: state.mortgage_available,
         features: state.features,
         location: {
-          latitude: 40.4093,
-          longitude: 49.8502,
+          latitude: state.latitude,
+          longitude: state.longitude,
           address_text: state.address_text,
           city: state.city,
           district: state.district || undefined,
@@ -584,6 +591,18 @@ export function ListingWizard({
                   />
                 </div>
               </Field>
+              <div>
+                <span className={LABEL_CLS}>Xəritədə dəqiq yeri göstərin</span>
+                <p className="mb-2 text-xs text-muted-foreground">Elanın yerini dəyişmək üçün xəritənin üzərinə klikləyin.</p>
+                <MapView
+                  className="h-72 overflow-hidden rounded-xl border border-border"
+                  center={{ lat: state.latitude, lng: state.longitude }}
+                  zoom={14}
+                  markers={[{ id: "selected-location", point: { lat: state.latitude, lng: state.longitude }, price: 0, formattedPrice: "Seçilmiş yer" }]}
+                  onMapClick={(point) => setState((current) => ({ ...current, latitude: point.lat, longitude: point.lng }))}
+                />
+                <p className="mt-2 text-xs text-foreground/50">{state.latitude.toFixed(5)}, {state.longitude.toFixed(5)}</p>
+              </div>
             </div>
           ) : null}
 
