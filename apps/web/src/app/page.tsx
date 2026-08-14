@@ -10,7 +10,7 @@ import { getTranslations } from "@/lib/i18n-server";
 import { fetchComplexes } from "@/services/development-api";
 import { ComplexCard } from "@/features/developments/complex-card";
 import { fetchPublicBanners } from "@/services/platform-api";
-import { AdRail } from "@/features/advertising/ad-rail";
+import { AdRail, TopAdBanner } from "@/features/advertising/ad-rail";
 import { fetchAgencyDirectory } from "@/services/agency-directory-api";
 
 export default async function HomePage() {
@@ -37,6 +37,7 @@ export default async function HomePage() {
 
   return (
     <div>
+      <TopAdBanner banner={banners[2]} />
       <section className="border-b border-border/70 bg-background">
         <div className="mx-auto max-w-[1440px] px-4 pb-7 pt-7 md:pt-10 lg:px-6">
           <div className="mx-auto max-w-3xl text-center">
@@ -66,8 +67,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="mx-auto grid max-w-[1536px] gap-5 px-4 pt-7 lg:px-5 xl:grid-cols-[140px_minmax(0,1fr)_140px]">
-        <aside className="hidden xl:block"><AdRail banner={banners[0]} side="left" /></aside>
+      <div className="mx-auto grid max-w-[1600px] gap-4 px-3 pt-7 lg:grid-cols-[118px_minmax(0,1fr)_118px] lg:px-4 xl:grid-cols-[150px_minmax(0,1fr)_150px]">
+        <aside className="hidden lg:block"><AdRail banner={banners[0]} side="left" /></aside>
         <div className="min-w-0 space-y-12 md:space-y-14">
         <section aria-labelledby="complexes-title">
           <SectionHeading title="Yaşayış kompleksləri" subtitle="Birbaşa developer təklifləri" linkHref="/residential-complexes" linkLabel={t("action.viewAll")} />
@@ -167,8 +168,9 @@ export default async function HomePage() {
           </div>
         </section>
         </div>
-        <aside className="hidden xl:block"><AdRail banner={banners[1]} side="right" /></aside>
+        <aside className="hidden lg:block"><AdRail banner={banners[1]} side="right" /></aside>
       </div>
+      <div className="mx-4 mt-7 lg:hidden"><TopAdBanner banner={banners[1]} /></div>
     </div>
   );
 }
