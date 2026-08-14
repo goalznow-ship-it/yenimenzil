@@ -19,7 +19,7 @@ export interface ResidentialComplex {
 }
 
 async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, { next: { revalidate: 60 } });
+  const response = await fetch(`${API_URL}${path}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`Development API error: ${response.status}`);
   return response.json() as Promise<T>;
 }

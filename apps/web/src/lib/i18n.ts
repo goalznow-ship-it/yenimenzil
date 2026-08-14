@@ -10,7 +10,7 @@ export function normalizeLocale(value?: string | null): Locale {
 
 const messages = {
   az: {
-    "nav.sale": "Al", "nav.rent": "Kirayə", "nav.daily": "Günlük",
+    "nav.sale": "Al", "nav.rent": "Kirayə", "nav.daily": "Günlük", "nav.complexes": "Yaşayış kompleksləri",
     "nav.newBuildings": "Yeni tikililər", "nav.house": "Həyət evi",
     "nav.villa": "Villa", "nav.land": "Torpaq", "nav.commercial": "Obyekt",
     "nav.home": "Ana səhifə", "nav.search": "Axtarış", "nav.add": "Elan ver",
@@ -55,7 +55,7 @@ const messages = {
     "auth.invalidEmail": "Düzgün e-poçt daxil edin", "auth.shortPassword": "Şifrə ən azı 8 simvol olmalıdır", "auth.nameRequired": "Ad daxil edin"
   },
   en: {
-    "nav.sale": "Buy", "nav.rent": "Rent", "nav.daily": "Daily rent",
+    "nav.sale": "Buy", "nav.rent": "Rent", "nav.daily": "Daily rent", "nav.complexes": "Residential complexes",
     "nav.newBuildings": "New buildings", "nav.house": "House", "nav.villa": "Villa", "nav.land": "Land", "nav.commercial": "Commercial",
     "nav.home": "Home", "nav.search": "Search", "nav.add": "Post listing", "nav.favorites": "Favorites", "nav.profile": "Profile",
     "nav.messages": "Messages", "nav.compare": "Compare", "nav.main": "Main navigation", "nav.menu": "Menu",
@@ -91,7 +91,7 @@ const messages = {
     "auth.invalidEmail": "Enter a valid email", "auth.shortPassword": "Password must be at least 8 characters", "auth.nameRequired": "Enter your name"
   },
   ru: {
-    "nav.sale": "Купить", "nav.rent": "Аренда", "nav.daily": "Посуточно", "nav.newBuildings": "Новостройки",
+    "nav.sale": "Купить", "nav.rent": "Аренда", "nav.daily": "Посуточно", "nav.complexes": "Жилые комплексы", "nav.newBuildings": "Новостройки",
     "nav.house": "Дом", "nav.villa": "Вилла", "nav.land": "Земля", "nav.commercial": "Коммерция",
     "nav.home": "Главная", "nav.search": "Поиск", "nav.add": "Подать объявление", "nav.favorites": "Избранное", "nav.profile": "Профиль",
     "nav.messages": "Сообщения", "nav.compare": "Сравнение", "nav.main": "Основная навигация", "nav.menu": "Меню",

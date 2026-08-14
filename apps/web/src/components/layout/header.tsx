@@ -45,6 +45,7 @@ const NAV_LINKS: Array<{ label: MessageKey; href: string }> = [
   { label: "nav.sale", href: "/search?deal=sale" },
   { label: "nav.rent", href: "/search?deal=rent" },
   { label: "nav.daily", href: "/search?deal=daily" },
+  { label: "nav.complexes", href: "/residential-complexes" },
   { label: "nav.newBuildings", href: "/search?deal=sale&property_type=new_building" },
   { label: "nav.house", href: "/search?deal=sale&property_type=house" },
   { label: "nav.villa", href: "/search?deal=sale&property_type=villa" },
