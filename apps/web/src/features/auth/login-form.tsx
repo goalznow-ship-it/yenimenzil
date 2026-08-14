@@ -10,19 +10,7 @@ import { Button, Input } from "@yenimenzil/ui";
 import { Info, KeyRound, Mail, UserRound } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { useAuth } from "@/store/auth";
-
-const loginSchema = z.object({
-  email: z.string().email("Düzgün e-poçt daxil edin"),
-  password: z.string().min(8, "Şifrə ən azı 8 simvol olmalıdır")
-});
-
-const registerSchema = loginSchema.extend({
-  name: z.string().min(2, "Ad daxil edin"),
-  phone: z
-    .string()
-    .regex(/^\+994\d{9}$/, "+994XXXXXXXXX formatında daxil edin")
-    .or(z.literal(""))
-});
+import { useI18n } from "@/components/i18n-provider";
 
 interface FormValues {
   email: string;
@@ -32,10 +20,20 @@ interface FormValues {
 }
 
 export function LoginForm({ mode }: { mode: "login" | "register" }) {
+  const { t } = useI18n();
   const isRegister = mode === "register";
-  const schema = (
-    isRegister ? registerSchema : loginSchema
-  ) as z.ZodType<FormValues, FormValues>;
+  const schema = React.useMemo(() => {
+    const loginSchema = z.object({
+      email: z.string().email(t("auth.invalidEmail")),
+      password: z.string().min(8, t("auth.shortPassword"))
+    });
+    return (isRegister
+      ? loginSchema.extend({
+          name: z.string().min(2, t("auth.nameRequired")),
+          phone: z.string().regex(/^\+994\d{9}$/, "+994XXXXXXXXX").or(z.literal(""))
+        })
+      : loginSchema) as z.ZodType<FormValues, FormValues>;
+  }, [isRegister, t]);
 
   const {
     register,
@@ -69,10 +67,11 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
       } else {
         await login(values.email, values.password);
       }
-      router.push(next.startsWith("/") ? next : "/");
+      const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
+      router.push(safeNext);
     } catch (err) {
       setServerError(
-        err instanceof Error ? err.message : "Xəta baş verdi, yenidən cəhd edin"
+        err instanceof Error ? err.message : t("auth.genericError")
       );
     }
   };
@@ -85,12 +84,12 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
 
       <div className="rounded-2xl bg-surface p-6 ring-1 ring-border/70 md:p-8">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          {isRegister ? "Hesab yaradın" : "Daxil olun"}
+          {isRegister ? t("auth.registerTitle") : t("auth.loginTitle")}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isRegister
-            ? "Elan yerləşdirmək və seçilmişləri saxlamaq üçün qeydiyyatdan keçin."
-            : "Hesabınıza daxil olaraq davam edin."}
+            ? t("auth.registerSubtitle")
+            : t("auth.loginSubtitle")}
         </p>
 
         {serverError || loginError || registerError ? (
@@ -108,7 +107,7 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
                     htmlFor="name"
                     className="mb-1.5 block text-[13px] font-medium text-foreground/75"
                   >
-                    Ad və soyad
+                    {t("auth.name")}
                   </label>
                   <div className="relative">
                     <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/35" />
@@ -131,7 +130,7 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
                     htmlFor="phone"
                     className="mb-1.5 block text-[13px] font-medium text-foreground/75"
                   >
-                    Telefon <span className="text-foreground/40">(könüllü)</span>
+                    {t("auth.phone")} <span className="text-foreground/40">({t("auth.optional")})</span>
                   </label>
                   <div className="relative">
                     <UserRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/35" />
@@ -158,7 +157,7 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
                 htmlFor="email"
                 className="mb-1.5 block text-[13px] font-medium text-foreground/75"
               >
-                E-poçt
+                {t("auth.email")}
               </label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/35" />
@@ -184,7 +183,7 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
                 htmlFor="password"
                 className="mb-1.5 block text-[13px] font-medium text-foreground/75"
               >
-                Şifrə
+                {t("auth.password")}
               </label>
               <div className="relative">
                 <KeyRound className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/35" />
@@ -203,6 +202,16 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
                   {errors.password.message}
                 </p>
               ) : null}
+              {!isRegister ? (
+                <div className="mt-2 text-right">
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs font-medium text-brand hover:underline"
+                  >
+                    {t("auth.forgot")}
+                  </Link>
+                </div>
+              ) : null}
             </div>
 
             <Button
@@ -211,21 +220,21 @@ export function LoginForm({ mode }: { mode: "login" | "register" }) {
               disabled={isSubmitting}
             >
               {isSubmitting
-                ? "Gözləyin…"
+                ? t("auth.wait")
                 : isRegister
-                  ? "Qeydiyyatdan keç"
-                  : "Daxil ol"}
+                  ? t("auth.register")
+                  : t("auth.login")}
             </Button>
           </form>
         </div>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
-        {isRegister ? "Artıq hesabınız var?" : "Hesabınız yoxdur?"}{" "}
+        {isRegister ? t("auth.haveAccount") : t("auth.noAccount")}{" "}
         <Link
           href={isRegister ? "/login" : "/register"}
           className="font-semibold text-brand hover:underline"
         >
-          {isRegister ? "Daxil olun" : "Qeydiyyatdan keçin"}
+          {isRegister ? t("auth.loginLink") : t("auth.registerLink")}
         </Link>
       </p>
     </div>

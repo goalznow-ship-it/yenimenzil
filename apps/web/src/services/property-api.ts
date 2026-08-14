@@ -28,7 +28,11 @@ import {
 import { getDemoListings } from "@/data/listings";
 
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  typeof window === "undefined"
+    ? process.env.API_INTERNAL_URL ??
+      process.env.NEXT_PUBLIC_API_URL ??
+      "http://localhost:8000/api/v1"
+    : process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 export const USE_DEMO_DATA =
   (process.env.NEXT_PUBLIC_USE_DEMO_DATA ?? "true") !== "false";
 

@@ -57,7 +57,7 @@ This document describes the production deployment of YeniMenzil.az, a marketplac
 | caddy      | 80/443   | Public    | Reverse proxy, TLS termination|
 | api        | 8000     | Internal  | FastAPI + SQLAlchemy + Alembic|
 | web        | 3000     | Internal  | Next.js standalone render      |
-| worker     | None     | Internal  | Celery background tasks       |
+| worker     | None     | Internal  | Python maintenance jobs       |
 | minio      | 9000/9001| Internal  | S3-compatible storage          |
 | db (postgres)| 5432   | Internal  | PostgreSQL with PostGIS        |
 | redis      | 6379     | Internal  | Redis cache                    |

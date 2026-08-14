@@ -18,7 +18,7 @@ class ResetPasswordRequest(BaseModel):
 
 
 class VerifyTokenRequest(BaseModel):
-    token: str = Field(min_length=8, max_length=256)
+    token: str = Field(min_length=6, max_length=256)
 
 
 class VerificationStatusRead(BaseModel):

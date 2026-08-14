@@ -30,6 +30,8 @@ async def update_me(
     if payload.full_name is not None:
         user.full_name = payload.full_name.strip()
     if payload.phone is not None:
+        if payload.phone != user.phone and user.profile:
+            user.profile.phone_verified = False
         user.phone = payload.phone
     if user.profile is not None:
         profile = user.profile

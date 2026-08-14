@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@yenimenzil/ui";
 import { isStaff, useAuth } from "@/store/auth";
+import { useI18n } from "@/components/i18n-provider";
 
 function initialsOf(name: string): string {
   return name
@@ -26,6 +27,7 @@ function initialsOf(name: string): string {
 }
 
 export function UserMenu() {
+  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
@@ -41,10 +43,10 @@ export function UserMenu() {
   if (!user) return null;
 
   const items = [
-    { href: "/profile", label: "İdarə paneli", icon: LayoutDashboard },
-    { href: "/profile", label: "Profil", icon: Settings },
+    { href: "/profile", label: t("nav.dashboard"), icon: LayoutDashboard },
+    { href: "/profile", label: t("nav.profile"), icon: Settings },
     ...(isStaff(user.role)
-      ? [{ href: "/admin/listings", label: "Moderasiya", icon: ShieldCheck }]
+      ? [{ href: "/admin/listings", label: t("nav.moderation"), icon: ShieldCheck }]
       : [])
   ];
 
@@ -106,7 +108,7 @@ export function UserMenu() {
                 className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground/75 transition-colors hover:bg-brand-soft hover:text-brand"
               >
                 <Plus className="h-4 w-4" />
-                Elan yerləşdir
+                {t("action.addListing")}
               </Link>
               <button
                 type="button"
@@ -117,7 +119,7 @@ export function UserMenu() {
                 )}
               >
                 <LogOut className="h-4 w-4" />
-                Çıxış
+                {t("nav.logout")}
               </button>
             </div>
           </div>
@@ -128,6 +130,7 @@ export function UserMenu() {
 }
 
 export function UserAvatarLink() {
+  const { t } = useI18n();
   const status = useAuth((s) => s.status);
   const user = useAuth((s) => s.user);
 
@@ -135,7 +138,7 @@ export function UserAvatarLink() {
     return (
       <Link
         href="/profile"
-        aria-label="Profil"
+        aria-label={t("nav.profile")}
         className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
       >
         {user.profile?.avatar_url ? (
@@ -156,7 +159,7 @@ export function UserAvatarLink() {
   return (
     <Link
       href="/login"
-      aria-label="Profil"
+      aria-label={t("nav.profile")}
       className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
     >
       <UserRound className="h-[19px] w-[19px]" />

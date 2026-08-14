@@ -1,12 +1,16 @@
+"use client";
+
 import Link from "next/link";
 import { MapPin } from "lucide-react";
+import { useI18n } from "@/components/i18n-provider";
 
 export function Logo({ className }: { className?: string }) {
+  const { t } = useI18n();
   return (
     <Link
       href="/"
       className={`group flex items-center gap-2.5 ${className ?? ""}`}
-      aria-label="YeniMenzil.az — Ana səhifə"
+      aria-label={`YeniMenzil.az — ${t("nav.home")}`}
     >
       <span className="relative flex h-9 w-9 items-center justify-center rounded-[12px] bg-brand text-white shadow-sm shadow-brand/25 transition-shadow group-hover:shadow-brand/40">
         <MapPin className="h-[18px] w-[18px]" strokeWidth={2.25} />

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Button } from "@yenimenzil/ui";
 import { Cookie } from "lucide-react";
+import { useI18n } from "@/components/i18n-provider";
 
 const CONSENT_KEY = "yenimenzil-cookie-consent";
 
@@ -15,6 +16,7 @@ function getConsent(): boolean {
 }
 
 export function CookieConsent() {
+  const { t } = useI18n();
   const [visible, setVisible] = React.useState(false);
 
   React.useEffect(() => {
@@ -46,14 +48,13 @@ export function CookieConsent() {
           <Cookie className="h-4.5 w-4.5" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">Kukilərdən istifadə</p>
+          <p className="text-sm font-semibold">{t("cookie.title")}</p>
           <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">
-            Saytın işləməsi və təcrübənizi yaxşılaşdırmaq üçün kukilərdən
-            istifadə edirik. Davam etməklə bununla razılaşırsınız.
+            {t("cookie.body")}
           </p>
           <div className="mt-3 flex gap-2">
             <Button onClick={accept} className="text-[13px]">
-              Razıyam
+              {t("cookie.accept")}
             </Button>
           </div>
         </div>

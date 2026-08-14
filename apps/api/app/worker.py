@@ -1,8 +1,8 @@
 """Background worker entrypoint for the Docker worker service.
 
 Runs periodic maintenance jobs in a separate process so the API process can
-stay focused on request handling. Jobs are idempotent; running them from
-both the API lifespan (development) and this worker (production) is safe.
+stay focused on request handling. In production these jobs run only here to
+avoid duplicate saved-search notifications.
 
 Jobs:
 - property listing auto-expiry

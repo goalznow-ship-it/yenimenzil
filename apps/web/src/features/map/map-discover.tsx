@@ -7,8 +7,10 @@ import { MapView } from "@/features/map/map-view";
 import { searchProperties } from "@/services/property-api";
 import type { MapMarkerData } from "@/lib/map/types";
 import { formatPriceShort } from "@/lib/format";
+import { useI18n } from "@/components/i18n-provider";
 
 export function MapDiscover() {
+  const { t } = useI18n();
   const [markers, setMarkers] = React.useState<MapMarkerData[]>([]);
 
   React.useEffect(() => {
@@ -45,7 +47,7 @@ export function MapDiscover() {
           <div className="pointer-events-auto rounded-full border border-border/70 bg-surface/95 px-5 py-2.5 shadow-card backdrop-blur-sm">
             <h2 id="map-discover-title" className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
               <MapPin className="h-4 w-4 text-brand" />
-              Xəritədə kəşf et
+              {t("map.discover")}
             </h2>
           </div>
         </div>
@@ -54,7 +56,7 @@ export function MapDiscover() {
           className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/25 transition-all hover:bg-brand-hover hover:shadow-xl active:scale-95"
         >
           <span className="flex items-center gap-2">
-            Bütün elanları xəritədə gör
+            {t("map.viewAll")}
             <ArrowRight className="h-4 w-4" />
           </span>
         </Link>

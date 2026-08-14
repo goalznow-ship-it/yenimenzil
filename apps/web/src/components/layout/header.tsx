@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown,
   Globe,
@@ -19,13 +19,16 @@ import { Logo } from "./logo";
 import { UserAvatarLink, UserMenu } from "./user-menu";
 import { LANGUAGE_OPTIONS } from "@/lib/languages";
 import { useComparisonStore } from "@/stores/comparison-store";
+import { useI18n } from "@/components/i18n-provider";
+import type { Locale, MessageKey } from "@/lib/i18n";
 
 function CompareLink() {
   const count = useComparisonStore((s) => s.ids.length);
+  const { t } = useI18n();
   return (
     <Link
       href="/compare"
-      aria-label="Müqayisə"
+      aria-label={t("nav.compare")}
       className="relative flex h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
     >
       <Scale className="h-[19px] w-[19px]" />
@@ -38,15 +41,16 @@ function CompareLink() {
   );
 }
 
-const NAV_LINKS = [
-  { label: "Al", href: "/search?deal=sale" },
-  { label: "Kirayə", href: "/search?deal=rent" },
-  { label: "Günlük", href: "/search?deal=daily" },
-  { label: "Yeni tikililər", href: "/search?deal=sale&property_type=new_building" },
-  { label: "Həyət evi", href: "/search?deal=sale&property_type=house" },
-  { label: "Villa", href: "/search?deal=sale&property_type=villa" },
-  { label: "Torpaq", href: "/search?deal=sale&property_type=land" },
-  { label: "Obyekt", href: "/search?deal=sale&property_type=commercial" }
+const NAV_LINKS: Array<{ label: MessageKey; href: string }> = [
+  { label: "nav.sale", href: "/search?deal=sale" },
+  { label: "nav.rent", href: "/search?deal=rent" },
+  { label: "nav.daily", href: "/search?deal=daily" },
+  { label: "nav.complexes", href: "/residential-complexes" },
+  { label: "nav.newBuildings", href: "/search?deal=sale&property_type=new_building" },
+  { label: "nav.house", href: "/search?deal=sale&property_type=house" },
+  { label: "nav.villa", href: "/search?deal=sale&property_type=villa" },
+  { label: "nav.land", href: "/search?deal=sale&property_type=land" },
+  { label: "nav.commercial", href: "/search?deal=sale&property_type=commercial" }
 ];
 
 function NavLink({
@@ -73,8 +77,9 @@ export function Header() {
   const [scrolled, setScrolled] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [langOpen, setLangOpen] = React.useState(false);
-  const [currentLang, setCurrentLang] = React.useState("AZ");
+  const { locale, setLocale, t } = useI18n();
   const pathname = usePathname();
+  const router = useRouter();
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -106,7 +111,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            aria-label="Menyu"
+            aria-label={t("nav.menu")}
             className="rounded-lg p-2 text-foreground/70 hover:bg-foreground/[0.05] lg:hidden"
             onClick={() => setMobileOpen((v) => !v)}
           >
@@ -116,25 +121,25 @@ export function Header() {
         </div>
 
         <nav
-          aria-label="Əsas naviqasiya"
+          aria-label={t("nav.main")}
           className="hidden items-center gap-0.5 xl:flex"
         >
           {NAV_LINKS.map((link) => (
-            <NavLink key={link.href} href={link.href} label={link.label} />
+            <NavLink key={link.href} href={link.href} label={t(link.label)} />
           ))}
         </nav>
 
         <div className="flex items-center gap-1.5">
           <Link
             href="/search"
-            aria-label="Axtarış"
+            aria-label={t("nav.search")}
             className="hidden h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground md:flex"
           >
             <Search className="h-[19px] w-[19px]" />
           </Link>
           <Link
             href="/favorites"
-            aria-label="Seçilmişlər"
+            aria-label={t("nav.favorites")}
             className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground"
           >
             <Heart className="h-[19px] w-[19px]" />
@@ -142,7 +147,7 @@ export function Header() {
           <CompareLink />
           <Link
             href="/messages"
-            aria-label="Mesajlar"
+            aria-label={t("nav.messages")}
             className="hidden h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground md:flex"
           >
             <MessageCircle className="h-[19px] w-[19px]" />
@@ -157,7 +162,7 @@ export function Header() {
               onClick={() => setLangOpen((v) => !v)}
             >
               <Globe className="h-4 w-4" />
-              {currentLang}
+              {locale.toUpperCase()}
               <ChevronDown className="h-3.5 w-3.5" />
             </button>
             {langOpen ? (
@@ -168,19 +173,15 @@ export function Header() {
                     type="button"
                     className={cn(
                       "flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors hover:bg-brand-soft",
-                      currentLang === lang.code && "text-brand"
+                      locale.toUpperCase() === lang.code && "text-brand"
                     )}
                     onClick={() => {
-                      setCurrentLang(lang.code);
+                      setLocale(lang.code.toLowerCase() as Locale);
                       setLangOpen(false);
+                      router.refresh();
                     }}
                   >
                     {lang.label}
-                    {lang.code === "AZ" ? null : (
-                      <span className="text-[10px] text-muted-foreground">
-                        tezliklə
-                      </span>
-                    )}
                   </button>
                 ))}
               </div>
@@ -189,12 +190,12 @@ export function Header() {
 
           <Link
             href="/add-property"
-            aria-label="Elan yerləşdir"
+            aria-label={t("action.addListing")}
             className="hidden sm:block"
           >
             <Button size="sm" className="gap-1.5">
               <Plus className="h-4 w-4" />
-              Elan yerləşdir
+              {t("action.addListing")}
             </Button>
           </Link>
 
@@ -206,7 +207,7 @@ export function Header() {
       {mobileOpen ? (
         <div className="border-t border-border bg-background px-4 py-3 lg:hidden">
           <nav
-            aria-label="Mobil naviqasiya"
+            aria-label={t("nav.main")}
             className="grid grid-cols-2 gap-1"
           >
             {NAV_LINKS.map((link) => (
@@ -216,7 +217,7 @@ export function Header() {
                 onClick={() => setMobileOpen(false)}
                 className="rounded-xl px-3 py-2.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-brand-soft hover:text-brand"
               >
-                {link.label}
+                {t(link.label)}
               </Link>
             ))}
           </nav>
@@ -225,10 +226,14 @@ export function Header() {
               <button
                 key={lang.code}
                 type="button"
-                onClick={() => setCurrentLang(lang.code)}
+                onClick={() => {
+                  setLocale(lang.code.toLowerCase() as Locale);
+                  setMobileOpen(false);
+                  router.refresh();
+                }}
                 className={cn(
                   "rounded-lg border px-3 py-1.5 text-[13px] font-medium transition-colors",
-                  currentLang === lang.code
+                  locale.toUpperCase() === lang.code
                     ? "border-brand/30 bg-brand-soft text-brand"
                     : "border-border text-foreground/70"
                 )}
@@ -240,7 +245,7 @@ export function Header() {
               href="/login"
               className="ml-auto rounded-lg border border-border px-3 py-1.5 text-[13px] font-medium text-foreground/70 transition-colors hover:border-foreground/25"
             >
-              Profil
+              {t("nav.profile")}
             </Link>
           </div>
         </div>

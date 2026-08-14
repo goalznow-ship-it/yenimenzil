@@ -39,6 +39,7 @@ from app.models.property import (
 )
 from app.models.user import User
 from app.repositories.property import PropertyRepository
+from app.services.media_validator import validate_image_file
 from app.schemas.analytics import ListingAnalyticsRead
 from app.schemas.common import PaginatedResponse
 from app.schemas.property import (
@@ -80,6 +81,18 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
+async def _read_upload_limited(file: UploadFile) -> bytes:
+    """Read at most the configured upload limit plus one sentinel byte."""
+    max_bytes = settings.MEDIA_MAX_SIZE_MB * 1024 * 1024
+    content = await file.read(max_bytes + 1)
+    if len(content) > max_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Fayl maksimum {settings.MEDIA_MAX_SIZE_MB} MB ola bilər",
+        )
+    return content
+
+
 async def _get_property_or_404(
     repo: PropertyRepository, property_id: uuid.UUID
 ) -> Property:
@@ -109,6 +122,41 @@ async def list_my_properties(
 ) -> list[PropertySummaryRead]:
     """The current user's own listings across all statuses (dashboard)."""
     return await _repo(db).list_mine(user.id, status_filter)
+
+
+@router.post("/media/temp")
+async def upload_temporary_property_media(
+    files: list[UploadFile] = File(...),
+    _user: User = Depends(get_current_user),
+) -> dict[str, list[dict[str, str]]]:
+    """Validate and upload photos before the listing itself is created."""
+    if not 1 <= len(files) <= 10:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Bir dəfəyə 1-dən 10-a qədər şəkil yükləyə bilərsiniz",
+        )
+
+    uploaded: list[dict[str, str]] = []
+    for file in files:
+        filename = file.filename or "photo.jpg"
+        content = await _read_upload_limited(file)
+        valid, error = validate_image_file(content, filename)
+        if not valid:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"{filename}: {error}",
+            )
+        try:
+            url = upload_file(content, filename, file.content_type or "image/jpeg")
+        except RuntimeError as exc:
+            logger.exception("Temporary property media upload failed")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Şəkil yadda saxlanıla bilmədi",
+            ) from exc
+        uploaded.append({"url": url, "filename": filename})
+
+    return {"media": uploaded}
 
 
 @router.get(
@@ -201,6 +249,13 @@ async def create_property(
     db: AsyncSession = Depends(get_db),
 ) -> PropertyRead:
     repo = _repo(db)
+    if user.role not in AUTO_PUBLISH_ROLES and not (
+        user.phone and user.profile and user.profile.phone_verified
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Elan yerləşdirmək üçün telefon nömrənizi təsdiqləyin",
+        )
     if user.role not in AUTO_PUBLISH_ROLES and payload.status != PropertyStatus.DRAFT:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -245,6 +300,26 @@ async def submit_property(
             detail=f"Yalnız qaralama və ya rədd edilmiş elan təsdiqə "
             f"göndərilə bilər (hazırki: {prop.status})",
         )
+    if user.role not in AUTO_PUBLISH_ROLES:
+        free_window_start = _now() - timedelta(days=30)
+        used_result = await db.execute(
+            select(func.count(Property.id)).where(
+                Property.owner_id == user.id,
+                Property.id != prop.id,
+                Property.created_at >= free_window_start,
+                Property.status.not_in(
+                    [PropertyStatus.DRAFT.value, PropertyStatus.REJECTED.value]
+                ),
+            )
+        )
+        if int(used_result.scalar_one() or 0) >= 1:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=(
+                    "Pulsuz elan limitiniz bitib. Standart hesabla 30 gündə "
+                    "1 pulsuz elan göndərmək olar."
+                ),
+            )
     auto_publish = user.role in AUTO_PUBLISH_ROLES or user.is_verified
     if auto_publish:
         prop.status = PropertyStatus.ACTIVE.value
@@ -377,7 +452,7 @@ async def upload_property_media(
     ).scalar_one_or_none() is not None
     uploaded_media = []
     for file in files:
-        content = await file.read()
+        content = await _read_upload_limited(file)
         valid, error = validate_image_file(content, file.filename or "")
         if not valid:
             raise HTTPException(
@@ -521,7 +596,7 @@ async def replace_property_media(
     media = await db.get(PropertyMedia, media_id)
     if media is None or media.property_id != prop.id:
         raise HTTPException(status_code=404, detail="Media not found")
-    content = await file.read()
+    content = await _read_upload_limited(file)
     valid, error = validate_image_file(content, file.filename or "")
     if not valid:
         raise HTTPException(

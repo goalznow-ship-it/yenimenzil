@@ -49,15 +49,12 @@ async def create_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportRead:
-    reporter_id = (
-        current_user.id if payload.reporter_id is None else payload.reporter_id
-    )
     report = Report(
         property_id=payload.property_id,
-        reporter_id=reporter_id,
+        reporter_id=current_user.id,
         reason=payload.reason,
         description=payload.description,
-        status=payload.status,
+        status=ReportStatus.OPEN.value,
     )
     db.add(report)
     await db.commit()

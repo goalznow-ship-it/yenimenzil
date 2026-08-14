@@ -8,15 +8,22 @@ import {
   ArrowRight,
   Building2,
   Check,
+  CircleCheck,
+  Clock3,
+  Home,
   ImageIcon,
   Info,
   MapPin,
   Send,
-  Tag
+  Tag,
+  Trash2,
+  Upload
 } from "lucide-react";
 import { RequireAuth } from "@/components/auth/auth-provider";
 import { CITIES, DISTRICTS, METRO_STATIONS } from "@/data/locations";
 import { listingWriteApi, type ListingInput, type ListingDetail } from "@/services/listing-write-api";
+import { MapView } from "@/features/map/map-view";
+import { useAuth } from "@/store/auth";
 
 const PROPERTY_TYPES = [
   { value: "apartment", label: "Mənzil" },
@@ -31,9 +38,9 @@ const PROPERTY_TYPES = [
 ] as const;
 
 const DEAL_TYPES = [
-  { value: "sale", label: "Satış" },
-  { value: "rent", label: "Kirayə" },
-  { value: "daily", label: "Günlük" }
+  { value: "sale", label: "Satıram", hint: "Əmlakı satmaq istəyirəm" },
+  { value: "rent", label: "Kirayə verirəm", hint: "Uzunmüddətli kirayə" },
+  { value: "daily", label: "Günlük verirəm", hint: "Günlük kirayə" }
 ] as const;
 
 const REPAIR_STATUSES = [
@@ -118,10 +125,13 @@ function StepButton({
 interface WizardState {
   deal_type: "sale" | "rent" | "daily";
   property_type: string;
+  seller_kind: "owner" | "agent";
   city: string;
   district: string;
   metro: string;
   address_text: string;
+  latitude: number;
+  longitude: number;
   price: string;
   currency: "AZN" | "USD" | "EUR";
   rooms: string;
@@ -143,10 +153,13 @@ interface WizardState {
 const INITIAL: WizardState = {
   deal_type: "sale",
   property_type: "apartment",
+  seller_kind: "owner",
   city: "Bakı",
   district: "",
   metro: "",
   address_text: "",
+  latitude: 40.4093,
+  longitude: 49.8671,
   price: "",
   currency: "AZN",
   rooms: "",
@@ -165,14 +178,30 @@ const INITIAL: WizardState = {
   description: ""
 };
 
+function hasDraftContent(state: Partial<WizardState>, step = 0) {
+  return Boolean(
+    step > 0 ||
+      state.address_text ||
+      state.price ||
+      state.rooms ||
+      state.area_total ||
+      state.title ||
+      state.description ||
+      state.mediaUrls?.length
+  );
+}
+
 function fromDetail(d: ListingDetail): WizardState {
   return {
     deal_type: d.deal_type,
     property_type: d.property_type,
+    seller_kind: "owner",
     city: d.location?.city ?? "Bakı",
     district: d.location?.district ?? "",
     metro: d.location?.metro ?? "",
     address_text: d.location?.address_text ?? "",
+    latitude: d.location?.latitude ?? 40.4093,
+    longitude: d.location?.longitude ?? 49.8671,
     price: d.price != null ? String(d.price) : "",
     currency: d.currency,
     rooms: d.rooms != null ? String(d.rooms) : "",
@@ -205,8 +234,44 @@ export function ListingWizard({
   );
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [uploading, setUploading] = React.useState(false);
+  const [draftReady, setDraftReady] = React.useState(Boolean(listingId));
+  const [draftRestored, setDraftRestored] = React.useState(false);
   const [done, setDone] = React.useState(false);
   const router = useRouter();
+  const user = useAuth((auth) => auth.user);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (listingId || initialListing) return;
+    try {
+      const raw = window.localStorage.getItem("yenimenzil-listing-draft-v1");
+      if (raw) {
+        const draft = JSON.parse(raw) as { state?: Partial<WizardState>; step?: number };
+        if (draft.state && hasDraftContent(draft.state, draft.step)) {
+          setState({ ...INITIAL, ...draft.state });
+          setStep(Math.min(Math.max(draft.step ?? 0, 0), STEPS.length - 1));
+          setDraftRestored(true);
+        }
+      }
+    } catch {
+      window.localStorage.removeItem("yenimenzil-listing-draft-v1");
+    } finally {
+      setDraftReady(true);
+    }
+  }, [initialListing, listingId]);
+
+  React.useEffect(() => {
+    if (!draftReady || listingId || done) return;
+    if (!hasDraftContent(state, step)) {
+      window.localStorage.removeItem("yenimenzil-listing-draft-v1");
+      return;
+    }
+    window.localStorage.setItem(
+      "yenimenzil-listing-draft-v1",
+      JSON.stringify({ state, step, savedAt: Date.now() })
+    );
+  }, [draftReady, done, listingId, state, step]);
 
   const set = <K extends keyof WizardState>(key: K, value: WizardState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
@@ -219,9 +284,30 @@ export function ListingWizard({
         : [...s.features, code]
     }));
 
-  const addMedia = () => {
-    if (state.mediaUrls.length < 15) {
-      set("mediaUrls", [...state.mediaUrls, ""]);
+  const uploadMedia = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (!selected.length) return;
+    if (selected.length > 10) {
+      setError("Bir dəfəyə maksimum 10 şəkil seçin");
+      return;
+    }
+    if (state.mediaUrls.length + selected.length > 30) {
+      setError("Elana maksimum 30 şəkil əlavə etmək olar");
+      return;
+    }
+    setUploading(true);
+    setError(null);
+    try {
+      const uploaded = await listingWriteApi.uploadTemp(selected);
+      setState((current) => ({
+        ...current,
+        mediaUrls: [...current.mediaUrls, ...uploaded.map((item) => item.url)]
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Şəkillər yüklənə bilmədi");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -238,13 +324,17 @@ export function ListingWizard({
           ? null
           : "Düzgün qiymət daxil edin";
       case 3:
-        return state.rooms && Number(state.rooms) >= 0 && state.area_total
+        return state.area_total &&
+          Number(state.area_total) > 0 &&
+          (state.property_type === "land" || (state.rooms && Number(state.rooms) > 0))
           ? null
-          : "Otaq sayı və sahəni daxil edin";
+          : state.property_type === "land"
+            ? "Torpaq sahəsini daxil edin"
+            : "Otaq sayı və sahəni daxil edin";
       case 4:
-        return state.mediaUrls.some((u) => u.trim())
+        return state.mediaUrls.length >= 4
           ? null
-          : "Ən azı bir fotoşəkil URL əlavə edin";
+          : "Elana ən azı 4 fotoşəkil əlavə edin";
       case 5:
         return state.title.trim().length >= 3
           ? null
@@ -265,6 +355,10 @@ export function ListingWizard({
   };
 
   const submit = async () => {
+    if (!user?.profile?.phone_verified) {
+      setError("Elan yerləşdirmək üçün profilinizdə telefon nömrəsini təsdiqləyin");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -275,6 +369,7 @@ export function ListingWizard({
         property_type: state.property_type,
         price: Number(state.price),
         currency: state.currency,
+        seller_kind: state.seller_kind,
         rooms: Number(state.rooms) || 0,
         bedrooms: state.bedrooms ? Number(state.bedrooms) : undefined,
         bathrooms: state.bathrooms ? Number(state.bathrooms) : undefined,
@@ -287,8 +382,8 @@ export function ListingWizard({
         mortgage_available: state.mortgage_available,
         features: state.features,
         location: {
-          latitude: 40.4093,
-          longitude: 49.8502,
+          latitude: state.latitude,
+          longitude: state.longitude,
           address_text: state.address_text,
           city: state.city,
           district: state.district || undefined,
@@ -304,6 +399,7 @@ export function ListingWizard({
         const created = await listingWriteApi.create(input);
         await listingWriteApi.submit(created.id);
       }
+      window.localStorage.removeItem("yenimenzil-listing-draft-v1");
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Elan yaradıla bilmədi");
@@ -338,13 +434,20 @@ export function ListingWizard({
 
   return (
     <RequireAuth>
-      <div className="mx-auto w-full max-w-2xl px-4 py-10">
-        <h1 className="text-2xl font-semibold tracking-tight">Elan yerləşdir</h1>
+      <div className="mx-auto w-full max-w-6xl px-4 py-8 lg:px-6">
+        <div className="mb-7 border-b border-border pb-5">
+        <h1 className="text-3xl font-semibold tracking-tight">Yeni elan</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Elanınızı addım-addım doldurun və təsdiqə göndərin.
+          Məlumatları düzgün daxil edin — elanınız daha tez təsdiqlənəcək.
         </p>
+        </div>
+        {draftRestored ? (
+          <div className="mt-4 rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand">
+            Yarımçıq qalan elan qaralamanız bərpa edildi.
+          </div>
+        ) : null}
 
-        <div className="mt-8 flex items-start gap-1">
+        <div className="mb-7 flex items-start gap-1 rounded-2xl border border-border bg-surface px-4 py-4 shadow-sm">
           {STEPS.map((label, i) => (
             <StepButton
               key={label}
@@ -356,12 +459,15 @@ export function ListingWizard({
           ))}
         </div>
 
-        <div className="mt-6 rounded-2xl bg-surface p-6 ring-1 ring-border/70 md:p-8">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm ring-1 ring-border/70 md:p-8">
           {step === 0 ? (
             <div className="space-y-6">
               <div>
-                <span className={LABEL_CLS}>Əməliyyat növü</span>
-                <div className="grid grid-cols-3 gap-2">
+                <h2 className="text-xl font-semibold">Elanınız haqqında</h2>
+                <p className="mb-4 mt-1 text-sm text-muted-foreground">Əvvəlcə əməliyyat və əmlak növünü seçin.</p>
+                <span className={LABEL_CLS}>Nə etmək istəyirsiniz?</span>
+                <div className="grid gap-3 sm:grid-cols-3">
                   {DEAL_TYPES.map((deal) => (
                     <button
                       key={deal.value}
@@ -374,27 +480,52 @@ export function ListingWizard({
                           : "border-border text-foreground/65 hover:border-foreground/20")
                       }
                     >
-                      {deal.label}
+                      <span className="block text-sm font-semibold">{deal.label}</span>
+                      <span className="mt-1 block text-xs font-normal opacity-65">{deal.hint}</span>
                     </button>
                   ))}
                 </div>
               </div>
               <div>
                 <span className={LABEL_CLS}>Əmlak növü</span>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {PROPERTY_TYPES.map((type) => (
                     <button
                       key={type.value}
                       type="button"
                       onClick={() => set("property_type", type.value)}
                       className={
-                        "rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors " +
+                        "flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-all " +
                         (state.property_type === type.value
                           ? "border-brand/40 bg-brand-soft text-brand"
                           : "border-border text-foreground/65 hover:border-foreground/20")
                       }
                     >
+                      {type.value === "house" || type.value === "villa" ? <Home className="h-5 w-5" /> : <Building2 className="h-5 w-5" />}
                       {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className={LABEL_CLS}>Elanı kim yerləşdirir?</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    ["owner", "Elanın sahibiyəm"],
+                    ["agent", "Mən vasitəçiyəm"]
+                  ] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => set("seller_kind", value)}
+                      className={
+                        "rounded-xl border p-4 text-left transition-all " +
+                        (state.seller_kind === value
+                          ? "border-brand/40 bg-brand-soft text-brand"
+                          : "border-border text-foreground/65 hover:border-foreground/20")
+                      }
+                    >
+                      {label}
                     </button>
                   ))}
                 </div>
@@ -466,6 +597,18 @@ export function ListingWizard({
                   />
                 </div>
               </Field>
+              <div>
+                <span className={LABEL_CLS}>Xəritədə dəqiq yeri göstərin</span>
+                <p className="mb-2 text-xs text-muted-foreground">Elanın yerini dəyişmək üçün xəritənin üzərinə klikləyin.</p>
+                <MapView
+                  className="h-72 overflow-hidden rounded-xl border border-border"
+                  center={{ lat: state.latitude, lng: state.longitude }}
+                  zoom={14}
+                  markers={[{ id: "selected-location", point: { lat: state.latitude, lng: state.longitude }, price: 0, formattedPrice: "Seçilmiş yer" }]}
+                  onMapClick={(point) => setState((current) => ({ ...current, latitude: point.lat, longitude: point.lng }))}
+                />
+                <p className="mt-2 text-xs text-foreground/50">{state.latitude.toFixed(5)}, {state.longitude.toFixed(5)}</p>
+              </div>
             </div>
           ) : null}
 
@@ -518,31 +661,31 @@ export function ListingWizard({
 
           {step === 3 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Field label="Otaq sayı">
+              {state.property_type !== "land" ? <Field label="Otaq sayı">
                 <Input
                   type="number"
                   min={0}
                   value={state.rooms}
                   onChange={(e) => set("rooms", e.target.value)}
                 />
-              </Field>
-              <Field label="Yataq otağı">
+              </Field> : null}
+              {state.property_type !== "land" ? <Field label="Yataq otağı">
                 <Input
                   type="number"
                   min={0}
                   value={state.bedrooms}
                   onChange={(e) => set("bedrooms", e.target.value)}
                 />
-              </Field>
-              <Field label="Hamam">
+              </Field> : null}
+              {state.property_type !== "land" ? <Field label="Hamam">
                 <Input
                   type="number"
                   min={0}
                   value={state.bathrooms}
                   onChange={(e) => set("bathrooms", e.target.value)}
                 />
-              </Field>
-              <Field label="Sahə (m²)">
+              </Field> : null}
+              <Field label={state.property_type === "land" ? "Torpaq sahəsi (sot)" : "Sahə (m²)"}>
                 <Input
                   type="number"
                   min={1}
@@ -550,23 +693,23 @@ export function ListingWizard({
                   onChange={(e) => set("area_total", e.target.value)}
                 />
               </Field>
-              <Field label="Mərtəbə">
+              {!["land", "house", "villa", "garage"].includes(state.property_type) ? <Field label="Mərtəbə">
                 <Input
                   type="number"
                   min={0}
                   value={state.floor}
                   onChange={(e) => set("floor", e.target.value)}
                 />
-              </Field>
-              <Field label="Mərtəbə sayı">
+              </Field> : null}
+              {!["land", "house", "villa", "garage"].includes(state.property_type) ? <Field label="Mərtəbə sayı">
                 <Input
                   type="number"
                   min={0}
                   value={state.total_floors}
                   onChange={(e) => set("total_floors", e.target.value)}
                 />
-              </Field>
-              <Field label="Bina">
+              </Field> : null}
+              {!["land", "house", "villa", "garage"].includes(state.property_type) ? <Field label="Bina">
                 <Select
                   value={state.building_type}
                   onValueChange={(v) => set("building_type", v as "new" | "old")}
@@ -579,7 +722,7 @@ export function ListingWizard({
                     <SelectItem value="old">Köhnə</SelectItem>
                   </SelectContent>
                 </Select>
-              </Field>
+              </Field> : null}
               <Field label="Təmir">
                 <Select
                   value={state.repair_status}
@@ -621,25 +764,23 @@ export function ListingWizard({
             <div className="space-y-4">
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Info className="h-4 w-4" />
-                Hazırda şəkillər URL ilə əlavə olunur. Yükləmə sistemi qısa
-                müddətdə aktivləşəcək.
+                Minimum 4, maksimum 30 real fotoşəkil. Loqo, mətn, çərçivə və
+                ekran görüntüsü olan şəkillər qəbul edilmir.
               </p>
-              <div className="space-y-2.5">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={uploadMedia}
+              />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {state.mediaUrls.map((url, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4 shrink-0 text-foreground/35" />
-                    <Input
-                      placeholder={`Fotoşəkil ${i + 1} URL`}
-                      value={url}
-                      onChange={(e) =>
-                        set(
-                          "mediaUrls",
-                          state.mediaUrls.map((u, j) =>
-                            j === i ? e.target.value : u
-                          )
-                        )
-                      }
-                    />
+                  <div key={url} className="group relative aspect-[4/3] overflow-hidden rounded-xl bg-foreground/[0.04] ring-1 ring-border">
+                    {/* Remote storage URLs are user uploads, so native img is intentional. */}
+                    <img src={url} alt={`Elan şəkli ${i + 1}`} className="h-full w-full object-cover" />
+                    {i === 0 ? <span className="absolute left-2 top-2 rounded-md bg-brand px-2 py-1 text-[10px] font-semibold text-white">Əsas şəkil</span> : null}
                     <button
                       type="button"
                       onClick={() =>
@@ -648,9 +789,10 @@ export function ListingWizard({
                           state.mediaUrls.filter((_, j) => j !== i)
                         )
                       }
-                      className="rounded-lg p-2 text-foreground/40 hover:bg-red-500/10 hover:text-red-600"
+                      aria-label="Şəkli sil"
+                      className="absolute right-2 top-2 rounded-lg bg-black/65 p-2 text-white hover:bg-red-600"
                     >
-                      ✕
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 ))}
@@ -659,10 +801,12 @@ export function ListingWizard({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={addMedia}
-                disabled={state.mediaUrls.length >= 15}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || state.mediaUrls.length >= 30}
+                className="gap-2"
               >
-                + Şəkil əlavə et
+                {uploading ? <ImageIcon className="h-4 w-4 animate-pulse" /> : <Upload className="h-4 w-4" />}
+                {uploading ? "Yüklənir…" : "Şəkilləri seç"} ({state.mediaUrls.length}/30)
               </Button>
             </div>
           ) : null}
@@ -789,6 +933,21 @@ export function ListingWizard({
               </Button>
             )}
           </div>
+        </div>
+        <aside className="space-y-4 lg:sticky lg:top-24">
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <h3 className="font-semibold">Elan yerləşdirmə qaydaları</h3>
+            <div className="mt-4 space-y-4 text-sm text-foreground/70">
+              <p className="flex gap-3"><CircleCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> Düzgün ünvan və real qiymət göstərin.</p>
+              <p className="flex gap-3"><ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> Ən azı 4 keyfiyyətli foto əlavə edin.</p>
+              <p className="flex gap-3"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-brand" /> Elan yoxlamadan sonra dərc olunur.</p>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-brand-soft p-5 text-sm text-brand">
+            <p className="font-semibold">Qaralamanız qorunur</p>
+            <p className="mt-1 opacity-80">Səhifədən çıxsanız belə məlumatlar avtomatik saxlanılır.</p>
+          </div>
+        </aside>
         </div>
       </div>
     </RequireAuth>

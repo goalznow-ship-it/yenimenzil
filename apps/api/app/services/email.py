@@ -54,6 +54,6 @@ def send_email(
             smtp.send_message(message)
         logger.info("Email sent to %s: %s", to, subject)
         return True
-    except Exception:  # noqa: BLE001 - never break the request for email
+    except Exception:
         logger.exception("Failed to send email to %s", to)
         return False

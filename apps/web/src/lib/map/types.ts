@@ -31,6 +31,7 @@ export interface MapBounds {
 }
 
 export interface MapViewCallbacks {
+  onMapClick?: (point: GeoPoint) => void;
   onMarkerClick?: (marker: MapMarkerData) => void;
   onMarkerHover?: (markerId: string | null) => void;
   onBoundsChange?: (bounds: MapBounds) => void;

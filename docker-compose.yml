@@ -15,6 +15,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - yenimenzil-net
 
   redis:
     image: redis:7-alpine
@@ -28,6 +30,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - yenimenzil-net
 
   minio:
     image: minio/minio:latest
@@ -46,13 +50,16 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - yenimenzil-net
 
   api:
     build:
-      context: ../..
+      context: .
       dockerfile: apps/api/Dockerfile
     container_name: yenimenzil-api
     restart: unless-stopped
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -61,18 +68,18 @@ services:
       minio:
         condition: service_healthy
     environment:
-      APP_ENV: ${APP_ENV:-production}
+      APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@postgres:5432/yenimenzil}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
-      SECRET_KEY: ${SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY:-local-development-secret-key-change-before-production}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.yenimenzil.az/api/v1}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://yenimenzil.az}
-      S3_ENDPOINT: ${S3_ENDPOINT:-localhost:9000}
+      S3_ENDPOINT: ${S3_ENDPOINT:-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-yenimenzil-media}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
-      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9002}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000}
       S3_SECURE: ${S3_SECURE:-false}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -80,7 +87,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-no-reply@yenimenzil.az}
-      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-stripe}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-mock}
       STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
@@ -101,13 +108,18 @@ services:
 
   web:
     build:
-      context: ../..
+      context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api/v1}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     container_name: yenimenzil-web
     restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     environment:
+      API_INTERNAL_URL: http://api:8000/api/v1
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.yenimenzil.az/api/v1}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://yenimenzil.az}
     ports:
@@ -130,11 +142,13 @@ services:
   # Background worker for async tasks (email, payments, etc.)
   worker:
     build:
-      context: ../..
+      context: .
       dockerfile: apps/api/Dockerfile.worker
     container_name: yenimenzil-worker
     restart: unless-stopped
     depends_on:
+      api:
+        condition: service_healthy
       postgres:
         condition: service_healthy
       redis:
@@ -142,17 +156,17 @@ services:
       minio:
         condition: service_healthy
     environment:
-      APP_ENV: ${APP_ENV:-production}
+      APP_ENV: ${APP_ENV:-development}
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@postgres:5432/yenimenzil}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      SECRET_KEY: ${SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY:-local-development-secret-key-change-before-production}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-no-reply@yenimenzil.az}
-      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-stripe}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-mock}
       STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
@@ -171,7 +185,7 @@ services:
 
   # Rate limiter / observability sidecar
   redis-exporter:
-    image: oliver006/redis-exporter:latest
+    image: oliver006/redis_exporter:latest
     container_name: yenimenzil-redis-exporter
     ports:
       - "9121:9121"

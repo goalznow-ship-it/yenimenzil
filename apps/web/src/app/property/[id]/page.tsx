@@ -23,6 +23,7 @@ import { PropertyBadge } from "@/features/properties/property-badge";
 import { PropertyGrid } from "@/features/properties/property-grid";
 import { RecentlyViewedSection } from "@/features/properties/recently-viewed";
 import { PropertyViewTracker } from "@/features/properties/property-view-tracker";
+import { ReportListing } from "@/features/properties/report-listing";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -91,6 +92,7 @@ function PropertySummary({ property }: { property: Property }) {
 
       <div className="mt-3">
         <ShareBar property={property} />
+        <div className="mt-2"><ReportListing propertyId={property.id} /></div>
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-6 divide-y divide-border/70 border-t border-border/70 md:grid-cols-3">

@@ -1,5 +1,9 @@
 # YeniMenzil.az — Roadmap
 
+> This phase list is historical. Many backend and ecosystem items below are now
+> implemented; use open issues and verified production checks for current
+> prioritization instead of interpreting unchecked boxes as the live status.
+
 ## Phase 1 — Frontend foundation (current)
 
 Frontend must look polished before any backend work.

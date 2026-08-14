@@ -21,6 +21,7 @@ export interface ListingInput {
   property_type: string;
   price: number;
   currency: "AZN" | "USD" | "EUR";
+  seller_kind?: "owner" | "agent" | "agency";
   rooms: number;
   bedrooms?: number;
   bathrooms?: number;
@@ -86,6 +87,8 @@ export interface ListingDetail extends ListingWriteResult {
   mortgage_available: boolean;
   features: string[];
   location?: {
+    latitude?: number | null;
+    longitude?: number | null;
     city: string | null;
     district: string | null;
     metro: string | null;
@@ -95,6 +98,24 @@ export interface ListingDetail extends ListingWriteResult {
 }
 
 export const listingWriteApi = {
+  async uploadTemp(files: File[]): Promise<{ url: string; filename: string }[]> {
+    const form = new FormData();
+    files.forEach((file) => form.append("files", file));
+    const response = await fetch(`${BASE}/properties/media/temp`, {
+      method: "POST",
+      credentials: "include",
+      body: form
+    });
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      const detail =
+        (body && typeof body.detail === "string" && body.detail) ||
+        "Şəkillər yüklənə bilmədi";
+      throw new Error(detail);
+    }
+    return body.media;
+  },
+
   async get(id: string): Promise<ListingDetail> {
     return request(`/properties/${id}`);
   },

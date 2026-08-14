@@ -96,6 +96,9 @@ export function DashboardPage() {
           <a href="/profile/analytics" className="transition-colors hover:text-brand">
             Satış statistikası
           </a>
+          <a href="/business-packages" className="font-medium text-brand">
+            Biznes paketləri
+          </a>
         </div>
       </div>
     </RequireAuth>

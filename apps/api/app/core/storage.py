@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import uuid
+from pathlib import Path
 
 from minio import Minio
 
@@ -10,9 +12,21 @@ settings = get_settings()
 
 
 def _is_minio_endpoint() -> bool:
-    """Check if we're using a MinIO-compatible endpoint (localhost) vs production S3."""
+    """Check whether the configured endpoint is the bundled MinIO service."""
     endpoint = settings.S3_ENDPOINT.lower().strip()
-    return endpoint in ("localhost:9002", "localhost:9000", "127.0.0.1:9000")
+    endpoint = endpoint.removeprefix("http://").removeprefix("https://")
+    host = endpoint.split(":", 1)[0].split("/", 1)[0]
+    return host in {"localhost", "127.0.0.1", "minio"}
+
+
+def _s3_endpoint_url() -> str | None:
+    endpoint = settings.S3_ENDPOINT.strip()
+    if not endpoint:
+        return None
+    if endpoint.startswith(("http://", "https://")):
+        return endpoint
+    protocol = "https" if settings.S3_SECURE else "http"
+    return f"{protocol}://{endpoint}"
 
 
 def ensure_bucket_exists() -> None:
@@ -31,6 +45,22 @@ def ensure_bucket_exists() -> None:
             )
             if not minio_client.bucket_exists(settings.S3_BUCKET):
                 minio_client.make_bucket(settings.S3_BUCKET)
+            # Listing photos are public assets. Upload/delete operations still
+            # require credentials; anonymous access is limited to object reads.
+            policy = {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {"AWS": ["*"]},
+                        "Action": ["s3:GetObject"],
+                        "Resource": [
+                            f"arn:aws:s3:::{settings.S3_BUCKET}/*"
+                        ],
+                    }
+                ],
+            }
+            minio_client.set_bucket_policy(settings.S3_BUCKET, json.dumps(policy))
         except Exception as e:
             raise RuntimeError(f"Failed to ensure MinIO bucket exists: {e}") from e
     else:
@@ -40,7 +70,7 @@ def ensure_bucket_exists() -> None:
 
             s3_client = boto3.client(
                 "s3",
-                endpoint_url=settings.S3_ENDPOINT if settings.S3_SECURE else None,
+                endpoint_url=_s3_endpoint_url(),
                 aws_access_key_id=settings.S3_ACCESS_KEY,
                 aws_secret_access_key=settings.S3_SECRET_KEY,
             )
@@ -79,8 +109,12 @@ def upload_file(
     """
     ensure_bucket_exists()
 
-    # Generate a unique object name to avoid collisions
-    object_name = f"{uuid.uuid4()}-{file_name}"
+    # Never place an untrusted client filename in an object key. Keep only a
+    # short extension for content-type friendliness; UUIDs avoid collisions.
+    suffix = Path(file_name).suffix.lower()
+    if suffix not in {".jpg", ".jpeg", ".png", ".webp"}:
+        suffix = ""
+    object_name = f"{uuid.uuid4().hex}{suffix}"
 
     if _is_minio_endpoint():
         # MinIO path
@@ -107,7 +141,7 @@ def upload_file(
 
             s3_client = boto3.client(
                 "s3",
-                endpoint_url=settings.S3_ENDPOINT if settings.S3_SECURE else None,
+                endpoint_url=_s3_endpoint_url(),
                 aws_access_key_id=settings.S3_ACCESS_KEY,
                 aws_secret_access_key=settings.S3_SECRET_KEY,
             )
@@ -175,7 +209,7 @@ def delete_file(url: str) -> None:
 
             s3_client = boto3.client(
                 "s3",
-                endpoint_url=settings.S3_ENDPOINT if settings.S3_SECURE else None,
+                endpoint_url=_s3_endpoint_url(),
                 aws_access_key_id=settings.S3_ACCESS_KEY,
                 aws_secret_access_key=settings.S3_SECRET_KEY,
             )
