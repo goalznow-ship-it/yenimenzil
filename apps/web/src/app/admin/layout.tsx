@@ -28,6 +28,7 @@ const NAV = [
   { href: "/admin/reports", label: "Şikayətlər", icon: Flag },
   { href: "/admin/users", label: "İstifadəçilər", icon: UsersRound },
   { href: "/admin/agencies", label: "Agentliklər", icon: Building2 },
+  { href: "/admin/complexes", label: "Yaşayış kompleksləri", icon: Building2 },
   { href: "/admin/agents", label: "Agentlər", icon: UserCheck },
   { href: "/admin/promotions", label: "Promosiyalar", icon: Megaphone },
   { href: "/admin/analytics", label: "Analitika", icon: BarChart3 },

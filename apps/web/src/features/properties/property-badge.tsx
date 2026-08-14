@@ -1,3 +1,5 @@
+"use client";
+
 import { Badge, type BadgeProps } from "@yenimenzil/ui";
 import { useI18n } from "@/components/i18n-provider";
 

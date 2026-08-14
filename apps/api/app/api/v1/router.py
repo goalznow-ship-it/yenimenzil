@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     analytics,
     appointments,
     auth,
+    developments,
     favorite,
     health,
     location,
@@ -26,6 +27,7 @@ api_router = APIRouter()
 api_router.include_router(health.router)
 api_router.include_router(properties.router)
 api_router.include_router(auth.router)
+api_router.include_router(developments.router)
 api_router.include_router(users.router)
 api_router.include_router(saved_search.router)
 api_router.include_router(agency.router)

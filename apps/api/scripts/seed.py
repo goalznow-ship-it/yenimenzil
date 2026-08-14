@@ -29,6 +29,7 @@ from sqlalchemy.orm import sessionmaker
 import app.models  # noqa: F401  (register all models on Base.metadata)
 from app.core.config import get_settings
 from app.models.agency import Agency, Agent
+from app.models.development import ComplexUnitType, Developer, ResidentialComplex
 from app.models.enums import FeatureKind, SellerKind
 from app.models.property import PropertyFeature
 from app.models.user import Profile, User
@@ -60,6 +61,9 @@ FEATURE_LABELS: dict[str, str] = {
 }
 
 TRUNCATE_TABLES = (
+    "complex_unit_types",
+    "residential_complexes",
+    "developers",
     "property_feature_items",
     "property_price_history",
     "property_media",
@@ -106,6 +110,7 @@ class Seed:
         await self._reset()
         await self._seed_feature_catalog()
         await self._seed_demo_accounts()
+        await self._seed_developments()
         sellers = await self._seed_sellers(listings)
         await self._seed_properties(listings, sellers)
 
@@ -135,6 +140,48 @@ class Seed:
             )
             user.profile = Profile(member_since=date(2024, 1, 1))
             self.session.add(user)
+        await self.session.flush()
+
+    async def _seed_developments(self) -> None:
+        developer = Developer(
+            name="YeniMənzil Development",
+            slug="yenimenzil-development",
+            description="Müasir yaşayış layihələrinin vahid satış platforması.",
+            phone="+994 12 555 01 01",
+            email="sales@yenimenzil.az",
+            is_verified=True,
+        )
+        self.session.add(developer)
+        await self.session.flush()
+        projects = [
+            ("Park Residence", "park-residence", "Nərimanov r., Təbriz küçəsi", 185000, 2850, 2027, ["Yeraltı parkinq", "24/7 mühafizə", "Uşaq meydançası"]),
+            ("Caspian Towers", "caspian-towers", "Xətai r., Ağ Şəhər", 260000, 3400, 2028, ["Dəniz mənzərəsi", "Fitness və SPA", "Resepsion xidməti"]),
+            ("Green City", "green-city", "Yasamal r., Yeni Yasamal", 128000, 2200, 2026, ["Yaşıl həyət", "Məktəbə yaxın", "Daxili kredit"]),
+        ]
+        for index, (name, slug, address, price, sqm, year, amenities) in enumerate(projects):
+            item = ResidentialComplex(
+                developer_id=developer.id,
+                name=name,
+                slug=slug,
+                description=f"{name} rahat planlaşdırma, keyfiyyətli tikinti və əlverişli ödəniş imkanları təqdim edir.",
+                city="Bakı",
+                address=address,
+                delivery_date=date(year, 12, 1),
+                delivery_status="construction" if year > 2026 else "ready",
+                min_price=price,
+                price_per_sqm_from=sqm,
+                gallery=[],
+                amenities=amenities,
+                payment_terms="30% ilkin ödəniş, 36 aya qədər daxili kredit",
+                buildings_count=index + 2,
+                is_featured=index == 0,
+                is_published=True,
+            )
+            item.unit_types = [
+                ComplexUnitType(rooms=rooms, area_from=45 + rooms * 12, area_to=60 + rooms * 18, price_from=price + (rooms - 1) * 45000, available_count=8 - rooms)
+                for rooms in (1, 2, 3)
+            ]
+            self.session.add(item)
         await self.session.flush()
 
     async def _reset(self) -> None:

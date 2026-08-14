@@ -1,6 +1,7 @@
 from app.models.admin_log import AdminActionLog
 from app.models.agency import Agency, Agent
 from app.models.analytics import AnalyticsEvent
+from app.models.development import ComplexUnitType, Developer, ResidentialComplex
 from app.models.appointment import ViewingAppointment
 from app.models.auth import RefreshToken
 from app.models.enums import (
@@ -53,7 +54,9 @@ __all__ = [
     "BuildingType",
     "Conversation",
     "Currency",
+    "ComplexUnitType",
     "DealType",
+    "Developer",
     "DocumentType",
     "Favorite",
     "FeatureFlag",
@@ -83,6 +86,7 @@ __all__ = [
     "Report",
     "ReportReason",
     "ReportStatus",
+    "ResidentialComplex",
     "SavedSearch",
     "SellerKind",
     "StrEnum",
