@@ -26,6 +26,9 @@ from app.models.location import LocationPlace
 from app.models.messaging import Conversation, Message
 from app.models.moderation import ModerationLog
 from app.models.notification import Notification
+from app.models.payment import Payment
+from app.models.platform import AdminAnnouncement, FeatureFlag, HomepageBanner
+from app.models.promotion import PromotionProduct, PromotionPurchase
 from app.models.property import (
     Property,
     PropertyFeature,
@@ -42,6 +45,7 @@ from app.models.wallet import Wallet, WalletTransaction
 
 __all__ = [
     "AdminActionLog",
+    "AdminAnnouncement",
     "Agency",
     "Agent",
     "AnalyticsEvent",
@@ -52,7 +56,9 @@ __all__ = [
     "DealType",
     "DocumentType",
     "Favorite",
+    "FeatureFlag",
     "FeatureKind",
+    "HomepageBanner",
     "LocationPlace",
     "MediaKind",
     "Message",
@@ -60,7 +66,10 @@ __all__ = [
     "ModerationLog",
     "Notification",
     "NotificationPreference",
+    "Payment",
     "Profile",
+    "PromotionProduct",
+    "PromotionPurchase",
     "Property",
     "PropertyFeature",
     "PropertyFeatureItem",

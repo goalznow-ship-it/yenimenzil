@@ -4,6 +4,7 @@ Uses a dedicated ``yenimenzil_test`` database on the local PostGIS container
 (port 5432 via docker-compose). The DATABASE_URL env var is set before any app import so the
 app's settings/engine bind to the test database.
 """
+
 import os
 
 # Set test environment variables before importing the app
@@ -16,6 +17,7 @@ ADMIN_DB_URL = "postgresql://yenimenzil:yenimenzil@localhost:5432/yenimenzil"
 os.environ["DATABASE_URL"] = TEST_DB_URL
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
 os.environ["RATE_LIMIT_ENABLED"] = "false"
+os.environ["PAYMENT_PROVIDER"] = "mock"
 # Set a fixed 32-byte secret for JWT in tests (deterministic)
 os.environ["SECRET_KEY"] = "a" * 32  # 32 bytes
 
@@ -32,7 +34,7 @@ from app.db.session import async_session_factory
 from app.main import app
 
 TRUNCATE_TABLES = ", ".join(
-    f"\"{t.name}\"" for t in reversed(Base.metadata.sorted_tables)
+    f'"{t.name}"' for t in reversed(Base.metadata.sorted_tables)
 )
 
 
@@ -60,9 +62,7 @@ async def clean_tables():
     """Truncate every table between tests for full isolation."""
     engine = create_async_engine(TEST_DB_URL, poolclass=NullPool)
     async with engine.begin() as conn:
-        await conn.execute(
-            text(f"TRUNCATE {TRUNCATE_TABLES} RESTART IDENTITY CASCADE")
-        )
+        await conn.execute(text(f"TRUNCATE {TRUNCATE_TABLES} RESTART IDENTITY CASCADE"))
     await engine.dispose()
     yield
 

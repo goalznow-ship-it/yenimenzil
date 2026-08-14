@@ -19,20 +19,20 @@ async def _create_authenticated_client(auth_user, email):
     """Create a new authenticated client for a user."""
     transport = ASGITransport(app=app)
     client = AsyncClient(transport=transport, base_url="http://test")
-    
+
     # Create the user
     await auth_user(email=email)
-    
+
     # Manually log in to ensure the client has the session cookie
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": email, "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Ensure the client has the session cookie
     assert client.cookies.get(ACCESS_TOKEN_COOKIE) is not None
-    
+
     return client
 
 
@@ -98,9 +98,7 @@ async def test_start_conversation_and_send_messages(
 async def test_conversation_unread_counts(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-unread@test.az", is_verified=True)
     buyer_client = await _create_authenticated_client(auth_user, "buyer-unread@test.az")
-    
 
-    
     prop = await _create_active_property(db, owner)
 
     response = await buyer_client.post(
@@ -120,11 +118,11 @@ async def test_conversation_unread_counts(client, auth_user, feature_catalog, db
     # Debug: Check the unread count for the conversation
     unread = await buyer_client.get("/api/v1/conversations/unread-count")
     print(f"Unread count response: {unread.json()}")
-    
+
     # Debug: Manually check the unread count for the conversation
     conv_response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
     print(f"Conversation unread_count: {conv_response.json()['unread_count']}")
-    
+
     assert unread.json() == {"total": 1, "conversations": 1}
 
     response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
@@ -169,13 +167,15 @@ async def test_archive_and_block_conversation(client, auth_user, feature_catalog
 
 
 @pytest.mark.asyncio
-async def test_conversation_requires_participant(client, auth_user, feature_catalog, db):
+async def test_conversation_requires_participant(
+    client, auth_user, feature_catalog, db
+):
     owner = await auth_user(email="owner-part@test.az", is_verified=True)
     buyer_client = await _create_authenticated_client(auth_user, "buyer-part@test.az")
-    outsider_client = await _create_authenticated_client(auth_user, "outsider-part@test.az")
-    
+    outsider_client = await _create_authenticated_client(
+        auth_user, "outsider-part@test.az"
+    )
 
-    
     prop = await _create_active_property(db, owner)
 
     response = await buyer_client.post(
@@ -196,15 +196,15 @@ async def test_conversation_requires_participant(client, auth_user, feature_cata
 @pytest.mark.asyncio
 async def test_viewing_request_lifecycle(client, auth_user, feature_catalog, db):
     owner = await auth_user(email="owner-view@test.az", is_verified=True)
-    
+
     requester = await auth_user(email="requester-view@test.az")
-    requester_client = await _create_authenticated_client(auth_user, "requester-view@test.az")
-    
+    requester_client = await _create_authenticated_client(
+        auth_user, "requester-view@test.az"
+    )
+
     # Re-authenticate as owner so client has owner session for owner actions
     await auth_user(email="owner-view@test.az", is_verified=True)
-    
 
-    
     prop = await _create_active_property(db, owner)
     future = (datetime.now(UTC) + timedelta(days=2)).isoformat()
 
@@ -290,26 +290,25 @@ async def test_wallet_top_up_pending_then_admin_confirm(
     assert response.json()["balance"] == 0
 
     response = await client.post(
-        "/api/v1/wallet/top-up", json={"amount": 5000, "note": "Balans artımı"}
+        "/api/v1/wallet/top-up",
+        json={"amount": 5000, "idempotency_key": "wallet-topup-key-12345678"},
     )
     assert response.status_code == 202, response.text
-    transaction = response.json()["transaction"]
-    assert transaction["status"] == "pending"
+    payment = response.json()["payment"]
+    assert payment["status"] == "pending"
 
     # Non-admin cannot confirm
     response = await client.post(
-        f"/api/v1/admin/wallet/top-ups/{transaction['id']}/confirm",
-        json={"approve": True},
+        f"/api/v1/admin/payments/{payment['id']}/confirm",
     )
     assert response.status_code == 403
 
     await auth_user(email="wallet-admin@test.az", role="admin")
     response = await client.post(
-        f"/api/v1/admin/wallet/top-ups/{transaction['id']}/confirm",
-        json={"approve": True},
+        f"/api/v1/admin/payments/{payment['id']}/confirm",
     )
     assert response.status_code == 200
-    assert response.json()["status"] == "completed"
+    assert response.json()["status"] == "paid"
 
     # Log back in as the wallet user (the last login set the admin cookie)
     await auth_user(email="wallet-user@test.az")
@@ -321,6 +320,22 @@ async def test_wallet_top_up_pending_then_admin_confirm(
 async def test_promotion_purchase_insufficient_balance(
     client, auth_user, feature_catalog, db
 ):
+    from app.models.promotion import PromotionProduct
+
+    db.add(
+        PromotionProduct(
+            code="premium",
+            label_az="Premium",
+            description_az="test",
+            price=1500,
+            duration_days=14,
+            sort_order=1,
+            is_premium_tier=True,
+            enabled=True,
+        )
+    )
+    await db.commit()
+
     owner = await auth_user(email="promo-poor@test.az")
     prop = await _create_active_property(db, owner)
 
@@ -336,18 +351,32 @@ async def test_promotion_purchase_insufficient_balance(
 async def test_promotion_purchase_debits_wallet_and_marks_listing(
     client, auth_user, feature_catalog, db
 ):
+    from app.models.promotion import PromotionProduct
+
+    db.add(
+        PromotionProduct(
+            code="premium",
+            label_az="Premium",
+            description_az="test",
+            price=1500,
+            duration_days=14,
+            sort_order=1,
+            is_premium_tier=True,
+            enabled=True,
+        )
+    )
+    await db.commit()
+
     owner = await auth_user(email="promo-rich@test.az")
     prop = await _create_active_property(db, owner)
 
     response = await client.post(
-        "/api/v1/wallet/top-up", json={"amount": 10000}
+        "/api/v1/wallet/top-up",
+        json={"amount": 10000, "idempotency_key": "promo-rich-topup-12345678"},
     )
-    tx = response.json()["transaction"]
+    payment = response.json()["payment"]
     await auth_user(email="promo-admin@test.az", role="admin")
-    await client.post(
-        f"/api/v1/admin/wallet/top-ups/{tx['id']}/confirm",
-        json={"approve": True},
-    )
+    await client.post(f"/api/v1/admin/payments/{payment['id']}/confirm")
 
     # Log back in as the owner so the promotion debits the owner wallet
     await auth_user(email="promo-rich@test.az")
@@ -371,7 +400,28 @@ async def test_promotion_purchase_debits_wallet_and_marks_listing(
 
 
 @pytest.mark.asyncio
-async def test_promotion_catalog_available(client, auth_user):
+async def test_promotion_catalog_available(client, auth_user, db):
+    from app.models.promotion import PromotionProduct
+
+    db.add_all(
+        [
+            PromotionProduct(
+                code=code,
+                label_az=code.capitalize(),
+                description_az="test",
+                price=i * 1000,
+                duration_days=7,
+                sort_order=i,
+                is_premium_tier=False,
+                enabled=True,
+            )
+            for i, code in enumerate(
+                ("standard", "premium", "vip", "top", "urgent"), start=1
+            )
+        ]
+    )
+    await db.commit()
+
     await auth_user(email="catalog-user@test.az")
     response = await client.get("/api/v1/wallet/promotions/catalog")
     assert response.status_code == 200
@@ -458,9 +508,7 @@ async def test_verify_email_and_phone_flow(client, auth_user, db):
     assert response.json()["email_verified"] is False
     assert response.json()["phone_verified"] is False
 
-    response = await client.post(
-        "/api/v1/auth/resend-verification?kind=email"
-    )
+    response = await client.post("/api/v1/auth/resend-verification?kind=email")
     assert response.status_code == 202
 
     from sqlalchemy import select

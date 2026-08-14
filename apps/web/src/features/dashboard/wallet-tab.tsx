@@ -7,7 +7,8 @@ import {
   dashboardApi,
   type Wallet as WalletData,
   type WalletTransaction,
-  type PromotionCatalogItem
+  type PromotionCatalogItem,
+  type Payment
 } from "@/services/dashboard-api";
 import { formatPrice, formatDate } from "@/lib/format";
 
@@ -18,6 +19,14 @@ const TXN_TYPE_LABELS: Record<string, string> = {
   withdraw: "Çıxarış"
 };
 
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "Gözləyir",
+  paid: "Ödənilib",
+  failed: "Uğursuz",
+  cancelled: "Ləğv edilib",
+  refunded: "Geri qaytarılıb"
+};
+
 const TXN_STATUS_BADGE: Record<string, React.ComponentProps<typeof Badge>["variant"]> = {
   completed: "green",
   pending: "amber",
@@ -25,16 +34,25 @@ const TXN_STATUS_BADGE: Record<string, React.ComponentProps<typeof Badge>["varia
   cancelled: "neutral"
 };
 
+const PAYMENT_STATUS_BADGE: Record<string, React.ComponentProps<typeof Badge>["variant"]> = {
+  pending: "amber",
+  paid: "green",
+  failed: "red",
+  cancelled: "neutral",
+  refunded: "neutral"
+};
+
 export function WalletTab() {
   const [wallet, setWallet] = React.useState<WalletData | null>(null);
   const [transactions, setTransactions] = React.useState<WalletTransaction[] | null>(null);
+  const [payments, setPayments] = React.useState<Payment[]>([]);
   const [catalog, setCatalog] = React.useState<PromotionCatalogItem[]>([]);
   const [error, setError] = React.useState<string | null>(null);
   const [info, setInfo] = React.useState<string | null>(null);
   const [amount, setAmount] = React.useState("");
   const [topUpBusy, setTopUpBusy] = React.useState(false);
 
-  React.useEffect(() => {
+  const refresh = React.useCallback(() => {
     dashboardApi
       .wallet()
       .then(setWallet)
@@ -44,10 +62,18 @@ export function WalletTab() {
       .then(setTransactions)
       .catch(() => undefined);
     dashboardApi
+      .walletPayments()
+      .then(setPayments)
+      .catch(() => undefined);
+  }, []);
+
+  React.useEffect(() => {
+    dashboardApi
       .promotionCatalog()
       .then(setCatalog)
       .catch(() => undefined);
-  }, []);
+    refresh();
+  }, [refresh]);
 
   const topUp = async () => {
     const value = Number(amount);
@@ -60,14 +86,28 @@ export function WalletTab() {
     setInfo(null);
     try {
       const result = await dashboardApi.topUp(value);
-      setInfo(result.detail);
+      setInfo(
+        result.payment.status === "pending"
+          ? "Ödəniş sorğusu yaradıldı. Balans ödəniş təsdiqləndikdən sonra artırılacaq."
+          : result.detail
+      );
       setAmount("");
-      const refreshed = await dashboardApi.wallet();
-      setWallet(refreshed);
+      refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xəta");
     } finally {
       setTopUpBusy(false);
+    }
+  };
+
+  const cancelPayment = async (paymentId: string) => {
+    setError(null);
+    setInfo(null);
+    try {
+      await dashboardApi.cancelPayment(paymentId);
+      refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xəta");
     }
   };
 
@@ -150,6 +190,40 @@ export function WalletTab() {
             )}
           </div>
         </div>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-[15px] font-semibold">Ödəniş sorğuları</h2>
+        {payments.length === 0 ? (
+          <p className="text-[13px] text-muted-foreground">Aktiv ödəniş sorğusu yoxdur.</p>
+        ) : (
+          <div className="divide-y divide-border/60 overflow-hidden rounded-2xl bg-surface ring-1 ring-border/70">
+            {payments.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {formatPrice(p.amount)} · {p.provider}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{formatDate(p.created_at)}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2.5">
+                  <Badge variant={PAYMENT_STATUS_BADGE[p.status] ?? "neutral"}>
+                    {PAYMENT_STATUS_LABELS[p.status] ?? p.status}
+                  </Badge>
+                  {p.status === "pending" ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => cancelPayment(p.id)}
+                    >
+                      Ləğv et
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>

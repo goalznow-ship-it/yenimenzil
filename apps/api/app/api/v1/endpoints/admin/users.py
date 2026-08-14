@@ -28,6 +28,7 @@ class AdminUserUpdate(BaseModel):
     is_active: bool | None = None
     is_verified: bool | None = None
 
+
 router = APIRouter(tags=["admin-users"])
 
 
@@ -35,7 +36,11 @@ router = APIRouter(tags=["admin-users"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -72,14 +77,16 @@ async def admin_list_users(
     created_after: datetime | None = Query(default=None),
     created_before: datetime | None = Query(default=None),
     # Sorting
-    sort_by: str = Query(default="created_at", pattern="^(created_at|email|full_name|role)$"),
+    sort_by: str = Query(
+        default="created_at", pattern="^(created_at|email|full_name|role)$"
+    ),
     sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> dict[str, Any]:
     """Admin endpoint to list users with filtering, search, and pagination."""
-    
+
     # Base query
     query = select(User)
-    
+
     # Apply search
     if search:
         search_term = f"%{search}%"
@@ -89,7 +96,7 @@ async def admin_list_users(
                 User.full_name.ilike(search_term),
             )
         )
-    
+
     # Apply filters
     if role:
         query = query.where(User.role == role)
@@ -101,26 +108,26 @@ async def admin_list_users(
         query = query.where(User.created_at >= created_after)
     if created_before:
         query = query.where(User.created_at <= created_before)
-    
+
     # Apply sorting
     if sort_order == "asc":
         query = query.order_by(getattr(User, sort_by).asc())
     else:
         query = query.order_by(getattr(User, sort_by).desc())
-    
+
     # Get total count for pagination
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
-    
+
     # Apply pagination
     offset = (page - 1) * limit
     query = query.offset(offset).limit(limit)
-    
+
     # Execute query
     result = await db.execute(query)
     users = result.scalars().all()
-    
+
     # Format response
     user_list = []
     for user in users:
@@ -132,24 +139,30 @@ async def admin_list_users(
                 "bio": user.profile.bio,
                 "location": user.profile.location,
                 "preferred_language": user.profile.preferred_language,
-                "member_since": user.profile.member_since.isoformat() if user.profile.member_since else None,
+                "member_since": user.profile.member_since.isoformat()
+                if user.profile.member_since
+                else None,
                 "phone_verified": user.profile.phone_verified,
                 "identity_verified": user.profile.identity_verified,
             }
-        
-        user_list.append({
-            "id": str(user.id),
-            "email": user.email,
-            "phone": user.phone,
-            "full_name": user.full_name,
-            "role": user.role.value if isinstance(user.role, UserRole) else user.role,  # Return the string value of the enum
-            "is_active": user.is_active,
-            "is_verified": user.is_verified,
-            "created_at": user.created_at.isoformat() if user.created_at else None,
-            "updated_at": user.updated_at.isoformat() if user.updated_at else None,
-            "profile": profile_info,
-        })
-    
+
+        user_list.append(
+            {
+                "id": str(user.id),
+                "email": user.email,
+                "phone": user.phone,
+                "full_name": user.full_name,
+                "role": user.role.value
+                if isinstance(user.role, UserRole)
+                else user.role,  # Return the string value of the enum
+                "is_active": user.is_active,
+                "is_verified": user.is_verified,
+                "created_at": user.created_at.isoformat() if user.created_at else None,
+                "updated_at": user.updated_at.isoformat() if user.updated_at else None,
+                "profile": profile_info,
+            }
+        )
+
     return {
         "data": user_list,
         "pagination": {
@@ -160,7 +173,7 @@ async def admin_list_users(
         },
         "filters": {
             "role": [r.value for r in UserRole],
-        }
+        },
     }
 
 
@@ -194,16 +207,17 @@ async def admin_update_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Prevent deactivating or demoting yourself
     if user.id == admin_user.id and (
-        user_update.is_active is False or (user_update.role and user_update.role != admin_user.role)
+        user_update.is_active is False
+        or (user_update.role and user_update.role != admin_user.role)
     ):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You cannot deactivate or demote your own account",
         )
-    
+
     # Update user fields if provided
     update_data = user_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -237,14 +251,14 @@ async def admin_delete_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     # Prevent self-deactivation
     if user.id == admin_user.id:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="You cannot deactivate your own account",
         )
-    
+
     # Deactivate the user instead of deleting to preserve data integrity
     user.is_active = False
     await db.flush()
@@ -256,7 +270,7 @@ async def admin_delete_user(
         entity_id=user_id,
     )
     await db.commit()
-    
+
     return {
         "message": "User deactivated successfully",
         "user_id": str(user_id),

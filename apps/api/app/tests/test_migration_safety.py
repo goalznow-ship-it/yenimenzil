@@ -36,7 +36,9 @@ def test_alembic_script_location_is_set():
     cfg = Config(ALEMBIC_INI)
     script_location = cfg.get_main_option("script_location")
     assert script_location is not None, "script_location not set in alembic.ini"
-    assert os.path.isdir(ALEMBIC_DIR), f"script_location directory not found: {script_location}"
+    assert os.path.isdir(ALEMBIC_DIR), (
+        f"script_location directory not found: {script_location}"
+    )
 
 
 def test_migration_revisions_are_valid_python():
@@ -65,7 +67,8 @@ def test_revision_chain_is_monotonic():
 
     version_dir = os.path.join(ALEMBIC_DIR, "versions")
     revision_files = [
-        f for f in os.listdir(version_dir)
+        f
+        for f in os.listdir(version_dir)
         if f.endswith(".py") and not f.startswith(".")
     ]
     revision_ids = sorted([f.split("_")[0] for f in revision_files])

@@ -213,6 +213,7 @@ class PropertyMedia(Base):
         _enum(MediaKind), default=MediaKind.IMAGE.value, nullable=False
     )
     url: Mapped[str] = mapped_column(String(1000))
+    thumbnail_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     alt: Mapped[str | None] = mapped_column(String(300), nullable=True)
     placeholder: Mapped[str | None] = mapped_column(String(500), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)

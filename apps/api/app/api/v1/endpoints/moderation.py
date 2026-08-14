@@ -27,7 +27,11 @@ async def list_moderation_logs(
     action: str | None = Query(default=None),
 ) -> list[ModerationLogRead]:
     # Only moderators can view logs
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     stmt = select(ModerationLog).order_by(ModerationLog.created_at.desc())
     if property_id:
@@ -42,14 +46,20 @@ async def list_moderation_logs(
     return list(logs)
 
 
-@router.post("/logs", response_model=ModerationLogRead, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/logs", response_model=ModerationLogRead, status_code=status.HTTP_201_CREATED
+)
 async def create_moderation_log(
     payload: ModerationLogCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ModerationLogRead:
     # Only moderators can create logs
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     log = ModerationLog(
         property_id=payload.property_id,

@@ -20,7 +20,11 @@ router = APIRouter(tags=["admin-audit"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -40,10 +44,12 @@ async def admin_audit_logs(
     created_before: datetime | None = Query(default=None),
 ) -> dict[str, Any]:
     """Admin audit log feed combining admin action logs and moderation logs."""
-    query = (
-        select(AdminActionLog, User.full_name, AdminActionLog.created_at, literal_column("'admin_actions'"))
-        .join(User, AdminActionLog.admin_id == User.id, isouter=True)
-    )
+    query = select(
+        AdminActionLog,
+        User.full_name,
+        AdminActionLog.created_at,
+        literal_column("'admin_actions'"),
+    ).join(User, AdminActionLog.admin_id == User.id, isouter=True)
 
     if action:
         query = query.where(AdminActionLog.action == action)
@@ -56,7 +62,12 @@ async def admin_audit_logs(
 
     # Moderation logs (from the moderation pipeline)
     mod_query = (
-        select(ModerationLog, User.full_name, ModerationLog.created_at, literal_column("'moderation'"))
+        select(
+            ModerationLog,
+            User.full_name,
+            ModerationLog.created_at,
+            literal_column("'moderation'"),
+        )
         .join(User, ModerationLog.moderator_id == User.id)
         .where(ModerationLog.property_id.is_not(None))
     )
@@ -68,17 +79,27 @@ async def admin_audit_logs(
         mod_query = mod_query.where(ModerationLog.created_at <= created_before)
 
     # Fetch one page worth of entries across both sources in descending order
-    total_admin = (await db.execute(
-        select(func.count()).select_from(query.subquery())
-    )).scalar() or 0
-    total_mod = (await db.execute(
-        select(func.count()).select_from(mod_query.subquery())
-    )).scalar() or 0
+    total_admin = (
+        await db.execute(select(func.count()).select_from(query.subquery()))
+    ).scalar() or 0
+    total_mod = (
+        await db.execute(select(func.count()).select_from(mod_query.subquery()))
+    ).scalar() or 0
     total = total_admin + total_mod
 
     offset = (page - 1) * limit
-    admin_rows = (await db.execute(query.order_by(AdminActionLog.created_at.desc()).offset(offset).limit(limit))).all()
-    mod_rows = (await db.execute(mod_query.order_by(ModerationLog.created_at.desc()).offset(offset).limit(limit))).all()
+    admin_rows = (
+        await db.execute(
+            query.order_by(AdminActionLog.created_at.desc()).offset(offset).limit(limit)
+        )
+    ).all()
+    mod_rows = (
+        await db.execute(
+            mod_query.order_by(ModerationLog.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+    ).all()
 
     entries = [
         {
@@ -97,7 +118,12 @@ async def admin_audit_logs(
         {
             "id": str(row[0].id),
             "actor": row[1],
-            "action": "moderation." + (row[0].action.value if hasattr(row[0].action, "value") else str(row[0].action)),
+            "action": "moderation."
+            + (
+                row[0].action.value
+                if hasattr(row[0].action, "value")
+                else str(row[0].action)
+            ),
             "entity_type": "property",
             "entity_id": str(row[0].property_id),
             "details": {"reason": row[0].reason},
@@ -124,7 +150,15 @@ async def admin_audit_logs(
             "pages": (total + limit - 1) // limit,
         },
         "filters": {
-            "entity_types": ["user", "property", "report", "agency", "feature", "promotion", "agent"],
+            "entity_types": [
+                "user",
+                "property",
+                "report",
+                "agency",
+                "feature",
+                "promotion",
+                "agent",
+            ],
         },
     }
 

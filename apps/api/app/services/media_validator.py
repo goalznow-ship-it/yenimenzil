@@ -28,17 +28,23 @@ def validate_image_file(file_data: bytes, filename: str) -> tuple[bool, str | No
 
         # Check format
         if fmt not in ALLOWED_FORMATS:
-            return False, f"Format {fmt} not allowed. Allowed: {', '.join(ALLOWED_FORMATS)}"
+            return (
+                False,
+                f"Format {fmt} not allowed. Allowed: {', '.join(ALLOWED_FORMATS)}",
+            )
 
         # Check minimum resolution
         if width < MIN_RESOLUTION[0] or height < MIN_RESOLUTION[1]:
-            return False,
+            return (False,)
             f"Resolution too small: {width}x{height}. Minimum: {MIN_RESOLUTION[0]}x{MIN_RESOLUTION[1]}"
 
         # Check file size
         file_size_mb = len(file_data) / (1024 * 1024)
         if file_size_mb > MAX_FILE_SIZE:
-            return False, f"File too large: {file_size_mb:.1f}MB. Maximum: {MAX_FILE_SIZE}MB"
+            return (
+                False,
+                f"File too large: {file_size_mb:.1f}MB. Maximum: {MAX_FILE_SIZE}MB",
+            )
 
         # Verify image is not corrupted
         im.verify()

@@ -1,4 +1,3 @@
-
 import pytest
 from sqlalchemy import select
 
@@ -17,14 +16,14 @@ async def test_admin_users_requires_admin_role(client, auth_user):
     """Test that admin users endpoint requires admin/moderator/super_admin role."""
     # Create a regular user
     _regular = await auth_user(email="regular@test.az", role="user")
-    
+
     # Login as regular user
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "regular@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Try to access admin users
     response = await client.get("/api/v1/admin/users")
     assert response.status_code == 403  # Insufficient permissions
@@ -35,18 +34,18 @@ async def test_admin_users_allows_moderator(client, auth_user):
     """Test that admin users endpoint allows moderator role."""
     # Create a moderator user
     _moderator = await auth_user(email="moderator@test.az", role="moderator")
-    
+
     # Login as moderator
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "moderator@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Access admin users
     response = await client.get("/api/v1/admin/users")
     assert response.status_code == 200
-    
+
     data = response.json()
     # Check that expected fields are present
     assert "data" in data
@@ -62,14 +61,14 @@ async def test_admin_users_listing(client, auth_user, db):
     """Test that admin users endpoint returns correct data."""
     # Create a super admin user
     _super_admin = await auth_user(email="superadmin@test.az", role="super_admin")
-    
+
     # Login as super admin
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Create a few test users
     # Regular user
     _regular = await auth_user(email="regular@test.az", role="user")
@@ -78,26 +77,26 @@ async def test_admin_users_listing(client, auth_user, db):
     # Admin user
     _admin = await auth_user(email="admin@test.az", role="admin")
     # Super admin user (already exists from above)
-    
+
     # Get all users from database to verify counts
     result = await db.execute(select(User))
     all_users = result.scalars().all()
     assert len(all_users) >= 4  # At least the four we created
-    
+
     # Access admin users endpoint
     response = await client.get("/api/v1/admin/users")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert len(data["data"]) >= 4
-    
+
     # Check that we can find our test users in the response
     emails_in_response = [user["email"] for user in data["data"]]
     assert "regular@test.az" in emails_in_response
     assert "moderator@test.az" in emails_in_response
     assert "admin@test.az" in emails_in_response
     assert "superadmin@test.az" in emails_in_response
-    
+
     # Test filtering by role
     response = await client.get("/api/v1/admin/users?role=moderator")
     assert response.status_code == 200
@@ -105,14 +104,14 @@ async def test_admin_users_listing(client, auth_user, db):
     assert len(data["data"]) >= 1
     for user in data["data"]:
         assert user["role"] == "moderator"
-    
+
     # Test search
     response = await client.get("/api/v1/admin/users?search=regular")
     assert response.status_code == 200
     data = response.json()
     assert len(data["data"]) >= 1
     assert any("regular" in user["email"] for user in data["data"])
-    
+
     # Test pagination
     response = await client.get("/api/v1/admin/users?limit=2")
     assert response.status_code == 200
@@ -127,28 +126,28 @@ async def test_admin_user_detail(client, auth_user, db):
     """Test getting a specific user's details."""
     # Create a super admin user
     _super_admin = await auth_user(email="superadmin@test.az", role="super_admin")
-    
+
     # Login as super admin
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Create a test user
     test_user = await auth_user(email="testuser@test.az", role="user")
-    
+
     # Re-login as super admin to override the cookies set by auth_user for test_user
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Get the user detail
     response = await client.get(f"/api/v1/admin/users/{test_user.id}")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert data["id"] == str(test_user.id)
     assert data["email"] == "testuser@test.az"
@@ -166,24 +165,24 @@ async def test_admin_user_update(client, auth_user, db):
     """Test updating a user's details."""
     # Create a super admin user
     _super_admin = await auth_user(email="superadmin@test.az", role="super_admin")
-    
+
     # Login as super admin
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Create a test user
     test_user = await auth_user(email="testuser@test.az", role="user")
-    
+
     # Re-login as super admin to override the cookies set by auth_user for test_user
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Update the user
     update_data = {
         "full_name": "Updated Name",
@@ -191,11 +190,10 @@ async def test_admin_user_update(client, auth_user, db):
         "is_active": False,
     }
     response = await client.patch(
-        f"/api/v1/admin/users/{test_user.id}",
-        json=update_data
+        f"/api/v1/admin/users/{test_user.id}", json=update_data
     )
     assert response.status_code == 200
-    
+
     data = response.json()
     assert data["id"] == str(test_user.id)
     assert data["full_name"] == "Updated Name"
@@ -210,32 +208,32 @@ async def test_admin_user_delete(client, auth_user, db):
     """Test deactivating a user."""
     # Create a super admin user
     _super_admin = await auth_user(email="superadmin@test.az", role="super_admin")
-    
+
     # Login as super admin
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Create a test user
     test_user = await auth_user(email="testuser@test.az", role="user")
-    
+
     # Re-login as super admin to override the cookies set by auth_user for test_user
     login_response = await client.post(
         "/api/v1/auth/login",
         json={"email": "superadmin@test.az", "password": "supersecret1"},
     )
     assert login_response.status_code == 200
-    
+
     # Deactivate the user
     response = await client.delete(f"/api/v1/admin/users/{test_user.id}")
     assert response.status_code == 200
-    
+
     data = response.json()
     assert data["message"] == "User deactivated successfully"
     assert data["user_id"] == str(test_user.id)
-    
+
     # Verify the user is deactivated
     response = await client.get(f"/api/v1/admin/users/{test_user.id}")
     assert response.status_code == 200

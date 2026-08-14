@@ -1,12 +1,13 @@
-"""Background expiry watcher for property listings."""
+"""Background expiry watcher for property listings and promotions."""
 
 import asyncio
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from app.db.session import async_session_factory
 from app.models.enums import PropertyStatus
+from app.models.promotion import PromotionPurchase
 from app.models.property import Property
 
 
@@ -19,7 +20,11 @@ async def start_expiry_watcher() -> None:
                 await _check_expiring_properties()
             except Exception as e:  # noqa: BLE001 - watcher loop must never die
                 print(f"Expiry watcher error: {e}")
-            await asyncio.sleep(3600)  # check every hour
+            try:
+                await _check_expiring_promotions()
+            except Exception as e:  # noqa: BLE001 - watcher loop must never die
+                print(f"Promotion expiry watcher error: {e}")
+            await asyncio.sleep(1800)  # check every 30 minutes
 
     task = asyncio.create_task(watcher_loop())
     # Store reference so it doesn't get garbage collected
@@ -44,8 +49,7 @@ async def _check_expiring_properties() -> None:
 
         # Find properties with expires_at in the past and status still active
         result = await session.execute(
-            select(Property)
-            .where(
+            select(Property).where(
                 Property.expires_at < now,
                 Property.status == PropertyStatus.ACTIVE.value,
             )
@@ -60,3 +64,41 @@ async def _check_expiring_properties() -> None:
 
         if expiring:
             await session.commit()
+
+
+async def _check_expiring_promotions() -> None:
+    """Expire promotions whose promotion_expires_at has passed.
+
+    Clears the promotion flags on the listing and marks matching
+    promotion purchases as expired.
+    """
+    async with async_session_factory() as session:
+        now = datetime.now(UTC)
+        before = now - timedelta(minutes=5)
+
+        result = await session.execute(
+            update(Property)
+            .where(
+                Property.is_promoted.is_(True),
+                Property.promotion_expires_at < before,
+            )
+            .values(
+                is_promoted=False,
+                is_premium=False,
+                promotion_tier=None,
+            )
+            .returning(Property.id)
+        )
+        expired_ids = [row[0] for row in result.all()]
+
+        if expired_ids:
+            await session.execute(
+                update(PromotionPurchase)
+                .where(
+                    PromotionPurchase.property_id.in_(expired_ids),
+                    PromotionPurchase.status == "active",
+                )
+                .values(status="expired")
+            )
+            await session.commit()
+            print(f"Expired {len(expired_ids)} promotion(s)")

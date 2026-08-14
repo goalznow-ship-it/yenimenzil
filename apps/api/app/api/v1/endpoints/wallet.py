@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, timedelta
+from datetime import datetime as dt
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
@@ -9,31 +11,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.v1.dependencies.auth import get_current_user
 from app.db.session import get_db
 from app.models.enums import PropertyStatus, UserRole
+from app.models.payment import Payment
+from app.models.promotion import PromotionProduct, PromotionPurchase
 from app.models.property import Property
 from app.models.user import User
-from app.models.wallet import Wallet, WalletTransaction
+from app.models.wallet import WalletTransaction
+from app.schemas.payment import (
+    PaymentListRead,
+    PaymentRead,
+    TopUpRead,
+    TopUpRequest,
+)
 from app.schemas.wallet import (
-    PROMOTION_TIERS,
+    MyPromotionRead,
     PromotionCatalogItem,
     PromotionPurchaseRead,
     PromotionPurchaseRequest,
-    TopUpRead,
-    TopUpRequest,
     WalletRead,
     WalletTransactionRead,
 )
+from app.services.payments import (
+    PaymentError,
+    cancel_payment,
+    create_top_up_payment,
+    get_or_create_wallet,
+    get_payment,
+)
 
 router = APIRouter(prefix="/wallet", tags=["wallet"])
-
-
-async def _get_or_create_wallet(db: AsyncSession, user: User) -> Wallet:
-    wallet = await db.execute(select(Wallet).where(Wallet.user_id == user.id))
-    wallet = wallet.scalar_one_or_none()
-    if wallet is None:
-        wallet = Wallet(user_id=user.id, balance=0)
-        db.add(wallet)
-        await db.flush()
-    return wallet
 
 
 @router.get("", response_model=WalletRead)
@@ -41,7 +46,7 @@ async def get_wallet(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> WalletRead:
-    wallet = await _get_or_create_wallet(db, current_user)
+    wallet = await get_or_create_wallet(db, current_user.id)
     await db.commit()
     return wallet
 
@@ -53,7 +58,7 @@ async def list_transactions(
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
 ) -> list[WalletTransactionRead]:
-    wallet = await _get_or_create_wallet(db, current_user)
+    wallet = await get_or_create_wallet(db, current_user.id)
     result = await db.execute(
         select(WalletTransaction)
         .where(WalletTransaction.wallet_id == wallet.id)
@@ -72,44 +77,115 @@ async def request_top_up(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> TopUpRead:
-    """Request a credit top-up. A real payment gateway is not configured yet,
-    so the transaction is created as PENDING and must be confirmed by an
-    admin. Payment success is never faked."""
-    wallet = await _get_or_create_wallet(db, current_user)
-    transaction = WalletTransaction(
-        wallet_id=wallet.id,
-        amount=payload.amount,
-        type="credit",
-        status="pending",
-        reason="top_up",
-        note=payload.note,
-    )
-    db.add(transaction)
+    """Create a pending payment for a wallet top-up.
+
+    Payment success is never trusted from the frontend: the wallet is
+    credited only after a verified webhook or an explicit admin
+    confirmation. The idempotency key prevents duplicate payments on retry.
+    """
+    await get_or_create_wallet(db, current_user.id)
+    try:
+        payment = await create_top_up_payment(
+            db,
+            user_id=current_user.id,
+            amount=payload.amount,
+            idempotency_key=payload.idempotency_key,
+            note=payload.note,
+        )
+    except PaymentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     await db.commit()
-    await db.refresh(transaction)
-    return TopUpRead(transaction=transaction)
+    await db.refresh(payment)
+    return TopUpRead(payment=payment)
+
+
+@router.get("/payments", response_model=list[PaymentListRead])
+async def list_my_payments(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> list[PaymentListRead]:
+    result = await db.execute(
+        select(Payment)
+        .where(Payment.user_id == current_user.id)
+        .order_by(Payment.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return list(result.scalars().all())
+
+
+@router.post("/payments/{payment_id}/cancel", response_model=PaymentRead)
+async def cancel_top_up_payment(
+    payment_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PaymentRead:
+    payment = await get_payment(db, payment_id)
+    if payment is None or payment.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Payment not found")
+    try:
+        await cancel_payment(db, payment)
+    except PaymentError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    await db.commit()
+    await db.refresh(payment)
+    return payment
 
 
 @router.get("/promotions/catalog", response_model=list[PromotionCatalogItem])
 async def promotion_catalog(
     current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
 ) -> list[PromotionCatalogItem]:
-    descriptions = {
-        "standard": "7 gün standart önə çıxarış",
-        "premium": "14 gün premium yerləşdirmə",
-        "vip": "30 gün VIP nişanı",
-        "top": "30 gün siyahının ən yuxarısı",
-        "urgent": "7 gün təcili nişanı",
-    }
+    """Catalog of enabled promotion products, configured by admins."""
+    result = await db.execute(
+        select(PromotionProduct)
+        .where(PromotionProduct.enabled.is_(True))
+        .order_by(PromotionProduct.sort_order, PromotionProduct.created_at)
+    )
+    products = result.scalars().all()
     return [
         PromotionCatalogItem(
-            tier=tier,
-            label=cfg["label"],
-            price=cfg["price"],
-            days=cfg["days"],
-            description=descriptions.get(tier, ""),
+            tier=p.code,
+            label=p.label_az,
+            price=p.price,
+            days=p.duration_days,
+            description=p.description_az,
+            enabled=p.enabled,
         )
-        for tier, cfg in PROMOTION_TIERS.items()
+        for p in products
+    ]
+
+
+@router.get("/promotions", response_model=list[MyPromotionRead])
+async def my_promotions(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[MyPromotionRead]:
+    """Active/expired promotion purchases for the current user's listings."""
+    result = await db.execute(
+        select(PromotionPurchase, PromotionProduct, Property.title)
+        .join(PromotionProduct, PromotionProduct.id == PromotionPurchase.product_id)
+        .join(Property, Property.id == PromotionPurchase.property_id)
+        .where(Property.owner_id == current_user.id)
+        .order_by(PromotionPurchase.created_at.desc())
+        .limit(200)
+    )
+    return [
+        MyPromotionRead(
+            id=purchase.id,
+            property_id=purchase.property_id,
+            tier=product.code,
+            label=product.label_az,
+            price_paid=purchase.price_paid,
+            status=purchase.status,
+            starts_at=purchase.starts_at,
+            ends_at=purchase.ends_at,
+            property_title=title,
+        )
+        for purchase, product, title in result.all()
     ]
 
 
@@ -119,9 +195,14 @@ async def purchase_promotion(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> PromotionPurchaseRead:
-    tier_cfg = PROMOTION_TIERS.get(payload.tier)
-    if tier_cfg is None:
-        raise HTTPException(status_code=400, detail="Unknown promotion tier")
+    product = await db.execute(
+        select(PromotionProduct).where(PromotionProduct.code == payload.tier)
+    )
+    product = product.scalar_one_or_none()
+    if product is None:
+        raise HTTPException(status_code=400, detail="Unknown promotion product")
+    if not product.enabled:
+        raise HTTPException(status_code=400, detail="Promotion product is disabled")
 
     property = await db.get(Property, payload.property_id)
     if property is None:
@@ -139,44 +220,55 @@ async def purchase_promotion(
             status_code=400, detail="Only active listings can be promoted"
         )
 
-    wallet = await _get_or_create_wallet(db, current_user)
-    if wallet.balance < tier_cfg["price"]:
+    wallet = await get_or_create_wallet(db, current_user.id)
+    if wallet.balance < product.price:
         raise HTTPException(
             status_code=402,
             detail="Insufficient wallet balance. Please top up your wallet first.",
         )
 
-    wallet.balance -= tier_cfg["price"]
+    wallet.balance -= product.price
     transaction = WalletTransaction(
         wallet_id=wallet.id,
-        amount=-tier_cfg["price"],
+        amount=-product.price,
         type="debit",
         status="completed",
         reason="promotion",
         reference_type="property",
         reference_id=property.id,
-        note=f"{tier_cfg['label']} promosiyası",
+        note=f"{product.label_az} promosiyası",
     )
     db.add(transaction)
+    await db.flush()
 
-    # Apply promotion to the listing
-    from datetime import datetime as dt
-
-    property.is_promoted = True
-    property.is_premium = payload.tier in ("premium", "vip", "top")
-    property.promotion_tier = payload.tier
+    # Apply promotion to the listing and record the purchase
     now = dt.now(UTC)
     base = (
         property.promotion_expires_at
         if property.promotion_expires_at and property.promotion_expires_at > now
         else now
     )
-    property.promotion_expires_at = base + timedelta(days=tier_cfg["days"])
+    ends_at = base + timedelta(days=product.duration_days)
+    property.is_promoted = True
+    property.is_premium = product.is_premium_tier
+    property.promotion_tier = product.code
+    property.promotion_expires_at = ends_at
+
+    purchase = PromotionPurchase(
+        property_id=property.id,
+        product_id=product.id,
+        price_paid=product.price,
+        status="active",
+        starts_at=now,
+        ends_at=ends_at,
+    )
+    db.add(purchase)
 
     await db.commit()
     await db.refresh(transaction)
     return PromotionPurchaseRead(
         transaction=transaction,
         promotion_status="active",
-        expires_at=property.promotion_expires_at,
+        expires_at=ends_at,
+        purchase_id=purchase.id,
     )

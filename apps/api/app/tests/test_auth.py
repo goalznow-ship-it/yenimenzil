@@ -41,9 +41,7 @@ async def test_register_duplicate_email_conflict(client):
 
 @pytest.mark.asyncio
 async def test_register_invalid_phone_rejected(client):
-    response = await client.post(
-        REGISTER_URL, json=_register_payload(phone="12345")
-    )
+    response = await client.post(REGISTER_URL, json=_register_payload(phone="12345"))
     assert response.status_code == 422
 
 
@@ -120,9 +118,10 @@ async def test_logout_revokes_refresh_token(client, db):
 
     response = await client.post("/api/v1/auth/logout")
     assert response.status_code == 204
-    assert client.cookies.get("access_token") is None or response.cookies.get(
-        "access_token"
-    ) is None
+    assert (
+        client.cookies.get("access_token") is None
+        or response.cookies.get("access_token") is None
+    )
 
     client.cookies.set(REFRESH_TOKEN_COOKIE, refresh_cookie)
     response = await client.post("/api/v1/auth/refresh")
@@ -167,7 +166,5 @@ async def test_update_me(client, db):
 
 @pytest.mark.asyncio
 async def test_update_me_requires_auth(client):
-    response = await client.patch(
-        "/api/v1/users/me", json={"full_name": "Hacker"}
-    )
+    response = await client.patch("/api/v1/users/me", json={"full_name": "Hacker"})
     assert response.status_code == 401

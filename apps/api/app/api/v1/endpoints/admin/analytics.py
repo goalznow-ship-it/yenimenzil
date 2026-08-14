@@ -20,7 +20,11 @@ router = APIRouter(tags=["admin-analytics"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -47,22 +51,21 @@ async def admin_marketplace_analytics(
     events = {evt: count for evt, count in event_rows.all()}
 
     total_views = events.get(AnalyticsEventType.PROPERTY_VIEW.value, 0)
-    total_favorites = events.get(AnalyticsEventType.PROPERTY_FAVORITE.value, 0) - events.get(
-        AnalyticsEventType.PROPERTY_UNFAVORITE.value, 0
-    )
+    total_favorites = events.get(
+        AnalyticsEventType.PROPERTY_FAVORITE.value, 0
+    ) - events.get(AnalyticsEventType.PROPERTY_UNFAVORITE.value, 0)
     total_unfavorites = events.get(AnalyticsEventType.PROPERTY_UNFAVORITE.value, 0)
     phone_reveals = events.get(AnalyticsEventType.PHONE_REVEAL.value, 0)
     whatsapp_clicks = events.get(AnalyticsEventType.WHATSAPP_CLICK.value, 0)
     searches = events.get(AnalyticsEventType.SEARCH.value, 0)
 
-    favorites_stored = (
-        await db.execute(select(func.count(Favorite.id)))
-    ).scalar() or 0
+    favorites_stored = (await db.execute(select(func.count(Favorite.id)))).scalar() or 0
 
     # Per-property-type overview
     prop_type_rows = await db.execute(
-        select(Property.property_type, func.count(Property.id))
-        .group_by(Property.property_type)
+        select(Property.property_type, func.count(Property.id)).group_by(
+            Property.property_type
+        )
     )
     listings_by_type = {
         (t.value if hasattr(t, "value") else str(t)): count

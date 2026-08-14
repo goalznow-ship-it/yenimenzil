@@ -15,6 +15,7 @@ async def lifespan(app: FastAPI):
     """Background tasks on startup/shutdown."""
     # Start expiry watcher task
     from app.services.expiry_watcher import start_expiry_watcher, stop_expiry_watcher
+
     start_expiry_watcher()
     yield
     stop_expiry_watcher()

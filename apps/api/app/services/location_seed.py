@@ -5,6 +5,7 @@ settlements, metro stations and popular landmarks. Load with:
 
     python -m app.services.location_seed
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -240,9 +241,16 @@ SUMQAYIT_METROS = [
 
 
 def _slugify(value: str) -> str:
-    normalized = value.lower().replace("ə", "e").replace("ş", "s").replace(
-        "ğ", "g"
-    ).replace("ç", "c").replace("ö", "o").replace("ü", "u").replace("ı", "i")
+    normalized = (
+        value.lower()
+        .replace("ə", "e")
+        .replace("ş", "s")
+        .replace("ğ", "g")
+        .replace("ç", "c")
+        .replace("ö", "o")
+        .replace("ü", "u")
+        .replace("ı", "i")
+    )
     out = []
     for ch in normalized:
         if ch.isalnum():
@@ -256,9 +264,16 @@ def build_seed() -> list[LocationPlace]:
     places: list[LocationPlace] = []
     seen: set[tuple[str, str]] = set()
 
-    def add(kind: str, name: str, city: str | None, district: str | None,
-            metro: str | None, lat: float | None, lng: float | None,
-            sort: int = 0) -> None:
+    def add(
+        kind: str,
+        name: str,
+        city: str | None,
+        district: str | None,
+        metro: str | None,
+        lat: float | None,
+        lng: float | None,
+        sort: int = 0,
+    ) -> None:
         slug = _slugify(name)
         key = (kind, slug)
         if key in seen:

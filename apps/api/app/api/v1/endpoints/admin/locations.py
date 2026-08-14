@@ -18,7 +18,11 @@ router = APIRouter(tags=["admin-locations"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -39,10 +43,7 @@ async def admin_location_overview(
         .group_by(PropertyLocation.city)
         .order_by(func.count(Property.id).desc())
     )
-    cities = [
-        {"name": city, "listings": count}
-        for city, count in city_rows.all()
-    ]
+    cities = [{"name": city, "listings": count} for city, count in city_rows.all()]
 
     district_rows = await db.execute(
         select(PropertyLocation.district, func.count(Property.id))
@@ -52,8 +53,7 @@ async def admin_location_overview(
         .order_by(func.count(Property.id).desc())
     )
     districts = [
-        {"name": district, "listings": count}
-        for district, count in district_rows.all()
+        {"name": district, "listings": count} for district, count in district_rows.all()
     ]
 
     metro_rows = await db.execute(
@@ -63,10 +63,7 @@ async def admin_location_overview(
         .group_by(PropertyLocation.metro)
         .order_by(func.count(Property.id).desc())
     )
-    metros = [
-        {"name": metro, "listings": count}
-        for metro, count in metro_rows.all()
-    ]
+    metros = [{"name": metro, "listings": count} for metro, count in metro_rows.all()]
 
     return {
         "cities": cities,

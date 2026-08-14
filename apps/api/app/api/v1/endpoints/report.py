@@ -26,7 +26,11 @@ async def list_reports(
     status: str | None = Query(default=None),
 ) -> list[ReportRead]:
     # Only moderators can list all reports
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     stmt = select(Report).order_by(Report.created_at.desc())
     if property_id:
@@ -45,7 +49,9 @@ async def create_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportRead:
-    reporter_id = current_user.id if payload.reporter_id is None else payload.reporter_id
+    reporter_id = (
+        current_user.id if payload.reporter_id is None else payload.reporter_id
+    )
     report = Report(
         property_id=payload.property_id,
         reporter_id=reporter_id,
@@ -67,11 +73,13 @@ async def update_report(
     db: AsyncSession = Depends(get_db),
 ) -> ReportRead:
     # Only moderators can update reports
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(status_code=403, detail="Insufficient permissions")
-    result = await db.execute(
-        select(Report).where(Report.id == report_id)
-    )
+    result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -83,6 +91,7 @@ async def update_report(
         report.reviewer_id = payload.reviewer_id
     if payload.status in (ReportStatus.RESOLVED.value, ReportStatus.REJECTED.value):
         from datetime import UTC, datetime
+
         report.reviewed_at = datetime.now(UTC)
     await db.commit()
     await db.refresh(report)

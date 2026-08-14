@@ -103,7 +103,9 @@ async def delete_notification(
     await db.commit()
 
 
-@router.post("/mark-all-read", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.post(
+    "/mark-all-read", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def mark_all_read(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

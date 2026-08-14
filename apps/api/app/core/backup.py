@@ -41,7 +41,9 @@ class BackupMetadata:
     def complete(self) -> None:
         self.completed_at = datetime.now(UTC)
         if self.started_at:
-            self.duration_seconds = (self.completed_at - self.started_at).total_seconds()
+            self.duration_seconds = (
+                self.completed_at - self.started_at
+            ).total_seconds()
 
 
 def ensure_backup_dir() -> None:
@@ -76,7 +78,9 @@ def dump_database(
         # DATABASE_URL format: postgresql+asyncpg://user:pass@host:port/dbname
         import urllib.parse
 
-        parsed = urllib.parse.urlparse(database_url.replace("postgresql+asyncpg://", ""))
+        parsed = urllib.parse.urlparse(
+            database_url.replace("postgresql+asyncpg://", "")
+        )
         user = parsed.username or ""
         password = parsed.password or ""
         host = parsed.hostname or "localhost"
@@ -89,17 +93,25 @@ def dump_database(
 
         cmd = [
             PG_DUMP_COMMAND,
-            "-h", host,
-            "-p", port,
-            "-U", user,
-            "-d", db_name,
-            "-F", "c",  # Custom format
-            "-f", str(backup_path),
+            "-h",
+            host,
+            "-p",
+            port,
+            "-U",
+            user,
+            "-d",
+            db_name,
+            "-F",
+            "c",  # Custom format
+            "-f",
+            str(backup_path),
             "--no-owner",
             "--no-acl",
         ]
 
-        result = subprocess.run(cmd, env=env, capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            cmd, env=env, capture_output=True, text=True, check=True
+        )
         if result.returncode != 0:
             raise BackupError(f"pg_dump failed: {result.stderr}")
 
@@ -247,7 +259,9 @@ def run_backup_schedule(
     Returns:
         Dict mapping backup type to its metadata.
     """
-    db_url = db_url or os.getenv("DATABASE_URL", "postgresql+asyncpg://localhost:5432/yenimenzil")
+    db_url = db_url or os.getenv(
+        "DATABASE_URL", "postgresql+asyncpg://localhost:5432/yenimenzil"
+    )
     results: dict[str, BackupMetadata] = {}
 
     # Database backup

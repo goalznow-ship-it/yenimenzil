@@ -85,9 +85,7 @@ async def test_submit_rejected_listing_goes_back_to_pending(
 
 
 @pytest.mark.asyncio
-async def test_submit_other_users_listing_rejected(
-    client, auth_user, feature_catalog
-):
+async def test_submit_other_users_listing_rejected(client, auth_user, feature_catalog):
     owner = await auth_user()
     created = await _create(client, owner)
     await auth_user(email="other@test.az")

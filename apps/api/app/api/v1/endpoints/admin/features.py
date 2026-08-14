@@ -21,7 +21,11 @@ router = APIRouter(tags=["admin-features"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -50,9 +54,12 @@ async def admin_list_features(
     query = select(PropertyFeature)
     if search:
         query = query.where(
-            PropertyFeature.code.ilike(f"%{search}%") | PropertyFeature.label_az.ilike(f"%{search}%")
+            PropertyFeature.code.ilike(f"%{search}%")
+            | PropertyFeature.label_az.ilike(f"%{search}%")
         )
-    total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar() or 0
+    total = (
+        await db.execute(select(func.count()).select_from(query.subquery()))
+    ).scalar() or 0
     query = query.order_by(PropertyFeature.code).offset((page - 1) * limit).limit(limit)
     features = (await db.execute(query)).scalars().all()
 
@@ -66,7 +73,12 @@ async def admin_list_features(
             }
             for f in features
         ],
-        "pagination": {"page": page, "limit": limit, "total": total, "pages": (total + limit - 1) // limit},
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "pages": (total + limit - 1) // limit,
+        },
         "property_types": [t.value for t in PropertyType],
     }
 
@@ -98,7 +110,11 @@ async def admin_create_feature(
         details={"code": feature.code, "label_az": feature.label_az},
     )
     await db.commit()
-    return {"id": str(new_feature.id), "code": feature.code, "label_az": feature.label_az}
+    return {
+        "id": str(new_feature.id),
+        "code": feature.code,
+        "label_az": feature.label_az,
+    }
 
 
 @router.patch("/admin/catalog/features/{feature_id}")

@@ -144,10 +144,21 @@ class PropertyMediaRead(BaseModel):
     id: uuid.UUID
     kind: MediaKind
     url: str
+    thumbnail_url: str | None = None
     alt: str | None
     placeholder: str | None
     sort_order: int
     is_cover: bool
+
+
+class PropertyMediaUpdate(BaseModel):
+    alt: str | None = Field(default=None, max_length=300)
+    sort_order: int | None = Field(default=None, ge=0)
+    is_cover: bool | None = None
+
+
+class PropertyMediaReorder(BaseModel):
+    media_ids: list[uuid.UUID] = Field(min_length=1)
 
 
 class PropertyLocationRead(BaseModel):
@@ -213,6 +224,7 @@ class PropertySummaryRead(BaseModel):
     promotion_expires_at: datetime | None = None
     status: PropertyStatus
     published_at: datetime | None
+    expires_at: datetime | None = None
     city: str | None
     district: str | None
     address_text: str | None

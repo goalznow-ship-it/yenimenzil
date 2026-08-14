@@ -108,12 +108,10 @@ def can_edit_property(prop, user: User) -> bool:
     if prop.owner_id == user.id:
         return True
     if user.role == UserRole.AGENT and prop.agent_id is not None:
-
         for agent in user.agent_records or []:
             if agent.id == prop.agent_id:
                 return True
     if user.role == UserRole.AGENCY_ADMIN and prop.agency_id is not None:
-
         for agent in user.agent_records or []:
             if agent.agency_id == prop.agency_id:
                 return True

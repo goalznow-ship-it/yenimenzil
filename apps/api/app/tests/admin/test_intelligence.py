@@ -64,13 +64,13 @@ async def _make_active_listings(client, db, auth_user, count=3):
         response = await client.post(f"/api/v1/admin/listings/{prop_id}/approve")
         assert response.status_code == 200, response.text
 
-    result = await db.execute(
-        select(Property).where(Property.id.in_(created))
-    )
+    result = await db.execute(select(Property).where(Property.id.in_(created)))
     props = result.scalars().all()
     for prop in props:
         await db.refresh(prop)
-        status = prop.status.value if hasattr(prop.status, "value") else str(prop.status)
+        status = (
+            prop.status.value if hasattr(prop.status, "value") else str(prop.status)
+        )
         assert status == "active", f"expected active, got {status}"
     return created, props
 
@@ -97,7 +97,9 @@ async def test_admin_price_intelligence(client, auth_user, db):
     data = response.json()
     assert "segments" in data
     baku_segments = [
-        s for s in data["segments"] if s["city"] == "Bakı" and s["district"] == "Nərimanov"
+        s
+        for s in data["segments"]
+        if s["city"] == "Bakı" and s["district"] == "Nərimanov"
     ]
     assert baku_segments, data["segments"]
     segment = baku_segments[0]
@@ -123,9 +125,7 @@ async def test_admin_comparables(client, auth_user, db):
     )
     assert login_response.status_code == 200
 
-    response = await client.get(
-        f"/api/v1/admin/listings/{target.id}/comparables"
-    )
+    response = await client.get(f"/api/v1/admin/listings/{target.id}/comparables")
     assert response.status_code == 200
     data = response.json()
     assert data["property_id"] == str(target.id)
@@ -140,7 +140,5 @@ async def test_admin_comparables_404(client, auth_user):
     import uuid
 
     await _superadmin_login(client, auth_user)
-    response = await client.get(
-        f"/api/v1/admin/listings/{uuid.uuid4()}/comparables"
-    )
+    response = await client.get(f"/api/v1/admin/listings/{uuid.uuid4()}/comparables")
     assert response.status_code == 404

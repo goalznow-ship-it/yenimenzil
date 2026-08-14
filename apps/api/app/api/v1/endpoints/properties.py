@@ -1,5 +1,5 @@
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import (
@@ -11,7 +11,8 @@ from fastapi import (
     UploadFile,
     status,
 )
-from sqlalchemy import func, select
+from geoalchemy2.shape import WKTElement
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,13 +30,20 @@ from app.models.appointment import ViewingAppointment
 from app.models.enums import PropertyStatus, UserRole
 from app.models.favorite import Favorite
 from app.models.messaging import Conversation, Message
-from app.models.property import Property, PropertyMedia, PropertyPriceHistory
+from app.models.property import (
+    Property,
+    PropertyLocation,
+    PropertyMedia,
+    PropertyPriceHistory,
+)
 from app.models.user import User
 from app.repositories.property import PropertyRepository
 from app.schemas.analytics import ListingAnalyticsRead
 from app.schemas.common import PaginatedResponse
 from app.schemas.property import (
     PropertyCreate,
+    PropertyMediaReorder,
+    PropertyMediaUpdate,
     PropertyQueryParams,
     PropertyRead,
     PropertySummaryRead,
@@ -331,7 +339,7 @@ async def upload_property_media(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[PropertyRead]:
-    """Upload one or more images for a property."""
+    """Upload one or more images for a property (validated + thumbnails)."""
     repo = _repo(db)
     prop = await _get_property_or_404(repo, property_id)
     if not can_edit_property(prop, user):
@@ -342,27 +350,355 @@ async def upload_property_media(
     if not files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Heç bir fayl yüklənməди",
+            detail="Heç bir fayl yüklənməyib",
         )
     from app.models.enums import MediaKind
+    from app.services.image_processing import make_thumbnail, webp_suffix
+    from app.services.media_validator import validate_image_file
+
+    current_count = (
+        await db.execute(
+            select(func.count(PropertyMedia.id)).where(
+                PropertyMedia.property_id == prop.id
+            )
+        )
+    ).scalar() or 0
+    if current_count + len(files) > settings.MEDIA_MAX_IMAGES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Maksimum {settings.MEDIA_MAX_IMAGES} şəkil yüklənə bilər",
+        )
+
+    has_cover = (
+        await db.execute(
+            select(PropertyMedia.id)
+            .where(
+                PropertyMedia.property_id == prop.id,
+                PropertyMedia.is_cover.is_(True),
+            )
+            .limit(1)
+        )
+    ).scalar_one_or_none() is not None
 
     uploaded_media = []
     for file in files:
         content = await file.read()
-        url = upload_file(content, file.filename, file.content_type)
+        valid, error = validate_image_file(content, file.filename or "")
+        if not valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error or "Yanlış şəkil faylı",
+            )
+        url = upload_file(content, file.filename or "image", file.content_type)
+        thumbnail_url = None
+        thumb = make_thumbnail(content, file.filename or "image")
+        if thumb is not None:
+            thumb_name = f"{uuid.uuid4().hex}{webp_suffix()}"
+            try:
+                thumbnail_url = upload_file(thumb, thumb_name, "image/webp")
+            except Exception:  # noqa: BLE001 - thumbnails are best-effort
+                thumbnail_url = None
         media = PropertyMedia(
             property_id=prop.id,
             url=url,
+            thumbnail_url=thumbnail_url,
             alt=file.filename or "",
-            is_cover=False,
+            is_cover=(not has_cover),
+            sort_order=current_count + len(uploaded_media),
             kind=MediaKind.IMAGE,
         )
+        if not has_cover:
+            has_cover = True
         db.add(media)
         uploaded_media.append(media)
     await db.commit()
-    for media in uploaded_media:
-        await db.refresh(media)
-    return [repo.to_read(prop)]
+    db.expire(prop, ["media"])
+    return [repo.to_read(await repo.get_by_id(prop.id))]  # type: ignore[arg-type]
+
+
+@router.patch(
+    "/{property_id}/media/{media_id}",
+    response_model=list[PropertyRead],
+)
+async def update_property_media(
+    property_id: uuid.UUID,
+    media_id: uuid.UUID,
+    payload: PropertyMediaUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[PropertyRead]:
+    """Update media metadata: alt, sort order, and/or set as cover image."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    media = await db.get(PropertyMedia, media_id)
+    if media is None or media.property_id != prop.id:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    if payload.is_cover is True:
+        await db.execute(
+            update(PropertyMedia)
+            .where(
+                PropertyMedia.property_id == prop.id,
+                PropertyMedia.is_cover.is_(True),
+            )
+            .values(is_cover=False)
+        )
+        media.is_cover = True
+    if payload.alt is not None:
+        media.alt = payload.alt
+    if payload.sort_order is not None:
+        media.sort_order = payload.sort_order
+    await db.commit()
+    db.expire(prop, ["media"])
+    return [repo.to_read(await repo.get_by_id(prop.id))]  # type: ignore[arg-type]
+
+
+@router.delete(
+    "/{property_id}/media/{media_id}",
+    response_model=list[PropertyRead],
+)
+async def delete_property_media(
+    property_id: uuid.UUID,
+    media_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[PropertyRead]:
+    """Delete a media item. If it was the cover, promote the next image."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    media = await db.get(PropertyMedia, media_id)
+    if media is None or media.property_id != prop.id:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    was_cover = media.is_cover
+    await db.delete(media)
+    if was_cover:
+        next_media = await db.execute(
+            select(PropertyMedia)
+            .where(PropertyMedia.property_id == prop.id)
+            .order_by(PropertyMedia.sort_order)
+            .limit(1)
+        )
+        next_item = next_media.scalar_one_or_none()
+        if next_item is not None:
+            next_item.is_cover = True
+    await db.commit()
+    db.expire(prop, ["media"])
+    return [repo.to_read(await repo.get_by_id(prop.id))]  # type: ignore[arg-type]
+
+
+@router.post(
+    "/{property_id}/media/reorder",
+    response_model=list[PropertyRead],
+)
+async def reorder_property_media(
+    property_id: uuid.UUID,
+    payload: PropertyMediaReorder,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[PropertyRead]:
+    """Reorder media by providing the ordered list of media ids."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    existing = await db.execute(
+        select(PropertyMedia).where(PropertyMedia.property_id == prop.id)
+    )
+    by_id = {m.id: m for m in existing.scalars().all()}
+    if set(payload.media_ids) != set(by_id.keys()):
+        raise HTTPException(
+            status_code=400, detail="Media id list must match all listing media"
+        )
+    for index, media_id in enumerate(payload.media_ids):
+        by_id[media_id].sort_order = index
+    await db.commit()
+    db.expire(prop, ["media"])
+    return [repo.to_read(await repo.get_by_id(prop.id))]  # type: ignore[arg-type]
+
+
+@router.post("/{property_id}/duplicate", response_model=PropertyRead)
+async def duplicate_property(
+    property_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PropertyRead:
+    """Clone an existing listing into a new draft (media included)."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı surətləşdirə bilməzsiniz",
+        )
+    reference_code, slug = await repo._next_reference_and_slug(f"{prop.title} (surət)")
+    now = _now()
+    clone = Property(
+        reference_code=reference_code,
+        slug=slug,
+        owner_id=user.id,
+        agency_id=prop.agency_id,
+        agent_id=prop.agent_id,
+        seller_kind=prop.seller_kind,
+        deal_type=prop.deal_type,
+        property_type=prop.property_type,
+        status=PropertyStatus.DRAFT.value,
+        currency=prop.currency,
+        title=f"{prop.title} (surət)",
+        description=prop.description,
+        price=prop.price,
+        rooms=prop.rooms,
+        bedrooms=prop.bedrooms,
+        bathrooms=prop.bathrooms,
+        area_total=prop.area_total,
+        area_living=prop.area_living,
+        area_land=prop.area_land,
+        floor=prop.floor,
+        total_floors=prop.total_floors,
+        building_type=prop.building_type,
+        repair_status=prop.repair_status,
+        document_type=prop.document_type,
+        mortgage_available=prop.mortgage_available,
+        furnished=prop.furnished,
+        heating=prop.heating,
+        construction_year=prop.construction_year,
+        created_at=now,
+        updated_at=now,
+    )
+    if prop.location is not None:
+        loc = prop.location
+        clone.location = PropertyLocation(
+            latitude=loc.latitude,
+            longitude=loc.longitude,
+            point=WKTElement(
+                f"SRID=4326;POINT({loc.longitude} {loc.latitude})", srid=4326
+            ),
+            address_text=loc.address_text,
+            city=loc.city,
+            district=loc.district,
+            settlement=loc.settlement,
+            neighborhood=loc.neighborhood,
+            metro=loc.metro,
+            landmark=loc.landmark,
+            street=loc.street,
+        )
+    for m in prop.media:
+        clone.media.append(
+            PropertyMedia(
+                url=m.url,
+                thumbnail_url=m.thumbnail_url,
+                alt=m.alt,
+                placeholder=m.placeholder,
+                is_cover=m.is_cover,
+                sort_order=m.sort_order,
+                kind=m.kind,
+            )
+        )
+    if prop.features:
+        clone.features = list(prop.features)
+    db.add(clone)
+    await db.commit()
+    return repo.to_read(await repo.get_by_id(clone.id))  # type: ignore[arg-type]
+
+
+@router.post("/{property_id}/renew", response_model=PropertyRead)
+async def renew_property(
+    property_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PropertyRead:
+    """Renew an expired/archived listing back into the moderation flow."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı yeniləyə bilməzsiniz",
+        )
+    if prop.status not in (
+        PropertyStatus.EXPIRED.value,
+        PropertyStatus.ARCHIVED.value,
+        PropertyStatus.REJECTED.value,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Yalnız bitmiş/arxivlənmiş/rədd edilmiş elan yenilənə bilər "
+            f"(hazırki: {prop.status})",
+        )
+    prop.status = (
+        PropertyStatus.ACTIVE.value
+        if (user.role in AUTO_PUBLISH_ROLES or user.is_verified)
+        else PropertyStatus.PENDING_REVIEW.value
+    )
+    prop.published_at = prop.published_at or _now()
+    prop.expires_at = _now() + timedelta(days=settings.PROPERTY_LISTING_DAYS)
+    await db.commit()
+    return repo.to_read(await repo.get_by_id(prop.id))  # type: ignore[arg-type]
+
+
+@router.post("/{property_id}/deactivate", response_model=PropertyRead)
+async def deactivate_property(
+    property_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PropertyRead:
+    """Deactivate a published listing (archive it)."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    if prop.status != PropertyStatus.ACTIVE.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Yalnız aktiv elan dayandırıla bilər",
+        )
+    prop.status = PropertyStatus.ARCHIVED.value
+    await db.commit()
+    return repo.to_read(await repo.get_by_id(prop.id))  # type: ignore[arg-type]
+
+
+@router.post("/{property_id}/reactivate", response_model=PropertyRead)
+async def reactivate_property(
+    property_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PropertyRead:
+    """Reactivate an archived listing (goes through moderation again)."""
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanı idarə edə bilməzsiniz",
+        )
+    if prop.status != PropertyStatus.ARCHIVED.value:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Yalnız arxivlənmiş elan yenidən aktivləşdirilə bilər",
+        )
+    prop.status = (
+        PropertyStatus.ACTIVE.value
+        if (user.role in AUTO_PUBLISH_ROLES or user.is_verified)
+        else PropertyStatus.PENDING_REVIEW.value
+    )
+    await db.commit()
+    return repo.to_read(await repo.get_by_id(prop.id))  # type: ignore[arg-type]
 
 
 @router.get("/{property_id}/analytics", response_model=ListingAnalyticsRead)
@@ -388,13 +724,12 @@ async def get_listing_analytics(
         return (await db.execute(stmt)).scalar() or 0
 
     favorites = (
-        (await db.execute(
+        await db.execute(
             select(func.count(Favorite.id)).where(Favorite.property_id == property_id)
-        )).scalar()
-        or 0
-    )
+        )
+    ).scalar() or 0
     messages = (
-        (await db.execute(
+        await db.execute(
             select(func.count(Message.id)).where(
                 Message.conversation_id.in_(
                     select(Conversation.id).where(
@@ -402,17 +737,15 @@ async def get_listing_analytics(
                     )
                 )
             )
-        )).scalar()
-        or 0
-    )
+        )
+    ).scalar() or 0
     viewing_requests = (
-        (await db.execute(
+        await db.execute(
             select(func.count(ViewingAppointment.id)).where(
                 ViewingAppointment.property_id == property_id
             )
-        )).scalar()
-        or 0
-    )
+        )
+    ).scalar() or 0
     return ListingAnalyticsRead(
         property_id=property_id,
         views=prop.views,

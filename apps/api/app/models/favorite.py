@@ -16,7 +16,9 @@ if TYPE_CHECKING:
 
 class Favorite(Base):
     __tablename__ = "favorites"
-    __table_args__ = (UniqueConstraint("user_id", "property_id", name="uq_user_property"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "property_id", name="uq_user_property"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(

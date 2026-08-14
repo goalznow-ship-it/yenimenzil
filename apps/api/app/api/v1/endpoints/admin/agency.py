@@ -30,6 +30,7 @@ class AdminAgencyUpdate(BaseModel):
     description: str | None = Field(None, max_length=1000)
     is_verified: bool | None = None
 
+
 router = APIRouter(tags=["admin-agencies"])
 
 
@@ -37,7 +38,11 @@ router = APIRouter(tags=["admin-agencies"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -64,10 +69,10 @@ async def admin_list_agencies(
     sort_order: str = Query(default="desc", pattern="^(asc|desc)$"),
 ) -> dict[str, Any]:
     """Admin endpoint to list agencies with filtering, search, and pagination."""
-    
+
     # Base query
     query = select(Agency)
-    
+
     # Apply search
     if search:
         search_term = f"%{search}%"
@@ -77,7 +82,7 @@ async def admin_list_agencies(
                 Agency.description.ilike(search_term),
             )
         )
-    
+
     # Apply filters
     if is_verified is not None:
         query = query.where(Agency.is_verified == is_verified)
@@ -85,43 +90,49 @@ async def admin_list_agencies(
         query = query.where(Agency.created_at >= created_after)
     if created_before:
         query = query.where(Agency.created_at <= created_before)
-    
+
     # Apply sorting
     if sort_order == "asc":
         query = query.order_by(getattr(Agency, sort_by).asc())
     else:
         query = query.order_by(getattr(Agency, sort_by).desc())
-    
+
     # Get total count for pagination
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(count_query)
     total = total_result.scalar() or 0
-    
+
     # Apply pagination
     offset = (page - 1) * limit
     query = query.offset(offset).limit(limit)
-    
+
     # Execute query
     result = await db.execute(query)
     agencies = result.scalars().all()
-    
+
     # Format response
     agency_list = []
     for agency in agencies:
-        agency_list.append({
-            "id": str(agency.id),
-            "name": agency.name,
-            "slug": agency.slug,
-            "email": agency.email,
-            "phone": agency.phone,
-            "website": agency.website,
-            "logo_url": agency.logo_url,
-            "description": agency.description,
-            "is_verified": agency.is_verified,
-            "created_at": agency.created_at.isoformat() if agency.created_at else None,
-            "updated_at": agency.updated_at.isoformat() if agency.updated_at else None,
-        })
-    
+        agency_list.append(
+            {
+                "id": str(agency.id),
+                "name": agency.name,
+                "slug": agency.slug,
+                "email": agency.email,
+                "phone": agency.phone,
+                "website": agency.website,
+                "logo_url": agency.logo_url,
+                "description": agency.description,
+                "is_verified": agency.is_verified,
+                "created_at": agency.created_at.isoformat()
+                if agency.created_at
+                else None,
+                "updated_at": agency.updated_at.isoformat()
+                if agency.updated_at
+                else None,
+            }
+        )
+
     return {
         "data": agency_list,
         "pagination": {
@@ -132,7 +143,7 @@ async def admin_list_agencies(
         },
         "filters": {
             "is_verified": [True, False],
-        }
+        },
     }
 
 
@@ -166,13 +177,13 @@ async def admin_update_agency(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agency not found",
         )
-    
+
     # Update agency fields if provided
     update_data = agency_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         if hasattr(agency, field):
             setattr(agency, field, value)
-    
+
     await db.flush()
     await log_admin_action(
         db,
@@ -200,7 +211,7 @@ async def admin_delete_agency(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Agency not found",
         )
-    
+
     # Deactivate the agency instead of deleting to preserve data integrity
     agency.is_verified = False
     await db.flush()
@@ -212,7 +223,7 @@ async def admin_delete_agency(
         entity_id=agency_id,
     )
     await db.commit()
-    
+
     return {
         "message": "Agency deactivated successfully",
         "agency_id": str(agency_id),
@@ -237,8 +248,20 @@ async def admin_agent_reputation(
         query = query.where(
             or_(Agent.name.ilike(f"%{search}%"), Agent.email.ilike(f"%{search}%"))
         )
-    total = (await db.execute(select(func.count()).select_from(query.subquery()))).scalar() or 0
-    agents = (await db.execute(query.order_by(Agent.created_at.desc()).offset((page - 1) * limit).limit(limit))).scalars().all()
+    total = (
+        await db.execute(select(func.count()).select_from(query.subquery()))
+    ).scalar() or 0
+    agents = (
+        (
+            await db.execute(
+                query.order_by(Agent.created_at.desc())
+                .offset((page - 1) * limit)
+                .limit(limit)
+            )
+        )
+        .scalars()
+        .all()
+    )
 
     data = []
     for agent in agents:
@@ -268,23 +291,30 @@ async def admin_agent_reputation(
             score += min(round((total_views or 0) / max(listing_count or 1, 1) / 10), 5)
         score = min(100, score)
 
-        data.append({
-            "id": str(agent.id),
-            "name": agent.name,
-            "email": agent.email,
-            "phone": agent.phone,
-            "agency_id": str(agent.agency_id) if agent.agency_id else None,
-            "verified_identity": agent.verified_identity,
-            "verified_phone": agent.verified_phone,
-            "listing_count": listing_count or 0,
-            "active_listings": active_count,
-            "total_views": total_views or 0,
-            "reputation_score": score,
-        })
+        data.append(
+            {
+                "id": str(agent.id),
+                "name": agent.name,
+                "email": agent.email,
+                "phone": agent.phone,
+                "agency_id": str(agent.agency_id) if agent.agency_id else None,
+                "verified_identity": agent.verified_identity,
+                "verified_phone": agent.verified_phone,
+                "listing_count": listing_count or 0,
+                "active_listings": active_count,
+                "total_views": total_views or 0,
+                "reputation_score": score,
+            }
+        )
 
     return {
         "data": data,
-        "pagination": {"page": page, "limit": limit, "total": total, "pages": (total + limit - 1) // limit},
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total": total,
+            "pages": (total + limit - 1) // limit,
+        },
         "formula": "base 50 + identity(10) + phone(10) + listings(<=15) + active(<=10) + views signal(<=5), capped at 100",
     }
 

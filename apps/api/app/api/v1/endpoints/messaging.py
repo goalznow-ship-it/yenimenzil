@@ -50,7 +50,9 @@ def _conversation_read(
     conversation: Conversation, current_user_id: uuid.UUID
 ) -> ConversationRead:
     unread = sum(
-        1 for m in conversation.messages if not m.is_read and m.sender_id != current_user_id
+        1
+        for m in conversation.messages
+        if not m.is_read and m.sender_id != current_user_id
     )
     last = conversation.messages[-1] if conversation.messages else None
     return ConversationRead(
@@ -289,7 +291,7 @@ async def send_message(
         content=payload.content.strip(),
         is_read=False,  # Ensure the message is marked as unread for the recipient
     )
-    
+
     db.add(message)
     await db.flush()
     conversation.last_message_at = message.created_at
@@ -300,7 +302,11 @@ async def send_message(
     return message
 
 
-@router.patch("/{conversation_id}/archive", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.patch(
+    "/{conversation_id}/archive",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
 async def archive_conversation(
     conversation_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -316,7 +322,11 @@ async def archive_conversation(
     await db.commit()
 
 
-@router.patch("/{conversation_id}/block", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.patch(
+    "/{conversation_id}/block",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+)
 async def block_conversation(
     conversation_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -332,7 +342,9 @@ async def block_conversation(
     await db.commit()
 
 
-@router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.delete(
+    "/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def delete_conversation(
     conversation_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

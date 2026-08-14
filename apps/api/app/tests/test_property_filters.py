@@ -1,4 +1,3 @@
-
 import pytest
 
 from app.tests.conftest import make_property_payload
@@ -9,9 +8,7 @@ async def _create(client, user, payload_overrides=None, **kwargs):
     if payload_overrides:
         payload.update(payload_overrides)
     payload["price_history"] = []
-    created = (
-        await client.post("/api/v1/properties", json=payload, **kwargs)
-    ).json()
+    created = (await client.post("/api/v1/properties", json=payload, **kwargs)).json()
     response = await client.post(f"/api/v1/properties/{created['id']}/submit")
     assert response.status_code == 200, response.text
     return response.json()
@@ -31,9 +28,7 @@ async def test_list_defaults_to_active_sale(client, auth_user, feature_catalog):
     # a draft that was never submitted stays hidden
     draft = make_property_payload(owner.id)
     draft["price_history"] = []
-    draft_body = (
-        await client.post("/api/v1/properties", json=draft)
-    ).json()
+    draft_body = (await client.post("/api/v1/properties", json=draft)).json()
     assert draft_body["status"] == "draft"
 
     # a sold listing is hidden from search
@@ -71,7 +66,11 @@ async def test_list_deal_filter(client, auth_user, feature_catalog):
 @pytest.mark.asyncio
 async def test_list_city_filter(client, auth_user, feature_catalog):
     owner = await auth_user(is_verified=True)
-    await _create(client, owner, {"location": {**make_property_payload(owner.id)["location"], "city": "Bakı"}})
+    await _create(
+        client,
+        owner,
+        {"location": {**make_property_payload(owner.id)["location"], "city": "Bakı"}},
+    )
     payload = make_property_payload(owner.id)
     payload["location"]["city"] = "Gəncə"
     await _create(client, owner, payload)
@@ -102,9 +101,7 @@ async def test_list_district_filter_normalizes_az(client, auth_user, feature_cat
 async def test_list_district_no_match(client, auth_user, feature_catalog):
     owner = await auth_user(is_verified=True)
     await _create(client, owner, {})
-    response = await client.get(
-        "/api/v1/properties", params={"district": "Binaqadi"}
-    )
+    response = await client.get("/api/v1/properties", params={"district": "Binaqadi"})
     assert response.json()["meta"]["total"] == 0
 
 
@@ -115,9 +112,7 @@ async def test_list_property_type_filter(client, auth_user, feature_catalog):
     await _create(client, owner, {"property_type": "house"})
     await _create(client, owner, {"property_type": "land"})
 
-    response = await client.get(
-        "/api/v1/properties", params={"property_type": "house"}
-    )
+    response = await client.get("/api/v1/properties", params={"property_type": "house"})
     assert response.json()["meta"]["total"] == 1
     assert response.json()["data"][0]["property_type"] == "house"
 
@@ -189,9 +184,7 @@ async def test_list_building_and_repair_filters(client, auth_user, feature_catal
     await _create(client, owner, {"building_type": "new", "repair_status": "renovated"})
     await _create(client, owner, {"building_type": "old", "repair_status": "cosmetic"})
 
-    response = await client.get(
-        "/api/v1/properties", params={"building_type": "new"}
-    )
+    response = await client.get("/api/v1/properties", params={"building_type": "new"})
     assert response.json()["meta"]["total"] == 1
 
     response = await client.get(
@@ -362,9 +355,7 @@ async def test_list_bbox_filter(client, auth_user, feature_catalog):
     outside["location"]["latitude"] = 41.0
     outside["location"]["longitude"] = 50.0
     outside["price_history"] = []
-    outside_created = (
-        await client.post("/api/v1/properties", json=outside)
-    ).json()
+    outside_created = (await client.post("/api/v1/properties", json=outside)).json()
 
     response = await client.get(
         "/api/v1/properties",
@@ -390,7 +381,6 @@ async def test_list_bbox_all_outside(client, auth_user, feature_catalog):
         params={"north": 40.5, "south": 40.3, "east": 49.9, "west": 49.8},
     )
     assert response.json()["meta"]["total"] == 0
-
 
     @pytest.mark.asyncio
     async def test_list_invalid_uuid_idempotent(client, auth_user, feature_catalog):

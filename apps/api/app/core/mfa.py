@@ -75,9 +75,9 @@ def verify_totp(secret: str, code: str) -> bool:
 
         hmac_hash = hmac.new(key, message, hashlib.sha256).digest()
         # Dynamic truncation
-        offset = hmac_hash[-1] & 0x0f
+        offset = hmac_hash[-1] & 0x0F
         binary = hmac_hash[offset : offset + 4]
-        otp = (int.from_bytes(binary, "big") & 0x7fffffff) % 1000000
+        otp = (int.from_bytes(binary, "big") & 0x7FFFFFFF) % 1000000
         str_otp = str(otp).zfill(6)
         if str_otp == code:
             return True

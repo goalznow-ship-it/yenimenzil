@@ -295,7 +295,9 @@ async def forgot_password(
     return {"detail": "If the email exists, a reset link has been issued."}
 
 
-@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.post(
+    "/reset-password", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def reset_password(
     payload: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db),
@@ -333,7 +335,9 @@ async def reset_password(
     await db.commit()
 
 
-@router.post("/verify-email", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.post(
+    "/verify-email", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def verify_email(
     payload: VerifyTokenRequest,
     db: AsyncSession = Depends(get_db),
@@ -363,7 +367,9 @@ async def verify_email(
     await db.commit()
 
 
-@router.post("/verify-phone", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.post(
+    "/verify-phone", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def verify_phone(
     payload: VerifyTokenRequest,
     db: AsyncSession = Depends(get_db),

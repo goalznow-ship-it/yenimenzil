@@ -20,7 +20,11 @@ router = APIRouter(tags=["admin-intelligence"])
 def get_admin_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
-    if current_user.role not in (UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN):
+    if current_user.role not in (
+        UserRole.MODERATOR,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Insufficient permissions",
@@ -91,7 +95,9 @@ async def admin_price_intelligence(
         "property_type": property_type.value if property_type else "all",
         "segments": [
             {"city": city, "district": district, **summarize(items)}
-            for (city, district), items in sorted(groups.items(), key=lambda kv: -kv[1][0][0])
+            for (city, district), items in sorted(
+                groups.items(), key=lambda kv: -kv[1][0][0]
+            )
         ],
         "note": "Based on active listings only",
     }
@@ -136,7 +142,9 @@ async def admin_comparable_listings(
             query = query.where(or_(*where_parts))
         # Rooms: within ±1 if known
         if prop.rooms:
-            query = query.where(Property.rooms.between(max(prop.rooms - 1, 0), prop.rooms + 1))
+            query = query.where(
+                Property.rooms.between(max(prop.rooms - 1, 0), prop.rooms + 1)
+            )
         # Area: within ±20%
         if prop.area_total and float(prop.area_total) > 0:
             area = float(prop.area_total)
@@ -147,20 +155,24 @@ async def admin_comparable_listings(
     for other, other_loc in rows:
         price = float(other.price) if other.price is not None else None
         area = float(other.area_total) if other.area_total is not None else None
-        comparables.append({
-            "id": str(other.id),
-            "title": other.title,
-            "reference_code": other.reference_code,
-            "price": price,
-            "price_per_m2": round(price / area, 2) if price and area else None,
-            "rooms": other.rooms,
-            "area_total": area,
-            "status": _status_value(other.status),
-            "city": other_loc.city,
-            "district": other_loc.district,
-            "views": other.views,
-            "created_at": other.created_at.isoformat() if other.created_at else None,
-        })
+        comparables.append(
+            {
+                "id": str(other.id),
+                "title": other.title,
+                "reference_code": other.reference_code,
+                "price": price,
+                "price_per_m2": round(price / area, 2) if price and area else None,
+                "rooms": other.rooms,
+                "area_total": area,
+                "status": _status_value(other.status),
+                "city": other_loc.city,
+                "district": other_loc.district,
+                "views": other.views,
+                "created_at": other.created_at.isoformat()
+                if other.created_at
+                else None,
+            }
+        )
 
     # Price position of the target property among comparables
     prices = [c["price"] for c in comparables if c["price"] is not None]
@@ -184,8 +196,12 @@ async def admin_comparable_listings(
         "price_percentile": percentile,
         "comparables": comparables,
         "criteria": {
-            "deal_type": prop.deal_type.value if hasattr(prop.deal_type, "value") else prop.deal_type,
-            "property_type": prop.property_type.value if hasattr(prop.property_type, "value") else prop.property_type,
+            "deal_type": prop.deal_type.value
+            if hasattr(prop.deal_type, "value")
+            else prop.deal_type,
+            "property_type": prop.property_type.value
+            if hasattr(prop.property_type, "value")
+            else prop.property_type,
             "city": location.city if location else None,
             "district": location.district if location else None,
             "rooms_tolerance": 1,

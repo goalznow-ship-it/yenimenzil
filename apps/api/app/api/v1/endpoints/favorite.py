@@ -21,7 +21,11 @@ async def list_favorites(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[PropertyRead]:
-    stmt = select(Property).join(Favorite, Favorite.property_id == Property.id).where(Favorite.user_id == current_user.id)
+    stmt = (
+        select(Property)
+        .join(Favorite, Favorite.property_id == Property.id)
+        .where(Favorite.user_id == current_user.id)
+    )
     result = await db.execute(stmt)
     properties = result.scalars().all()
     return [PropertyRead.model_validate(prop) for prop in properties]
@@ -41,8 +45,7 @@ async def add_favorite(
     # Check if already favorited
     result = await db.execute(
         select(Favorite).where(
-            Favorite.user_id == current_user.id,
-            Favorite.property_id == property_id
+            Favorite.user_id == current_user.id, Favorite.property_id == property_id
         )
     )
     existing = result.scalar_one_or_none()
@@ -53,7 +56,9 @@ async def add_favorite(
     await db.commit()
 
 
-@router.delete("/{property_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
+@router.delete(
+    "/{property_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None
+)
 async def remove_favorite(
     property_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
@@ -61,8 +66,7 @@ async def remove_favorite(
 ) -> None:
     result = await db.execute(
         select(Favorite).where(
-            Favorite.user_id == current_user.id,
-            Favorite.property_id == property_id
+            Favorite.user_id == current_user.id, Favorite.property_id == property_id
         )
     )
     favorite = result.scalar_one_or_none()

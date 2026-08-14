@@ -79,9 +79,7 @@ async def test_create_requires_auth(client, feature_catalog):
 @pytest.mark.asyncio
 async def test_create_rejects_unknown_feature(client, auth_user, feature_catalog):
     owner = await auth_user()
-    payload = make_property_payload(
-        owner.id, features=["not-a-real-feature"]
-    )
+    payload = make_property_payload(owner.id, features=["not-a-real-feature"])
     response = await client.post("/api/v1/properties", json=payload)
     assert response.status_code == 422
 
@@ -114,9 +112,7 @@ async def test_create_rejects_active_status_for_regular_user(
 
 
 @pytest.mark.asyncio
-async def test_create_active_allowed_for_moderator(
-    client, auth_user, feature_catalog
-):
+async def test_create_active_allowed_for_moderator(client, auth_user, feature_catalog):
     owner = await auth_user(role="moderator")
     payload = make_property_payload(owner.id, status="active")
     response = await client.post("/api/v1/properties", json=payload)
@@ -278,9 +274,7 @@ async def test_delete_property(client, auth_user, feature_catalog):
 
 
 @pytest.mark.asyncio
-async def test_delete_other_users_property_rejected(
-    client, auth_user, feature_catalog
-):
+async def test_delete_other_users_property_rejected(client, auth_user, feature_catalog):
     owner = await auth_user()
     created = (
         await client.post(
@@ -314,16 +308,14 @@ async def test_similar_properties(client, auth_user, feature_catalog):
     same_created = (await client.post("/api/v1/properties", json=same)).json()
     await client.post(f"/api/v1/properties/{same_created['id']}/submit")
 
-    other_type = make_property_payload(
-        owner.id, title="Villa", property_type="villa"
-    )
+    other_type = make_property_payload(owner.id, title="Villa", property_type="villa")
     other_type["price_history"] = []
-    other_type_created = (await client.post("/api/v1/properties", json=other_type)).json()
+    other_type_created = (
+        await client.post("/api/v1/properties", json=other_type)
+    ).json()
     await client.post(f"/api/v1/properties/{other_type_created['id']}/submit")
 
-    rent = make_property_payload(
-        owner.id, title="Kiraye", deal_type="rent", price=800
-    )
+    rent = make_property_payload(owner.id, title="Kiraye", deal_type="rent", price=800)
     rent["price_history"] = []
     rent_created = (await client.post("/api/v1/properties", json=rent)).json()
     await client.post(f"/api/v1/properties/{rent_created['id']}/submit")

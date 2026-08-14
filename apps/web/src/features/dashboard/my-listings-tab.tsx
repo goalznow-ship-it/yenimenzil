@@ -3,8 +3,17 @@
 import * as React from "react";
 import Link from "next/link";
 import { Skeleton, Badge, EmptyState } from "@yenimenzil/ui";
-import { Building2, Eye, Trash2, PauseCircle, PlayCircle, Star } from "lucide-react";
-import { dashboardApi, type MyPropertySummary } from "@/services/dashboard-api";
+import {
+  Building2,
+  Eye,
+  Trash2,
+  PauseCircle,
+  PlayCircle,
+  Star,
+  Copy,
+  RefreshCw
+} from "lucide-react";
+import { dashboardApi, type MyPropertySummary, type PromotionCatalogItem } from "@/services/dashboard-api";
 import { formatPrice, formatDate } from "@/lib/format";
 
 const STATUS_BADGE: Record<string, React.ComponentProps<typeof Badge>["variant"]> = {
@@ -12,7 +21,11 @@ const STATUS_BADGE: Record<string, React.ComponentProps<typeof Badge>["variant"]
   inactive: "neutral",
   pending: "amber",
   rejected: "red",
-  archived: "neutral"
+  archived: "neutral",
+  draft: "neutral",
+  expired: "neutral",
+  sold: "neutral",
+  rented: "neutral"
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -20,13 +33,20 @@ const STATUS_LABELS: Record<string, string> = {
   inactive: "Deaktiv",
   pending: "Gözləmədə",
   rejected: "Rədd edilib",
-  archived: "Arxivləşib"
+  archived: "Arxivləşib",
+  draft: "Qaralama",
+  expired: "Vaxtı bitib",
+  sold: "Satılıb",
+  rented: "Kirayə verilib"
 };
 
 export function MyListingsTab() {
   const [listings, setListings] = React.useState<MyPropertySummary[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [info, setInfo] = React.useState<string | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
+  const [promoFor, setPromoFor] = React.useState<string | null>(null);
+  const [catalog, setCatalog] = React.useState<PromotionCatalogItem[]>([]);
 
   const load = React.useCallback(() => {
     dashboardApi
@@ -40,18 +60,74 @@ export function MyListingsTab() {
 
   React.useEffect(() => {
     load();
+    dashboardApi
+      .promotionCatalog()
+      .then(setCatalog)
+      .catch(() => undefined);
   }, [load]);
+
+  const promote = async (listing: MyPropertySummary, tier: string) => {
+    setBusyId(listing.id);
+    setPromoFor(null);
+    setError(null);
+    setInfo(null);
+    try {
+      const result = await dashboardApi.purchasePromotion(listing.id, tier);
+      setInfo(
+        result.promotion_status === "active"
+          ? `Elan tanıdılıb: ${result.promotion_status}`
+          : result.detail
+      );
+      load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xəta");
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   const toggleStatus = async (listing: MyPropertySummary) => {
     if (!listings) return;
     setBusyId(listing.id);
     setError(null);
     try {
-      const next = listing.status === "active" ? "inactive" : "active";
-      await dashboardApi.togglePropertyStatus(listing.id, next);
+      const updated =
+        listing.status === "active"
+          ? await dashboardApi.deactivateProperty(listing.id)
+          : await dashboardApi.reactivateProperty(listing.id);
       setListings(
-        listings.map((l) => (l.id === listing.id ? { ...l, status: next } : l))
+        listings.map((l) => (l.id === listing.id ? { ...l, status: updated.status } : l))
       );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xəta");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const renew = async (listing: MyPropertySummary) => {
+    if (!listings) return;
+    setBusyId(listing.id);
+    setError(null);
+    try {
+      const updated = await dashboardApi.renewProperty(listing.id);
+      setListings(
+        listings.map((l) => (l.id === listing.id ? { ...l, status: updated.status } : l))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xəta");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const duplicate = async (listing: MyPropertySummary) => {
+    if (!listings) return;
+    setBusyId(listing.id);
+    setError(null);
+    try {
+      await dashboardApi.duplicateProperty(listing.id);
+      load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xəta");
     } finally {
@@ -119,6 +195,11 @@ export function MyListingsTab() {
       {error ? (
         <p className="rounded-xl bg-red-500/10 px-3.5 py-2.5 text-[13px] text-red-600">{error}</p>
       ) : null}
+      {info ? (
+        <p className="rounded-xl bg-emerald-500/10 px-3.5 py-2.5 text-[13px] text-emerald-700">
+          {info}
+        </p>
+      ) : null}
       {listings.map((listing) => (
         <div
           key={listing.id}
@@ -177,20 +258,66 @@ export function MyListingsTab() {
             >
               Redaktə
             </Link>
+            {listing.status === "active" || listing.status === "archived" ? (
+              <button
+                onClick={() => toggleStatus(listing)}
+                disabled={busyId === listing.id}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-foreground/[0.05] px-3.5 py-2 text-[13px] font-medium text-foreground/80 transition-colors hover:bg-foreground/[0.09] disabled:opacity-50"
+              >
+                {listing.status === "active" ? (
+                  <>
+                    <PauseCircle className="h-4 w-4" /> Dayandır
+                  </>
+                ) : (
+                  <>
+                    <PlayCircle className="h-4 w-4" /> Aktiv et
+                  </>
+                )}
+              </button>
+            ) : null}
+            {listing.status === "expired" || listing.status === "rejected" ? (
+              <button
+                onClick={() => renew(listing)}
+                disabled={busyId === listing.id}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-foreground/[0.05] px-3.5 py-2 text-[13px] font-medium text-foreground/80 transition-colors hover:bg-foreground/[0.09] disabled:opacity-50"
+              >
+                <RefreshCw className="h-4 w-4" /> Yenilə
+              </button>
+            ) : null}
+            {listing.status === "active" ? (
+              <div className="relative">
+                <button
+                  onClick={() => setPromoFor(promoFor === listing.id ? null : listing.id)}
+                  disabled={busyId === listing.id}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-foreground/[0.05] px-3.5 py-2 text-[13px] font-medium text-foreground/80 transition-colors hover:bg-foreground/[0.09] disabled:opacity-50"
+                >
+                  <Star className="h-4 w-4" /> Tanıt
+                </button>
+                {promoFor === listing.id ? (
+                  <div className="absolute right-0 top-full z-10 mt-1.5 w-52 rounded-xl border border-border/70 bg-surface p-2 shadow-lg">
+                    {catalog.map((item) => (
+                      <button
+                        key={item.tier}
+                        onClick={() => promote(listing, item.tier)}
+                        disabled={busyId === listing.id}
+                        className="flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors hover:bg-foreground/[0.05] disabled:opacity-50"
+                      >
+                        <span>{item.label}</span>
+                        <span className="text-muted-foreground">
+                          {formatPrice(item.price)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
             <button
-              onClick={() => toggleStatus(listing)}
+              onClick={() => duplicate(listing)}
               disabled={busyId === listing.id}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-foreground/[0.05] px-3.5 py-2 text-[13px] font-medium text-foreground/80 transition-colors hover:bg-foreground/[0.09] disabled:opacity-50"
             >
-              {listing.status === "active" ? (
-                <>
-                  <PauseCircle className="h-4 w-4" /> Dayandır
-                </>
-              ) : (
-                <>
-                  <PlayCircle className="h-4 w-4" /> Aktiv et
-                </>
-              )}
+              <Copy className="h-4 w-4" /> Kopyala
             </button>
             <button
               onClick={() => remove(listing.id)}

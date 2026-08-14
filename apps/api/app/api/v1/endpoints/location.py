@@ -11,7 +11,15 @@ from app.models.location import LocationPlace
 
 router = APIRouter(prefix="/location", tags=["location"])
 
-LOCATION_KINDS = ("city", "district", "settlement", "neighborhood", "metro", "landmark", "street")
+LOCATION_KINDS = (
+    "city",
+    "district",
+    "settlement",
+    "neighborhood",
+    "metro",
+    "landmark",
+    "street",
+)
 
 
 async def _places(
@@ -158,9 +166,7 @@ async def search_places(
         .limit(300)
     )
     if city:
-        stmt = stmt.where(
-            (LocationPlace.city == city) | (LocationPlace.kind == "city")
-        )
+        stmt = stmt.where((LocationPlace.city == city) | (LocationPlace.kind == "city"))
     rows = (await db.execute(stmt)).scalars().all()
 
     grouped: dict[str, list[dict[str, Any]]] = {k: [] for k in LOCATION_KINDS}

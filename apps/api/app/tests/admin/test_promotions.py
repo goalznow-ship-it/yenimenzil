@@ -64,7 +64,7 @@ async def test_admin_promotion_activate_deactivate(client, auth_user, db):
     assert promoted, listing_response.text
     assert promoted[0]["is_promoted"] is True
     assert promoted[0]["promotion_status"] == "active"
-    assert "tiers" in listing_response.json()
+    assert "products" in listing_response.json()
 
     deactivate_response = await client.post(
         f"/api/v1/admin/promotions/listings/{prop_id}/deactivate"

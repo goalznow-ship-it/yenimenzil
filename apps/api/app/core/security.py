@@ -24,9 +24,7 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, password_hash: str) -> bool:
     try:
-        return bcrypt.checkpw(
-            password.encode("utf-8"), password_hash.encode("utf-8")
-        )
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
     except ValueError:
         return False
 
@@ -64,8 +62,18 @@ def decode_access_token(token: str) -> dict:
 
 
 def set_auth_cookies(response, access_token: str, refresh_token: str) -> None:
-    _set_cookie(response, ACCESS_TOKEN_COOKIE, access_token, settings.API_ACCESS_TOKEN_TTL_MINUTES * 60)
-    _set_cookie(response, REFRESH_TOKEN_COOKIE, refresh_token, settings.REFRESH_TOKEN_TTL_DAYS * 86400)
+    _set_cookie(
+        response,
+        ACCESS_TOKEN_COOKIE,
+        access_token,
+        settings.API_ACCESS_TOKEN_TTL_MINUTES * 60,
+    )
+    _set_cookie(
+        response,
+        REFRESH_TOKEN_COOKIE,
+        refresh_token,
+        settings.REFRESH_TOKEN_TTL_DAYS * 86400,
+    )
 
 
 def clear_auth_cookies(response) -> None:

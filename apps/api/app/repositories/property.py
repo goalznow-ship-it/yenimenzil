@@ -783,6 +783,7 @@ class PropertyRepository:
             promotion_expires_at=prop.promotion_expires_at,
             status=prop.status,
             published_at=prop.published_at,
+            expires_at=prop.expires_at,
             city=prop.location.city if prop.location else None,
             district=prop.location.district if prop.location else None,
             address_text=prop.location.address_text if prop.location else None,

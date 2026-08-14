@@ -5,14 +5,6 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-PROMOTION_TIERS: dict[str, dict] = {
-    "standard": {"price": 500, "days": 7, "label": "STANDARD"},
-    "premium": {"price": 1500, "days": 14, "label": "PREMIUM"},
-    "vip": {"price": 3000, "days": 30, "label": "VIP"},
-    "top": {"price": 5000, "days": 30, "label": "TOP"},
-    "urgent": {"price": 7000, "days": 7, "label": "URGENT"},
-}
-
 
 class WalletRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -37,36 +29,74 @@ class WalletTransactionRead(BaseModel):
     created_at: datetime
 
 
-class TopUpRequest(BaseModel):
-    amount: int = Field(ge=100, le=1_000_000)
-    note: str | None = Field(None, max_length=200)
-
-
-class TopUpRead(BaseModel):
-    transaction: WalletTransactionRead
-    detail: str = "Pending confirmation. Credits will be added once confirmed."
-
-
 class PromotionCatalogItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     tier: str
     label: str
     price: int
     days: int
     description: str
+    enabled: bool = True
 
 
 class PromotionPurchaseRequest(BaseModel):
     property_id: uuid.UUID
-    tier: str
+    tier: str = Field(min_length=1, max_length=32)
 
 
 class PromotionPurchaseRead(BaseModel):
     transaction: WalletTransactionRead
     promotion_status: str
     expires_at: datetime | None = None
+    purchase_id: uuid.UUID | None = None
     detail: str = "Promotion activated"
 
 
-class AdminConfirmTopUpRequest(BaseModel):
-    approve: bool = True
-    note: str | None = Field(None, max_length=200)
+class MyPromotionRead(BaseModel):
+    id: uuid.UUID
+    property_id: uuid.UUID
+    tier: str
+    label: str
+    price_paid: int
+    status: str
+    starts_at: datetime
+    ends_at: datetime
+    property_title: str | None = None
+
+
+class PromotionProductAdminCreate(BaseModel):
+    code: str = Field(min_length=2, max_length=32, pattern=r"^[a-z0-9_]+$")
+    label_az: str = Field(min_length=2, max_length=100)
+    description_az: str = Field(default="", max_length=300)
+    price: int = Field(ge=1)
+    duration_days: int = Field(ge=1, le=3650)
+    sort_order: int = Field(default=0)
+    is_premium_tier: bool = False
+    enabled: bool = True
+
+
+class PromotionProductAdminUpdate(BaseModel):
+    label_az: str | None = Field(None, min_length=2, max_length=100)
+    description_az: str | None = Field(None, max_length=300)
+    price: int | None = Field(None, ge=1)
+    duration_days: int | None = Field(None, ge=1, le=3650)
+    sort_order: int | None = None
+    is_premium_tier: bool | None = None
+    enabled: bool | None = None
+
+
+class PromotionProductAdminRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    code: str
+    label_az: str
+    description_az: str
+    price: int
+    duration_days: int
+    sort_order: int
+    is_premium_tier: bool
+    enabled: bool
+    created_at: datetime
+    updated_at: datetime

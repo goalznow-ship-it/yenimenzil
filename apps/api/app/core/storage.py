@@ -40,9 +40,7 @@ def ensure_bucket_exists() -> None:
 
             s3_client = boto3.client(
                 "s3",
-                endpoint_url=settings.S3_ENDPOINT
-                if settings.S3_SECURE
-                else None,
+                endpoint_url=settings.S3_ENDPOINT if settings.S3_SECURE else None,
                 aws_access_key_id=settings.S3_ACCESS_KEY,
                 aws_secret_access_key=settings.S3_SECRET_KEY,
             )
@@ -109,9 +107,7 @@ def upload_file(
 
             s3_client = boto3.client(
                 "s3",
-                endpoint_url=settings.S3_ENDPOINT
-                if settings.S3_SECURE
-                else None,
+                endpoint_url=settings.S3_ENDPOINT if settings.S3_SECURE else None,
                 aws_access_key_id=settings.S3_ACCESS_KEY,
                 aws_secret_access_key=settings.S3_SECRET_KEY,
             )

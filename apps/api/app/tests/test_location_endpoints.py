@@ -1,4 +1,5 @@
 """Tests for the DB-backed location catalog endpoints."""
+
 import pytest
 
 from app.services.location_seed import build_seed
@@ -24,7 +25,9 @@ async def test_cities_returns_baku_and_ganja(client):
 
 @pytest.mark.asyncio
 async def test_districts_filtered_by_city(client):
-    names = await _names(await client.get("/api/v1/location/districts", params={"city": "Bakı"}))
+    names = await _names(
+        await client.get("/api/v1/location/districts", params={"city": "Bakı"})
+    )
     assert "Nərimanov" in names
     assert "Yasamal" in names
     assert "Kəpəz" not in names  # Gəncə district must not leak in
@@ -51,7 +54,9 @@ async def test_settlements_filtered(client):
 
 @pytest.mark.asyncio
 async def test_metros_return_baku_stations(client):
-    names = await _names(await client.get("/api/v1/location/metros", params={"city": "Bakı"}))
+    names = await _names(
+        await client.get("/api/v1/location/metros", params={"city": "Bakı"})
+    )
     assert "Gənclik" in names
     assert "28 May" in names
     assert len(names) == 25
@@ -60,7 +65,9 @@ async def test_metros_return_baku_stations(client):
 @pytest.mark.asyncio
 async def test_landmarks_search(client):
     names = await _names(
-        await client.get("/api/v1/location/landmarks", params={"city": "Bakı", "q": "Mall"})
+        await client.get(
+            "/api/v1/location/landmarks", params={"city": "Bakı", "q": "Mall"}
+        )
     )
     assert "28 Mall" in names
     assert "Gənclik Mall" in names

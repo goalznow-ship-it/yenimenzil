@@ -142,8 +142,22 @@ export interface PromotionCatalogItem {
   description: string;
 }
 
+export interface Payment {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  provider: string;
+  provider_payment_id: string | null;
+  checkout_url: string | null;
+  failure_reason: string | null;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TopUpResult {
-  transaction: WalletTransaction;
+  payment: Payment;
   detail: string;
 }
 
@@ -170,6 +184,24 @@ export interface MyPropertySummary {
   cover_image: string | null;
 }
 
+export interface PropertyRead {
+  id: string;
+  reference_code: string;
+  slug: string;
+  title: string;
+  price: number;
+  currency: string;
+  status: string;
+  is_promoted: boolean;
+  is_premium: boolean;
+  promotion_expires_at: string | null;
+  published_at: string | null;
+  expires_at: string | null;
+  cover_image: string | null;
+  image_count: number;
+  description: string;
+}
+
 export const dashboardApi = {
   async summary(): Promise<DashboardSummary> {
     return request("/users/me/dashboard");
@@ -183,11 +215,20 @@ export const dashboardApi = {
     return request(`/properties/${id}`, { method: "DELETE" });
   },
 
-  async togglePropertyStatus(id: string, status: "active" | "inactive"): Promise<void> {
-    return request(`/properties/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify({ status })
-    });
+  async duplicateProperty(id: string): Promise<PropertyRead> {
+    return request(`/properties/${id}/duplicate`, { method: "POST" });
+  },
+
+  async renewProperty(id: string): Promise<PropertyRead> {
+    return request(`/properties/${id}/renew`, { method: "POST" });
+  },
+
+  async deactivateProperty(id: string): Promise<PropertyRead> {
+    return request(`/properties/${id}/deactivate`, { method: "POST" });
+  },
+
+  async reactivateProperty(id: string): Promise<PropertyRead> {
+    return request(`/properties/${id}/reactivate`, { method: "POST" });
   },
 
   async listingAnalytics(id: string): Promise<{
@@ -302,8 +343,19 @@ export const dashboardApi = {
   async topUp(amount: number): Promise<TopUpResult> {
     return request("/wallet/top-up", {
       method: "POST",
-      body: JSON.stringify({ amount })
+      body: JSON.stringify({
+        amount,
+        idempotency_key: crypto.randomUUID()
+      })
     });
+  },
+
+  async walletPayments(): Promise<Payment[]> {
+    return request("/wallet/payments");
+  },
+
+  async cancelPayment(paymentId: string): Promise<Payment> {
+    return request(`/wallet/payments/${paymentId}/cancel`, { method: "POST" });
   },
 
   async promotionCatalog(): Promise<PromotionCatalogItem[]> {

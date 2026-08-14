@@ -1,4 +1,5 @@
 """Tests for the Phase 5 search filters and sorts."""
+
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -13,9 +14,7 @@ async def _create(client, user, payload_overrides=None, **kwargs):
     if payload_overrides:
         payload.update(payload_overrides)
     payload["price_history"] = []
-    created = (
-        await client.post("/api/v1/properties", json=payload, **kwargs)
-    ).json()
+    created = (await client.post("/api/v1/properties", json=payload, **kwargs)).json()
     response = await client.post(f"/api/v1/properties/{created['id']}/submit")
     assert response.status_code == 200, response.text
     return response.json()
@@ -68,13 +67,25 @@ async def test_list_mortgage_furnished_heating_document_filters(
     await _create(
         client,
         owner,
-        {"mortgage_available": False, "furnished": False, "document_type": "certificate"},
+        {
+            "mortgage_available": False,
+            "furnished": False,
+            "document_type": "certificate",
+        },
     )
 
-    assert (await client.get("/api/v1/properties", params={"mortgage": True})).json()["meta"]["total"] == 1
-    assert (await client.get("/api/v1/properties", params={"furnished": True})).json()["meta"]["total"] == 1
-    assert (await client.get("/api/v1/properties", params={"heating": "central"})).json()["meta"]["total"] == 1
-    assert (await client.get("/api/v1/properties", params={"document_type": "extract"})).json()["meta"]["total"] == 1
+    assert (await client.get("/api/v1/properties", params={"mortgage": True})).json()[
+        "meta"
+    ]["total"] == 1
+    assert (await client.get("/api/v1/properties", params={"furnished": True})).json()[
+        "meta"
+    ]["total"] == 1
+    assert (
+        await client.get("/api/v1/properties", params={"heating": "central"})
+    ).json()["meta"]["total"] == 1
+    assert (
+        await client.get("/api/v1/properties", params={"document_type": "extract"})
+    ).json()["meta"]["total"] == 1
 
 
 @pytest.mark.asyncio
@@ -84,10 +95,18 @@ async def test_list_floor_filters(client, auth_user, feature_catalog):
     await _create(client, owner, {"floor": 5, "total_floors": 12})
     await _create(client, owner, {"floor": 12, "total_floors": 12})
 
-    assert (await client.get("/api/v1/properties", params={"floor": 5})).json()["meta"]["total"] == 1
-    assert (await client.get("/api/v1/properties", params={"total_floors": 12})).json()["meta"]["total"] == 3
-    assert (await client.get("/api/v1/properties", params={"is_first_floor": True})).json()["meta"]["total"] == 1
-    assert (await client.get("/api/v1/properties", params={"is_last_floor": True})).json()["meta"]["total"] == 1
+    assert (await client.get("/api/v1/properties", params={"floor": 5})).json()["meta"][
+        "total"
+    ] == 1
+    assert (await client.get("/api/v1/properties", params={"total_floors": 12})).json()[
+        "meta"
+    ]["total"] == 3
+    assert (
+        await client.get("/api/v1/properties", params={"is_first_floor": True})
+    ).json()["meta"]["total"] == 1
+    assert (
+        await client.get("/api/v1/properties", params={"is_last_floor": True})
+    ).json()["meta"]["total"] == 1
 
 
 @pytest.mark.asyncio
@@ -102,9 +121,7 @@ async def test_list_room_counts_filter(client, auth_user, feature_catalog):
     )
     assert response.json()["meta"]["total"] == 2
 
-    response = await client.get(
-        "/api/v1/properties", params={"min_bathrooms": 2}
-    )
+    response = await client.get("/api/v1/properties", params={"min_bathrooms": 2})
     assert response.json()["meta"]["total"] == 1
 
 
@@ -128,9 +145,7 @@ async def test_list_seller_kind_filter(client, auth_user, feature_catalog):
     await _create(client, owner, {"seller_kind": "owner"})
     await _create(client, owner, {"seller_kind": "agent"})
 
-    response = await client.get(
-        "/api/v1/properties", params={"seller_kind": "agent"}
-    )
+    response = await client.get("/api/v1/properties", params={"seller_kind": "agent"})
     assert response.json()["meta"]["total"] == 1
 
 
@@ -206,7 +221,8 @@ async def test_list_published_after_filter(client, auth_user, feature_catalog, d
     await db.commit()
 
     response = await client.get(
-        "/api/v1/properties", params={"published_after": datetime.now(UTC) - timedelta(days=7)}
+        "/api/v1/properties",
+        params={"published_after": datetime.now(UTC) - timedelta(days=7)},
     )
     assert response.json()["meta"]["total"] == 1
     assert response.json()["data"][0]["id"] == new["id"]

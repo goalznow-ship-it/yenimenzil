@@ -48,10 +48,24 @@ class Settings(BaseSettings):
     MEDIA_MAX_SIZE_MB: int = 10
     MEDIA_MIN_WIDTH: int = 400
     MEDIA_MAX_IMAGES: int = 15
+    MEDIA_THUMB_WIDTH: int = 480
+    MEDIA_THUMB_QUALITY: int = 80
+
+    # Payment provider: mock (local dev), stripe (optional production) or manual.
+    PAYMENT_PROVIDER: str = "mock"
+    STRIPE_PUBLIC_KEY: str = ""
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    MOCK_PAYMENT_WEBHOOK_SECRET: str = "mock-dev-secret"
+
+    # Listings: how long a published listing stays live before auto-expiry.
+    PROPERTY_LISTING_DAYS: int = 60
 
     @property
     def cors_origins_list(self) -> list[str]:
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+        return [
+            origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
+        ]
 
 
 @lru_cache
