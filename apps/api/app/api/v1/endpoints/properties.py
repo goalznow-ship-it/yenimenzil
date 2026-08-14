@@ -39,6 +39,7 @@ from app.models.property import (
 )
 from app.models.user import User
 from app.repositories.property import PropertyRepository
+from app.services.media_validator import validate_image_file
 from app.schemas.analytics import ListingAnalyticsRead
 from app.schemas.common import PaginatedResponse
 from app.schemas.property import (
@@ -121,6 +122,41 @@ async def list_my_properties(
 ) -> list[PropertySummaryRead]:
     """The current user's own listings across all statuses (dashboard)."""
     return await _repo(db).list_mine(user.id, status_filter)
+
+
+@router.post("/media/temp")
+async def upload_temporary_property_media(
+    files: list[UploadFile] = File(...),
+    _user: User = Depends(get_current_user),
+) -> dict[str, list[dict[str, str]]]:
+    """Validate and upload photos before the listing itself is created."""
+    if not 1 <= len(files) <= 10:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Bir dəfəyə 1-dən 10-a qədər şəkil yükləyə bilərsiniz",
+        )
+
+    uploaded: list[dict[str, str]] = []
+    for file in files:
+        filename = file.filename or "photo.jpg"
+        content = await _read_upload_limited(file)
+        valid, error = validate_image_file(content, filename)
+        if not valid:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"{filename}: {error}",
+            )
+        try:
+            url = upload_file(content, filename, file.content_type or "image/jpeg")
+        except RuntimeError as exc:
+            logger.exception("Temporary property media upload failed")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Şəkil yadda saxlanıla bilmədi",
+            ) from exc
+        uploaded.append({"url": url, "filename": filename})
+
+    return {"media": uploaded}
 
 
 @router.get(
