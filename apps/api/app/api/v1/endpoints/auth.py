@@ -5,7 +5,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user, verify_origin
@@ -88,7 +88,17 @@ def _send_verification_email(to: str, token: str) -> None:
     )
 
 
-def _issue_verification_token(db: AsyncSession, user: User, kind: str) -> str:
+async def _issue_verification_token(
+    db: AsyncSession, user: User, kind: str
+) -> str:
+    # Keep only the newest token of each kind for an account. This both
+    # invalidates links replaced by a resend and keeps token storage bounded.
+    await db.execute(
+        delete(VerificationToken).where(
+            VerificationToken.user_id == user.id,
+            VerificationToken.kind == kind,
+        )
+    )
     raw = secrets.token_urlsafe(32)
     db.add(
         VerificationToken(
@@ -180,7 +190,7 @@ async def register(
     await db.commit()
     await db.refresh(user)
     if not user.is_verified:
-        verify_token = _issue_verification_token(db, user, "email")
+        verify_token = await _issue_verification_token(db, user, "email")
         await db.commit()
         _send_verification_email(user.email, verify_token)
     return AuthSuccess(user=_user_response(user))
@@ -324,7 +334,7 @@ async def forgot_password(
     )
     user = result.scalar_one_or_none()
     if user is not None:
-        token = _issue_verification_token(db, user, "password_reset")
+        token = await _issue_verification_token(db, user, "password_reset")
         await db.commit()
         _send_password_reset_email(user.email, token)
     return {"detail": "If the email exists, a reset link has been issued."}
@@ -444,7 +454,7 @@ async def resend_verification(
     """Issue a new verification token for the current user."""
     if kind not in ("email", "phone"):
         raise HTTPException(status_code=400, detail="Unknown verification kind")
-    token = _issue_verification_token(db, user, kind)
+    token = await _issue_verification_token(db, user, kind)
     await db.commit()
     if kind == "email":
         _send_verification_email(user.email, token)
