@@ -58,6 +58,36 @@ def _hash_token(raw: str) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
+def _send_password_reset_email(to: str, token: str) -> None:
+    """Fire-and-forget password reset email; safe without SMTP configured."""
+    from app.services.email import send_email
+
+    reset_url = f"{settings.PUBLIC_APP_URL}/reset-password?token={token}"
+    send_email(
+        to,
+        "YeniMenzil.az — Şifrə bərpası",
+        (
+            f"Şifrənizi bərpa etmək üçün bu linki açın: {reset_url}\n\n"
+            "Əgər bu sorğunu siz etməmisinizsə, bu e-poçtu nəzərə almayın."
+        ),
+    )
+
+
+def _send_verification_email(to: str, token: str) -> None:
+    """Fire-and-forget email verification; safe without SMTP configured."""
+    from app.services.email import send_email
+
+    verify_url = f"{settings.PUBLIC_APP_URL}/verify-email?token={token}"
+    send_email(
+        to,
+        "YeniMenzil.az — E-poçt təsdiqi",
+        (
+            f"E-poçtunuzu təsdiq etmək üçün bu linki açın: {verify_url}\n\n"
+            "Əgər qeydiyyatdan siz keçməmisinizsə, bu e-poçtu nəzərə almayın."
+        ),
+    )
+
+
 def _issue_verification_token(db: AsyncSession, user: User, kind: str) -> str:
     raw = secrets.token_urlsafe(32)
     db.add(
@@ -149,6 +179,10 @@ async def register(
     await _issue_tokens(db, user, request, response)
     await db.commit()
     await db.refresh(user)
+    if not user.is_verified:
+        verify_token = _issue_verification_token(db, user, "email")
+        await db.commit()
+        _send_verification_email(user.email, verify_token)
     return AuthSuccess(user=_user_response(user))
 
 
@@ -290,8 +324,9 @@ async def forgot_password(
     )
     user = result.scalar_one_or_none()
     if user is not None:
-        _issue_verification_token(db, user, "password_reset")
+        token = _issue_verification_token(db, user, "password_reset")
         await db.commit()
+        _send_password_reset_email(user.email, token)
     return {"detail": "If the email exists, a reset link has been issued."}
 
 
@@ -409,8 +444,10 @@ async def resend_verification(
     """Issue a new verification token for the current user."""
     if kind not in ("email", "phone"):
         raise HTTPException(status_code=400, detail="Unknown verification kind")
-    _issue_verification_token(db, user, kind)
+    token = _issue_verification_token(db, user, kind)
     await db.commit()
+    if kind == "email":
+        _send_verification_email(user.email, token)
     return {"detail": "Verification token issued."}
 
 

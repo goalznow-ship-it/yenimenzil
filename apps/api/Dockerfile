@@ -1,36 +1,32 @@
 FROM python:3.12-slim
 
-# Prevent stdout/stderr buffering
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PIP_NO_CACHE_DIR=1
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    libpq \
-    libicu \
-    libjpeg-dev \
-    zlib1g-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app user
 RUN useradd --create-home --shell /bin/bash app
 
 WORKDIR /home/app
 
-# Install Python dependencies
-COPY apps/api/pyproject.toml apps/api/requirements*.txt ./
-RUN pip install --no-cache-dir -r requirements*.txt
+# Install Python dependencies from the project (wheel install is what matters for runtime).
+COPY apps/api/pyproject.toml ./
+RUN pip install --no-cache-dir .
 
-# Copy application code
+# Copy application code and migration assets
 COPY apps/api/app ./app
+COPY apps/api/alembic ./alembic
+COPY apps/api/alembic.ini ./alembic.ini
 
-# Switch to app user
 USER app
 
-# Expose the app port
 EXPOSE 8000
 
-# Run the application
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -fsS http://localhost:8000/api/v1/health/live || exit 1
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

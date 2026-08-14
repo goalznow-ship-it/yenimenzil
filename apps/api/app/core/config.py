@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -53,6 +54,9 @@ class Settings(BaseSettings):
 
     # Payment provider: mock (local dev), stripe (optional production) or manual.
     PAYMENT_PROVIDER: str = "mock"
+    # Hard guard: mock payments are never allowed in production unless this
+    # is explicitly set to true (local staging only).
+    ALLOW_MOCK_PAYMENTS_IN_PROD: bool = False
     STRIPE_PUBLIC_KEY: str = ""
     STRIPE_SECRET_KEY: str = ""
     STRIPE_WEBHOOK_SECRET: str = ""
@@ -61,11 +65,59 @@ class Settings(BaseSettings):
     # Listings: how long a published listing stays live before auto-expiry.
     PROPERTY_LISTING_DAYS: int = 60
 
+    # Public-facing base URLs (used for reset/verify links).
+    PUBLIC_APP_URL: str = "http://localhost:3000"
+
+    # SMTP (production email is an external credential).
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_USE_TLS: bool = True
+    DEFAULT_FROM_EMAIL: str = "no-reply@yenimenzil.az"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [
             origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
         ]
+
+    @model_validator(mode="after")
+    def validate_production(self) -> "Settings":
+        """Fail fast on genuinely required configuration for production."""
+        if self.APP_ENV != "production":
+            return self
+
+        if not self.SECRET_KEY or self.SECRET_KEY == "change-me-in-production":
+            raise ValueError(
+                "SECRET_KEY must be set to a strong random value in production"
+            )
+        if not self.DATABASE_URL or "localhost" in self.DATABASE_URL:
+            raise ValueError(
+                "DATABASE_URL must point to the production database in production"
+            )
+        if not self.CORS_ORIGINS.strip():
+            raise ValueError("CORS_ORIGINS must list the production origin in production")
+        if "localhost" in self.CORS_ORIGINS:
+            raise ValueError(
+                "CORS_ORIGINS must not contain localhost origins in production"
+            )
+        if self.PAYMENT_PROVIDER == "mock" and not self.ALLOW_MOCK_PAYMENTS_IN_PROD:
+            raise ValueError(
+                "PAYMENT_PROVIDER=mock is forbidden in production. Set a real "
+                "provider (stripe/manual) or explicitly allow with "
+                "ALLOW_MOCK_PAYMENTS_IN_PROD=true (staging only)."
+            )
+        if self.PAYMENT_PROVIDER == "stripe" and (
+            not self.STRIPE_SECRET_KEY or not self.STRIPE_WEBHOOK_SECRET
+        ):
+            raise ValueError(
+                "STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are required when "
+                "PAYMENT_PROVIDER=stripe in production"
+            )
+        if not self.S3_ACCESS_KEY or not self.S3_SECRET_KEY:
+            raise ValueError("S3 credentials are required in production")
+        return self
 
 
 @lru_cache

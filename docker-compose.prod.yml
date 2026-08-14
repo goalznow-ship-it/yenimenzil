@@ -1,0 +1,141 @@
+name: yenimenzil-prod
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+
+volumes:
+  yenimenzil_pg_data:
+  yenimenzil_redis_data:
+  yenimenzil_minio_data:
+  caddy_data:
+
+services:
+  caddy:
+    image: caddy:latest
+    container_name: yenimenzil-caddy
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: yenimenzil-migrate
+    restart: "no"
+    networks:
+      - backend
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil
+    command: /bin/sh -c "echo \"sqlalchemy.url = postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil\" > /home/app/alembic.ini && alembic upgrade head"
+
+  db:
+    image: postgres:16-alpine
+    container_name: yenimenzil-db
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - yenimenzil_pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=yenimenzil
+      - POSTGRES_USER=yenimenzil
+      - POSTGRES_PASSWORD=yenimenzil
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yenimenzil"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: yenimenzil-redis
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - yenimenzil_redis_data:/data
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: yenimenzil-minio
+    restart: unless-stopped
+    networks:
+      - backend
+    volumes:
+      - yenimenzil_minio_data:/data
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: yenimenzil-api
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+    environment:
+      - S3_ENDPOINT=http://minio:9000
+      - S3_BUCKET=yenimenzil-media
+      - S3_ACCESS_KEY=minioadmin
+      - S3_SECRET_KEY=minioadmin
+      - S3_PUBLIC_URL=http://localhost:9000/media
+      - S3_SECURE=false
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health/live"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: yenimenzil-web
+    restart: unless-stopped
+    networks:
+      - frontend
+    depends_on:
+      - migrate
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_USE_DEMO_DATA=false
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.worker
+    container_name: yenimenzil-worker
+    restart: unless-stopped
+    networks:
+      - backend
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil

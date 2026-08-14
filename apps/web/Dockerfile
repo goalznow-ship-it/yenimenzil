@@ -1,48 +1,55 @@
-FROM node:22-alpine AS builder
+FROM node:20-slim AS builder
 
-# Set working directory
-WORKDIR /app
+ENV PNPM_HOME=/root/.pnpm
+ENV PNPM_STORE=/pnpm-store
 
-# Install dependencies (build deps only)
-COPY apps/web/package.json apps/web/pnpm-lock.yaml ./
-RUN npm install --frozen-lockfile
+RUN corepack enable && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      python3 \
+      make \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy source code
-COPY apps/web/src ./src
-COPY apps/web/tsconfig.json ./
-COPY apps/web/next.config.ts ./
-COPY apps/web/tailwind.config.mjs ./
-COPY apps/web/postcss.config.mjs ./
-COPY apps/web/globals.css ./
+WORKDIR /home/app
 
-# Build Next.js app
-RUN npm run build
+# Copy root pnpm workspace manifests
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-# Production stage
-FROM node:22-alpine
+# Copy apps and packages so pnpm can resolve workspace deps
+COPY apps/ ./apps/
+COPY packages/ ./packages/
 
-# Create app user
-RUN addgroup -S node && adduser -S -g node app
+# Install all workspace packages (incl. @yenimenzil/config, @yenimenzil/ui, etc.)
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 
-WORKDIR /app
+# Set production env vars for build
+ENV NEXT_PUBLIC_USE_DEMO_DATA=false
 
-# Set production environment
+# Build the Next.js app with standalone output
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm --filter @yenimenzil/web build
+
+# Production runtime stage
+FROM node:20-slim AS production
+
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
 
-# Copy built files from builder
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+RUN groupadd -r appuser && useradd -r -g appuser --create-home appuser
 
-# Set the correct permission on app directory
-RUN chown -R node:node /app
+WORKDIR /home/app
 
-# Switch to non-root user
-USER app
+# Copy only the standalone build output from builder
+COPY --from=builder /home/app/apps/web/.next/standalone ./
+COPY --from=builder /home/app/apps/web/.next/static ./.next/static
+COPY --from=builder /home/app/apps/web/node_modules ./node_modules
 
-# Expose the app port
+USER appuser
+
 EXPOSE 3000
 
-# Start the application using next start
-CMD ["npm", "start"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+  CMD curl -fsS http://localhost:3000/health || exit 1
+
+CMD ["node", "server.js"]

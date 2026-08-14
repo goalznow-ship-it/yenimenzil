@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
+from app.core.request_context import RequestContextMiddleware
 from app.core.security_headers import SecurityHeadersMiddleware
 
 settings = get_settings()
@@ -28,6 +29,8 @@ def create_app() -> FastAPI:
         description="Marketplace backend for YeniMenzil.az",
         lifespan=lifespan,
     )
+
+    application.add_middleware(RequestContextMiddleware)
 
     application.add_middleware(
         CORSMiddleware,

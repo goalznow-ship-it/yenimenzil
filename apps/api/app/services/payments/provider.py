@@ -177,6 +177,14 @@ def get_payment_provider() -> PaymentProvider:
         if provider_name == "stripe":
             _PROVIDERS[provider_name] = StripePaymentProvider()
         elif provider_name == "mock":
+            if (
+                settings.APP_ENV == "production"
+                and not settings.ALLOW_MOCK_PAYMENTS_IN_PROD
+            ):
+                raise RuntimeError(
+                    "Mock payments are forbidden in production "
+                    "(set ALLOW_MOCK_PAYMENTS_IN_PROD=true only for staging)"
+                )
             _PROVIDERS[provider_name] = MockPaymentProvider()
         else:
             _PROVIDERS[provider_name] = ManualPaymentProvider()
