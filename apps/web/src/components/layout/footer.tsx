@@ -1,45 +1,50 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "./logo";
+import { useI18n } from "@/components/i18n-provider";
+import type { MessageKey } from "@/lib/i18n";
 
-const FOOTER_COLUMNS = [
+const FOOTER_COLUMNS: Array<{ title: MessageKey; links: Array<{ label: MessageKey; href: string }> }> = [
   {
-    title: "Əmlak növləri",
+    title: "footer.propertyTypes",
     links: [
-      { label: "Mənzillər", href: "/search?deal=sale&property_type=apartment" },
-      { label: "Yeni tikililər", href: "/search?deal=sale&property_type=new_building" },
-      { label: "Həyət evləri", href: "/search?deal=sale&property_type=house" },
-      { label: "Villalar", href: "/search?deal=sale&property_type=villa" },
-      { label: "Torpaq sahələri", href: "/search?deal=sale&property_type=land" },
-      { label: "Kommersiya obyektləri", href: "/search?deal=sale&property_type=commercial" }
+      { label: "footer.apartments", href: "/search?deal=sale&property_type=apartment" },
+      { label: "nav.newBuildings", href: "/search?deal=sale&property_type=new_building" },
+      { label: "footer.houses", href: "/search?deal=sale&property_type=house" },
+      { label: "footer.villas", href: "/search?deal=sale&property_type=villa" },
+      { label: "footer.land", href: "/search?deal=sale&property_type=land" },
+      { label: "footer.commercial", href: "/search?deal=sale&property_type=commercial" }
     ]
   },
   {
-    title: "Kirayə",
+    title: "nav.rent",
     links: [
-      { label: "Uzunmüddətli kirayə", href: "/search?deal=rent" },
-      { label: "Günlük kirayə", href: "/search?deal=daily" },
-      { label: "Mənzil kirayə", href: "/search?deal=rent&property_type=apartment" },
-      { label: "Ofis kirayə", href: "/search?deal=rent&property_type=office" }
+      { label: "footer.longRent", href: "/search?deal=rent" },
+      { label: "footer.dailyRent", href: "/search?deal=daily" },
+      { label: "footer.apartmentRent", href: "/search?deal=rent&property_type=apartment" },
+      { label: "footer.officeRent", href: "/search?deal=rent&property_type=office" }
     ]
   },
   {
-    title: "Şirkət",
+    title: "footer.company",
     links: [
-      { label: "Haqqımızda", href: "/about" },
-      { label: "Elan yerləşdir", href: "/login" },
-      { label: "Əlaqə", href: "/contact" }
+      { label: "footer.about", href: "/about" },
+      { label: "action.addListing", href: "/login" },
+      { label: "footer.contact", href: "/contact" }
     ]
   },
   {
-    title: "Məlumat",
+    title: "footer.info",
     links: [
-      { label: "Gizlilik siyasəti", href: "/privacy" },
-      { label: "İstifadəçi razılaşması", href: "/terms" }
+      { label: "footer.privacy", href: "/privacy" },
+      { label: "footer.terms", href: "/terms" }
     ]
   }
 ];
 
 export function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="mt-16 border-t border-border bg-surface">
       <div className="mx-auto max-w-[1440px] px-4 py-12 lg:px-6">
@@ -47,18 +52,16 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              YeniMenzil.az — Azərbaycan üzrə daşınmaz əmlak elanları üçün
-              müasir platforma. Yeni məkanını burada tap.
+              YeniMenzil.az — {t("footer.description")}
             </p>
             <p className="mt-4 text-xs text-foreground/45">
-              © {new Date().getFullYear()} YeniMenzil.az. Bütün hüquqlar
-              qorunur.
+              © {new Date().getFullYear()} YeniMenzil.az. {t("footer.rights")}
             </p>
           </div>
           {FOOTER_COLUMNS.map((column) => (
-            <nav key={column.title} aria-label={column.title}>
+            <nav key={column.title} aria-label={t(column.title)}>
               <h3 className="text-sm font-semibold text-foreground">
-                {column.title}
+                {t(column.title)}
               </h3>
               <ul className="mt-4 space-y-2.5">
                 {column.links.map((link) => (
@@ -67,7 +70,7 @@ export function Footer() {
                       href={link.href}
                       className="text-[13.5px] text-muted-foreground transition-colors hover:text-brand"
                     >
-                      {link.label}
+                      {t(link.label)}
                     </Link>
                   </li>
                 ))}

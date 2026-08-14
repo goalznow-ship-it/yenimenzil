@@ -6,6 +6,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { CookieConsent } from "@/components/cookie-consent";
+import { I18nProvider } from "@/components/i18n-provider";
+import { getLocale } from "@/lib/i18n-server";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -57,23 +59,26 @@ export const viewport: Viewport = {
   initialScale: 1
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale();
   return (
-    <html lang="az" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang={locale} className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="min-h-dvh font-sans">
-        <TooltipProvider delayDuration={300}>
-          <AuthProvider>
-            <div className="flex min-h-dvh flex-col">
-              <Header />
-              <main className="flex-1 pb-20 md:pb-0">{children}</main>
-              <Footer />
-              <MobileNav />
-              <CookieConsent />
-            </div>
-          </AuthProvider>
-        </TooltipProvider>
+        <I18nProvider initialLocale={locale}>
+          <TooltipProvider delayDuration={300}>
+            <AuthProvider>
+              <div className="flex min-h-dvh flex-col">
+                <Header />
+                <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                <Footer />
+                <MobileNav />
+                <CookieConsent />
+              </div>
+            </AuthProvider>
+          </TooltipProvider>
+        </I18nProvider>
       </body>
     </html>
   );

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
 import { SectionHeading } from "@yenimenzil/ui";
@@ -7,12 +6,10 @@ import { SearchBar } from "@/features/search/search-bar";
 import { PropertyGrid } from "@/features/properties/property-grid";
 import { MapDiscover } from "@/features/map/map-discover";
 import { getPopularAreas } from "@/data/areas";
-
-export const metadata: Metadata = {
-  title: "YeniMenzil.az — Yeni məkanını burada tap"
-};
+import { getTranslations } from "@/lib/i18n-server";
 
 export default async function HomePage() {
+  const { t } = await getTranslations();
   const sections = await fetchFeaturedSections();
   const all = sections.all;
   const activeCount = all.filter((p) => p.status === "active").length;
@@ -24,9 +21,9 @@ export default async function HomePage() {
   const popularAreas = getPopularAreas(all);
 
   const stats = [
-    { value: `${activeCount}+`, label: "aktiv elan" },
-    { value: String(popularAreas.length), label: "populyar ərazi" },
-    { value: String(droppedCount), label: "qiyməti endirilmiş elan" }
+    { value: `${activeCount}+`, label: t("home.active") },
+    { value: String(popularAreas.length), label: t("home.popularArea") },
+    { value: String(droppedCount), label: t("home.priceDropStat") }
   ];
 
   return (
@@ -35,12 +32,11 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1440px] px-4 pb-7 pt-7 md:pt-10 lg:px-6">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-[30px] font-semibold leading-tight tracking-tight text-foreground md:text-[42px]">
-              Yeni məkanını{" "}
-              <span className="text-brand">burada</span> tap.
+              {t("home.title.before")}{" "}
+              <span className="text-brand">{t("home.title.highlight")}</span>{t("home.title.after")}
             </h1>
             <p className="mx-auto mt-2.5 max-w-xl text-[14px] leading-relaxed text-muted-foreground md:text-[15px]">
-              Azərbaycan üzrə mənzil, villa, torpaq, obyekt və digər daşınmaz
-              əmlak elanlarını rahat şəkildə kəşf et.
+              {t("home.subtitle")}
             </p>
           </div>
           <div className="mx-auto mt-6 max-w-4xl">
@@ -64,10 +60,10 @@ export default async function HomePage() {
       <div className="mx-auto max-w-[1440px] space-y-12 px-4 pt-8 md:space-y-14 lg:px-6">
         <section aria-labelledby="new-listings-title">
           <SectionHeading
-            title="Yeni elanlar"
-            subtitle="Son əlavə olunan elanlar"
+            title={t("home.new")}
+            subtitle={t("home.newSubtitle")}
             linkHref="/search?sort=newest"
-            linkLabel="Hamısına bax"
+            linkLabel={t("action.viewAll")}
           />
           <PropertyGrid listings={sections.newest.slice(0, 8)} columns={4} />
         </section>
@@ -81,20 +77,20 @@ export default async function HomePage() {
                 id="premium-listings-title"
                 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-foreground sm:text-2xl"
               >
-                Premium elanlar
+                {t("home.premium")}
                 <span className="rounded-full bg-[#F5EBD8] px-2 py-0.5 text-[11px] font-semibold text-[#8a6a2f]">
                   VIP
                 </span>
               </h2>
               <p className="mt-0.5 text-[13px] text-muted-foreground sm:text-sm">
-                Seçilmiş yüksək keyfiyyətli daşınmaz əmlak
+                {t("home.premiumSubtitle")}
               </p>
             </div>
             <Link
               href="/search?deal=sale"
               className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/20 bg-brand-soft/60 px-4 py-2 text-[13px] font-semibold text-brand shadow-sm transition-all hover:-translate-y-px hover:border-brand/40 hover:bg-brand-soft"
             >
-              Hamısına bax
+              {t("action.viewAll")}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -103,28 +99,28 @@ export default async function HomePage() {
 
         <section aria-labelledby="price-drop-title">
           <SectionHeading
-            title="Qiyməti endirilənlər"
-            subtitle="Satıcılar qiyməti endirib"
+            title={t("home.priceDrops")}
+            subtitle={t("home.priceDropsSubtitle")}
             linkHref="/search?sort=newest"
-            linkLabel="Hamısına bax"
+            linkLabel={t("action.viewAll")}
           />
           <PropertyGrid listings={sections.priceDropped.slice(0, 4)} columns={4} />
         </section>
 
         <section aria-labelledby="new-buildings-title">
           <SectionHeading
-            title="Yeni tikililər"
-            subtitle="Müasir tikinti, təhvil verilən binalar"
+            title={t("home.newBuildings")}
+            subtitle={t("home.newBuildingsSubtitle")}
             linkHref="/search?deal=sale&property_type=new_building"
-            linkLabel="Hamısına bax"
+            linkLabel={t("action.viewAll")}
           />
           <PropertyGrid listings={sections.newBuildings.slice(0, 4)} columns={4} />
         </section>
 
         <section aria-labelledby="popular-areas-title">
           <SectionHeading
-            title="Populyar ərazilər"
-            subtitle="Ən çox baxılan rayon və qəsəbələr"
+            title={t("home.popularAreas")}
+            subtitle={t("home.popularAreasSubtitle")}
           />
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
             {popularAreas.map((area) => (
@@ -141,7 +137,7 @@ export default async function HomePage() {
                     {area.name}
                   </span>
                   <span className="block text-xs text-muted-foreground">
-                    {area.count} elan
+                    {area.count} {t("listing.count")}
                   </span>
                 </span>
                 <ArrowRight className="ml-auto h-4 w-4 text-foreground/25 transition-colors group-hover:text-brand" />

@@ -14,6 +14,8 @@ import { useFavoritesStore } from "@/stores/favorites-store";
 import { useComparisonStore } from "@/stores/comparison-store";
 import { ImageWithFallback } from "@/components/common/image-with-fallback";
 import { PropertyBadge } from "./property-badge";
+import { useI18n } from "@/components/i18n-provider";
+import { roomLabel } from "@/lib/i18n";
 
 export function dealLabel(p: Property): string {
   switch (p.dealType) {
@@ -26,23 +28,24 @@ export function dealLabel(p: Property): string {
   }
 }
 
-function titleFor(p: Property): string {
+function titleFor(p: Property, roomLabel: string, apartmentLabel: string, newBuildingLabel: string): string {
   if (p.dealType === "sale" && p.rooms > 0) {
     const type =
-      p.propertyType === "new_building" ? "yeni tikili" : "mənzil";
-    return `${p.rooms} otaqlı ${type}, ${p.areaTotal} m²`;
+      p.propertyType === "new_building" ? newBuildingLabel : apartmentLabel;
+    return `${p.rooms} ${roomLabel}, ${type}, ${p.areaTotal} m²`;
   }
   return p.title;
 }
 
 function FavoriteButton({ property }: { property: Property }) {
+  const { t } = useI18n();
   const has = useFavoritesStore((s) => s.has(property.id));
   const toggle = useFavoritesStore((s) => s.toggle);
 
   return (
     <button
       type="button"
-      aria-label={has ? "Seçilmişlərdən sil" : "Seçilmişlərə əlavə et"}
+      aria-label={has ? t("listing.removeFavorite") : t("listing.addFavorite")}
       aria-pressed={has}
       onClick={(e) => {
         e.preventDefault();
@@ -67,6 +70,7 @@ function FavoriteButton({ property }: { property: Property }) {
 }
 
 function CompareButton({ property }: { property: Property }) {
+  const { t } = useI18n();
   const has = useComparisonStore((s) => s.has(property.id));
   const toggle = useComparisonStore((s) => s.toggle);
   const atLimit = useComparisonStore((s) => s.atLimit());
@@ -74,9 +78,9 @@ function CompareButton({ property }: { property: Property }) {
   return (
     <button
       type="button"
-      aria-label={has ? "Müqayisədən sil" : "Müqayisəyə əlavə et"}
+      aria-label={has ? t("listing.removeCompare") : t("listing.addCompare")}
       aria-pressed={has}
-      title={atLimit && !has ? "Maksimum 4 elan müqayisə edilə bilər" : undefined}
+      title={atLimit && !has ? t("listing.compareLimit") : undefined}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -105,6 +109,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, className, compact }: PropertyCardProps) {
+  const { locale, t } = useI18n();
   const hasPriceDrop =
     property.priceHistory.length >= 2 &&
     property.priceHistory.at(-1)!.price < property.priceHistory[0]!.price;
@@ -156,7 +161,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
       <div className={cn("px-3 pb-3", compact ? "pt-2.5" : "pt-3")}>
         <div className="flex items-baseline justify-between gap-2">
           <span className="text-[18px] font-semibold tabular-nums tracking-tight text-foreground">
-            {formatPriceWithPeriod(property.price, property.dealType)}
+            {formatPriceWithPeriod(property.price, property.dealType, property.currency, locale)}
           </span>
           {property.pricePerSqm ? (
             <span className="shrink-0 text-xs font-medium tabular-nums text-muted-foreground">
@@ -166,7 +171,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
         </div>
 
         <h3 className="mt-1 line-clamp-1 text-[14.5px] font-medium text-foreground">
-          {titleFor(property)}
+          {titleFor(property, roomLabel(locale, property.rooms), t("type.apartment"), t("type.new_building"))}
         </h3>
 
         <p className="mt-0.5 line-clamp-1 text-[13px] text-muted-foreground">
@@ -177,7 +182,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
           {property.rooms > 0 ? (
             <span className="flex items-center gap-1.5">
               <span className="h-1 w-1 rounded-full bg-foreground/25" />
-              {property.rooms} otaq
+              {property.rooms} {roomLabel(locale, property.rooms)}
             </span>
           ) : null}
           <span className="flex items-center gap-1.5">
@@ -187,7 +192,7 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
           {property.floor != null && property.floor > 0 ? (
             <span className="flex items-center gap-1.5">
               <span className="h-1 w-1 rounded-full bg-foreground/25" />
-              {property.floor}/{property.totalFloors} mərtəbə
+              {property.floor}/{property.totalFloors} {t("listing.floor")}
             </span>
           ) : null}
           {property.location.metro ? (
@@ -200,13 +205,13 @@ export function PropertyCard({ property, className, compact }: PropertyCardProps
 
         <div className="mt-2.5 flex items-center justify-between border-t border-border/80 pt-2">
           <span className="text-xs text-muted-foreground">
-            {timeAgo(property.publishedAt)}
+            {timeAgo(property.publishedAt, new Date(), locale)}
           </span>
           <span className="flex items-center gap-1.5 text-xs font-medium text-foreground/70">
             {property.seller.kind === "owner" ? (
-              "Mülkiyyətçi"
+              t("listing.owner")
             ) : (
-              property.seller.agencyName ?? "Agentlik"
+              property.seller.agencyName ?? t("listing.agency")
             )}
           </span>
         </div>

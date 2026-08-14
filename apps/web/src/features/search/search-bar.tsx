@@ -7,6 +7,8 @@ import { PROPERTY_TYPE_LABELS, type PropertyType } from "@yenimenzil/types";
 import { Button, cn, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsList, TabsTrigger } from "@yenimenzil/ui";
 import { MapPin, Search } from "lucide-react";
 import { POPULAR_PLACES } from "@/data/locations";
+import { useI18n } from "@/components/i18n-provider";
+import { roomLabel, type MessageKey } from "@/lib/i18n";
 
 const ROOM_OPTIONS = [
   { value: "1", label: "1 otaq" },
@@ -24,6 +26,7 @@ const PRICE_OPTIONS = [
 ];
 
 export function SearchBar() {
+  const { locale, t } = useI18n();
   const router = useRouter();
   const [deal, setDeal] = React.useState<DealType>("sale");
   const [city, setCity] = React.useState("");
@@ -60,13 +63,13 @@ export function SearchBar() {
       <Tabs value={deal} onValueChange={(v) => setDeal(v as DealType)} variant="underline" className="mb-3 max-w-md">
         <TabsList className="gap-5">
           <TabsTrigger value="sale" className="text-[16px]">
-            Al
+            {t("nav.sale")}
           </TabsTrigger>
           <TabsTrigger value="rent" className="text-[16px]">
-            Kirayə
+            {t("nav.rent")}
           </TabsTrigger>
           <TabsTrigger value="daily" className="text-[16px]">
-            Günlük
+            {t("nav.daily")}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -77,10 +80,10 @@ export function SearchBar() {
             <MapPin className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
             <Select value={city} onValueChange={setCity}>
               <SelectTrigger className="pl-9">
-                <SelectValue placeholder="Harada?" />
+                <SelectValue placeholder={t("search.where")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Bütün ərazilər</SelectItem>
+                <SelectItem value="">{t("search.allAreas")}</SelectItem>
                 {POPULAR_PLACES.map((place) => (
                   <SelectItem key={place.label} value={place.label}>
                     {place.label}
@@ -92,18 +95,18 @@ export function SearchBar() {
 
           <Select value={propertyType} onValueChange={setPropertyType}>
             <SelectTrigger>
-              <SelectValue placeholder="Əmlak növü" />
+              <SelectValue placeholder={t("search.propertyType")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Bütün növlər</SelectItem>
+              <SelectItem value="all">{t("search.allTypes")}</SelectItem>
               {(
                 Object.entries(PROPERTY_TYPE_LABELS) as [
                   PropertyType,
                   string
                 ][]
-              ).map(([value, label]) => (
+              ).map(([value]) => (
                 <SelectItem key={value} value={value}>
-                  {label}
+                  {t(`type.${value}` as MessageKey)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -111,13 +114,13 @@ export function SearchBar() {
 
           <Select value={rooms} onValueChange={setRooms}>
             <SelectTrigger>
-              <SelectValue placeholder="Otaq" />
+              <SelectValue placeholder={t("search.rooms")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">İstənilən</SelectItem>
+              <SelectItem value="">{t("search.any")}</SelectItem>
               {ROOM_OPTIONS.map((room) => (
                 <SelectItem key={room.value} value={room.value}>
-                  {room.label}
+                  {room.value} {roomLabel(locale, Number.parseInt(room.value, 10))}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -125,12 +128,12 @@ export function SearchBar() {
 
           <Select value={price} onValueChange={setPrice}>
             <SelectTrigger>
-              <SelectValue placeholder="Qiymət" />
+              <SelectValue placeholder={t("search.price")} />
             </SelectTrigger>
             <SelectContent>
               {PRICE_OPTIONS.map((option) => (
                 <SelectItem key={option.label} value={option.value}>
-                  {option.label}
+                  {option.value === "" ? t("search.price") : option.value === "0-100000" ? `100 000 ₼ ${t("search.upTo")}` : option.value === "400000-" ? `${t("search.from")} 400 000 ₼` : option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -138,14 +141,14 @@ export function SearchBar() {
 
           <Button onClick={submit} size="lg" className="gap-2 lg:px-8">
             <Search className="h-4 w-4" />
-            Axtar
+            {t("action.search")}
           </Button>
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="text-[13px] text-muted-foreground">
-          Populyar ərazilər:
+          {t("search.popular")}
         </span>
         {POPULAR_PLACES.slice(0, 8).map((place) => (
           <button

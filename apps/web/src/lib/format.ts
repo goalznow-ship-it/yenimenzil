@@ -47,13 +47,14 @@ export function formatPricePerSqm(
 export function formatPriceWithPeriod(
   value: number,
   dealType: DealType,
-  currency: Currency = "AZN"
+  currency: Currency = "AZN",
+  locale: "az" | "en" | "ru" = "az"
 ): string {
   switch (dealType) {
     case "rent":
-      return `${formatPrice(value, currency)} / ay`;
+      return `${formatPrice(value, currency)} / ${locale === "en" ? "month" : locale === "ru" ? "мес." : "ay"}`;
     case "daily":
-      return `${formatPrice(value, currency)} / gün`;
+      return `${formatPrice(value, currency)} / ${locale === "en" ? "day" : locale === "ru" ? "день" : "gün"}`;
     default:
       return formatPrice(value, currency);
   }
@@ -79,10 +80,19 @@ export function formatDate(value: string | Date): string {
   return `${d.getDate()} ${MONTHS_AZ[d.getMonth()]}, ${d.getFullYear()}`;
 }
 
-export function timeAgo(value: string | Date, now = new Date()): string {
+export function timeAgo(value: string | Date, now = new Date(), locale: "az" | "en" | "ru" = "az"): string {
   const d = typeof value === "string" ? new Date(value) : value;
   const diffMs = now.getTime() - d.getTime();
   const minutes = Math.floor(diffMs / 60_000);
+  if (locale !== "az") {
+    const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+    if (minutes < 60) return formatter.format(-Math.max(0, minutes), "minute");
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return formatter.format(-hours, "hour");
+    const days = Math.floor(hours / 24);
+    if (days < 30) return formatter.format(-days, "day");
+    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "long", year: "numeric" }).format(d);
+  }
   if (minutes < 1) return "İndicə";
   if (minutes < 60) return `${minutes} dəq əvvəl`;
   const hours = Math.floor(minutes / 60);
