@@ -97,7 +97,9 @@ class Settings(BaseSettings):
                 "DATABASE_URL must point to the production database in production"
             )
         if not self.CORS_ORIGINS.strip():
-            raise ValueError("CORS_ORIGINS must list the production origin in production")
+            raise ValueError(
+                "CORS_ORIGINS must list the production origin in production"
+            )
         if "localhost" in self.CORS_ORIGINS:
             raise ValueError(
                 "CORS_ORIGINS must not contain localhost origins in production"

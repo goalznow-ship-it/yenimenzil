@@ -35,13 +35,18 @@ async def _readiness(
 
 @router.get("/health/live", response_model=HealthResponse)
 async def health_live() -> HealthResponse:
-    """Liveness: the process is up and serving. Never checks dependencies."""
+    """Liveness: the process is up and serving.
+
+    Dependency status is intentionally NOT checked here and reported as
+    ``not_checked`` so this endpoint never falsely claims healthy
+    dependencies. Use /health/ready for real dependency verification.
+    """
     settings = get_settings()
     return HealthResponse(
         status="ok",
         application=settings.APP_NAME,
-        database="ok",
-        redis="ok",
+        database="not_checked",
+        redis="not_checked",
     )
 
 

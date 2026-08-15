@@ -43,9 +43,7 @@ def send_email(
         message.add_alternative(html_body, subtype="html")
 
     try:
-        with smtplib.SMTP(
-            settings.SMTP_HOST, settings.SMTP_PORT, timeout=10
-        ) as smtp:
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as smtp:
             if settings.SMTP_USE_TLS:
                 context = ssl.create_default_context()
                 smtp.starttls(context=context)
@@ -54,6 +52,6 @@ def send_email(
             smtp.send_message(message)
         logger.info("Email sent to %s: %s", to, subject)
         return True
-    except Exception:  # noqa: BLE001 - never break the request for email
+    except Exception:
         logger.exception("Failed to send email to %s", to)
         return False

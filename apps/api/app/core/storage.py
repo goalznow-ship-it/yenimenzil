@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import uuid
 
 from minio import Minio
@@ -10,27 +11,68 @@ settings = get_settings()
 
 
 def _is_minio_endpoint() -> bool:
-    """Check if we're using a MinIO-compatible endpoint (localhost) vs production S3."""
+    """Check if we're using a MinIO-compatible endpoint vs real AWS S3.
+
+    MinIO-compatible: localhost / dev hostnames and custom S3-compatible
+    endpoints (e.g. ``http://minio:9000`` inside the docker network).
+    Real AWS S3: endpoints on ``amazonaws.com``.
+    """
     endpoint = settings.S3_ENDPOINT.lower().strip()
-    return endpoint in ("localhost:9002", "localhost:9000", "127.0.0.1:9000")
+    return "amazonaws.com" not in endpoint and not endpoint.startswith("s3.")
+
+
+def _minio_client() -> Minio:
+    """Build a MinIO client, normalizing the endpoint for the minio SDK.
+
+    minio-python rejects endpoints that carry a scheme; the scheme must be
+    expressed via the ``secure`` flag instead.
+    """
+    endpoint = settings.S3_ENDPOINT.strip()
+    secure = settings.S3_SECURE
+    if "://" in endpoint:
+        scheme, endpoint = endpoint.split("://", 1)
+        secure = scheme.lower() == "https"
+    return Minio(
+        endpoint,
+        access_key=settings.S3_ACCESS_KEY,
+        secret_key=settings.S3_SECRET_KEY,
+        secure=secure,
+    )
+
+
+def _public_read_policy(bucket: str) -> str:
+    """Anonymous read policy so generated public URLs actually serve media."""
+    return f"""
+{{
+  "Version": "2012-10-17",
+  "Statement": [
+    {{
+      "Effect": "Allow",
+      "Principal": {{"AWS": ["*"]}},
+      "Action": ["s3:GetObject"],
+      "Resource": ["arn:aws:s3:::{bucket}/*"]
+    }}
+  ]
+}}
+"""
 
 
 def ensure_bucket_exists() -> None:
     """Ensure the bucket exists, create it if not.
 
     Uses MinIO for local development and AWS S3 for production.
+    The bucket is set to anonymous read so the plain public URLs returned by
+    upload_file() are actually fetchable by browsers.
     """
     if _is_minio_endpoint():
         # MinIO path
         try:
-            minio_client = Minio(
-                settings.S3_ENDPOINT,
-                access_key=settings.S3_ACCESS_KEY,
-                secret_key=settings.S3_SECRET_KEY,
-                secure=settings.S3_SECURE,
-            )
+            minio_client = _minio_client()
             if not minio_client.bucket_exists(settings.S3_BUCKET):
                 minio_client.make_bucket(settings.S3_BUCKET)
+            minio_client.set_bucket_policy(
+                settings.S3_BUCKET, _public_read_policy(settings.S3_BUCKET)
+            )
         except Exception as e:
             raise RuntimeError(f"Failed to ensure MinIO bucket exists: {e}") from e
     else:
@@ -49,6 +91,10 @@ def ensure_bucket_exists() -> None:
                 s3_client.head_bucket(Bucket=settings.S3_BUCKET)
             except Exception:  # noqa: BLE001
                 s3_client.create_bucket(Bucket=settings.S3_BUCKET)
+            s3_client.put_bucket_policy(
+                Bucket=settings.S3_BUCKET,
+                Policy=_public_read_policy(settings.S3_BUCKET),
+            )
         except ImportError:
             raise RuntimeError(
                 "boto3 is required for production S3 support. "
@@ -85,16 +131,11 @@ def upload_file(
     if _is_minio_endpoint():
         # MinIO path
         try:
-            minio_client = Minio(
-                settings.S3_ENDPOINT,
-                access_key=settings.S3_ACCESS_KEY,
-                secret_key=settings.S3_SECRET_KEY,
-                secure=settings.S3_SECURE,
-            )
+            minio_client = _minio_client()
             minio_client.put_object(
                 bucket_name=settings.S3_BUCKET,
                 object_name=object_name,
-                data=file_data,
+                data=io.BytesIO(file_data),
                 length=len(file_data),
                 content_type=content_type,
             )
@@ -158,12 +199,7 @@ def delete_file(url: str) -> None:
         return
     if _is_minio_endpoint():
         try:
-            minio_client = Minio(
-                settings.S3_ENDPOINT,
-                access_key=settings.S3_ACCESS_KEY,
-                secret_key=settings.S3_SECRET_KEY,
-                secure=settings.S3_SECURE,
-            )
+            minio_client = _minio_client()
             minio_client.remove_object(
                 bucket_name=settings.S3_BUCKET, object_name=object_name
             )

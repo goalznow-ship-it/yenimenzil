@@ -86,11 +86,13 @@ REDIS_URL=redis://hostname:6379/0
 SECRET_KEY=your-32-byte-secret-key-here
 
 # Optional - with defaults
-S3_ENDPOINT=localhost:9000
+S3_ENDPOINT=http://minio:9000
 S3_BUCKET=yenimenzil-media
 S3_ACCESS_KEY=minioadmin
 S3_SECRET_KEY=minioadmin
-S3_PUBLIC_URL=http://localhost:9000/media
+# Media is served publicly through the Caddy reverse proxy, NOT directly
+# from MinIO (MinIO has no host port in the production stack).
+S3_PUBLIC_URL=https://yourdomain.com/media
 S3_SECURE=false
 
 SMTP_HOST=smtp.example.com
@@ -106,7 +108,7 @@ STRIPE_SECRET_KEY=your-secret-key
 STRIPE_WEBHOOK_SECRET=your-webhook-secret
 ALLOW_MOCK_PAYMENTS_IN_PROD=false
 
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+NEXT_PUBLIC_API_URL=https://yourdomain.com/api/v1
 NEXT_PUBLIC_APP_URL=https://yourdomain.com
 NEXT_PUBLIC_USE_DEMO_DATA=false
 
@@ -119,10 +121,9 @@ Configure DNS for your domain pointing to the server's public IP:
 - `yourdomain.com` → A record → server IP
 - `www.yourdomain.com` → A record → server IP
 
-For local testing, add to `/etc/hosts`:
-```
-127.0.0.1 localyeni.az
-```
+For local verification the stack serves plain HTTP on `localhost:80` and
+HTTPS via Caddy's self-signed `tls internal` on `localhost:443` — no
+`/etc/hosts` entry is required.
 
 ---
 
@@ -177,11 +178,8 @@ docker compose -f docker-compose.prod.yml up -d migrate
 curl -fsS https://yourdomain.com/api/v1/health/live
 curl -fsS https://yourdomain.com/api/v1/health/ready
 
-# API docs (Swagger UI)
+# API docs (Swagger UI, routed through Caddy)
 curl -fsS https://yourdomain.com/docs
-
-# Caddy metrics (if enabled)
-curl -fsS http://localhost:8080/metrics
 ```
 
 ---
@@ -364,7 +362,11 @@ docker compose -f docker-compose.prod.yml logs -f worker
 # Exec into a running service
 docker compose -f docker-compose.prod.yml exec db psql -U yenimenzil -d yenimenzil
 docker compose -f docker-compose.prod.yml exec api python -c "from app.core.config import get_settings; print(get_settings().APP_ENV)"
-docker compose -f docker-compose.prod.yml exec worker python -m app.worker --once
+docker compose -f docker-compose.prod.yml exec worker python -c "
+import asyncio
+from app.services.expiry_watcher import _check_expiring_properties, _check_expiring_promotions
+asyncio.run(_check_expiring_properties()); asyncio.run(_check_expiring_promotions())
+"
 ```
 
 ---

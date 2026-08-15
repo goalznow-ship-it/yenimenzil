@@ -1,7 +1,92 @@
-localhost:80 {
-  encode gzip
-
-  reverse_proxy api:8000
-
-  reverse_proxy web:3000
+{
+	# Admin API stays on localhost only
+	admin localhost:2019
 }
+
+# Shared security headers + compression for every site block
+(security_headers) {
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-Robots-Tag "noindex, nofollow"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), camera=(), microphone=(), payment=()"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+	encode gzip
+}
+
+# Local HTTP entry point (development / verification)
+http://localhost {
+	import security_headers
+
+	# Media: /media/{bucket}/{object} -> MinIO bucket path
+	handle_path /media/* {
+		reverse_proxy minio:9000
+	}
+
+	# API: preserve the /api/v1 prefix
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# API documentation served by FastAPI (outside the /api prefix)
+	handle /docs {
+		reverse_proxy api:8000
+	}
+	handle /redoc {
+		reverse_proxy api:8000
+	}
+	handle /openapi.json {
+		reverse_proxy api:8000
+	}
+
+	# Everything else -> Next.js frontend
+	handle {
+		reverse_proxy web:3000
+	}
+}
+
+# Local HTTPS entry point (self-signed certificate for testing TLS locally)
+https://localhost {
+	tls internal
+	import security_headers
+
+	handle_path /media/* {
+		reverse_proxy minio:9000
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	handle /docs {
+		reverse_proxy api:8000
+	}
+	handle /redoc {
+		reverse_proxy api:8000
+	}
+	handle /openapi.json {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}
+
+# Production HTTPS — replace localhost with the real domain and Caddy will
+# obtain and renew a Let's Encrypt certificate automatically.
+#
+# https://yenimenzil.az {
+# 	import security_headers
+# 	handle_path /media/* {
+# 		reverse_proxy minio:9000
+# 	}
+# 	handle /api/* {
+# 		reverse_proxy api:8000
+# 	}
+# 	handle {
+# 		reverse_proxy web:3000
+# 	}
+# }

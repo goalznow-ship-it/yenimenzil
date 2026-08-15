@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Environment — secrets must never enter a build context
+.env
+.env.*
+!.env.example
+
+# Node / JS
+node_modules
+**/node_modules
+**/.next
+**/.turbo
+**/*.tsbuildinfo
+**/dist
+
+# Python
+.venv
+**/.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+**/*.egg-info
+
+# Logs / temp / backups
+*.log
+*.pid
+tmp/
+**/tmp/
+backups/
+
+# Docs and deployment helpers are not needed in the image context
+docs/
+README.md
+DEPLOYMENT.md
+PHASE_12_REPORT.md
+Makefile

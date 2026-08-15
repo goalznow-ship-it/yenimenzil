@@ -166,4 +166,4 @@ jobs:
       - name: Generate deployment docs
         run: |
           echo "Deployment documentation generation placeholder"
-          echo "See: docs/DEPLOYMENT.md"
+          echo "See: DEPLOYMENT.md (docs/DEPLOYMENT.md is a pointer to it)"

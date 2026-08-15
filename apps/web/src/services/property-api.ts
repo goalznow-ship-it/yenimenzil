@@ -26,9 +26,9 @@ import {
   sortListings
 } from "@/services/listings-service";
 import { getDemoListings } from "@/data/listings";
+import { API_BASE_URL } from "@/services/api-base";
 
-export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+export const API_URL = API_BASE_URL;
 export const USE_DEMO_DATA =
   (process.env.NEXT_PUBLIC_USE_DEMO_DATA ?? "true") !== "false";
 

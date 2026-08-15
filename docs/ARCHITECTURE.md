@@ -27,7 +27,7 @@ yenimenzil/
 │   └── typescript-config/ # Shared tsconfig presets
 ├── infra/
 │   ├── docker/       # Container definitions
-│   └── nginx/        # Reverse proxy configuration (production)
+│   └── caddy/        # Reverse proxy configuration (production, see deploy/Caddyfile)
 ├── docs/             # Architecture, database, API, design system, roadmap
 ├── docker-compose.yml
 ├── pnpm-workspace.yaml

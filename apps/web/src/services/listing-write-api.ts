@@ -40,7 +40,9 @@ export interface ListingInput {
   media: { url: string; alt?: string; is_cover?: boolean }[];
 }
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+import { API_BASE_URL } from "@/services/api-base";
+
+const BASE = API_BASE_URL;
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`${BASE}${path}`, {

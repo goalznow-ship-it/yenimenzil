@@ -12,6 +12,39 @@ volumes:
   yenimenzil_minio_data:
   caddy_data:
 
+x-api-env: &api-env
+  APP_ENV: ${APP_ENV:-production}
+  DATABASE_URL: ${PROD_DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil}
+  REDIS_URL: ${PROD_REDIS_URL:-redis://redis:6379/0}
+  CELERY_BROKER_URL: ${PROD_REDIS_URL:-redis://redis:6379/0}
+  CELERY_RESULT_BACKEND: ${PROD_REDIS_URL:-redis://redis:6379/1}
+  SECRET_KEY: ${SECRET_KEY:-}
+  CORS_ORIGINS: ${PROD_CORS_ORIGINS:-https://yenimenzil.az,https://www.yenimenzil.az}
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-mock}
+  ALLOW_MOCK_PAYMENTS_IN_PROD: ${ALLOW_MOCK_PAYMENTS_IN_PROD:-false}
+  STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY:-}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  MOCK_PAYMENT_WEBHOOK_SECRET: ${MOCK_PAYMENT_WEBHOOK_SECRET:-mock-dev-secret}
+  S3_ENDPOINT: ${PROD_S3_ENDPOINT:-http://minio:9000}
+  S3_BUCKET: ${S3_BUCKET:-yenimenzil-media}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+  S3_PUBLIC_URL: ${PROD_S3_PUBLIC_URL:-http://localhost/media}
+  S3_SECURE: ${S3_SECURE:-false}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+  DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-no-reply@yenimenzil.az}
+  PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost}
+  RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+  RATE_LIMIT_LOGIN_PER_MINUTE: ${RATE_LIMIT_LOGIN_PER_MINUTE:-10}
+  RATE_LIMIT_LOGIN_BURST: ${RATE_LIMIT_LOGIN_BURST:-20}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+
 services:
   caddy:
     image: caddy:latest
@@ -27,20 +60,8 @@ services:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
 
-  migrate:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: yenimenzil-migrate
-    restart: "no"
-    networks:
-      - backend
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil
-    command: /bin/sh -c "echo \"sqlalchemy.url = postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil\" > /home/app/alembic.ini && alembic upgrade head"
-
   db:
-    image: postgres:16-alpine
+    image: postgis/postgis:16-3.4
     container_name: yenimenzil-db
     restart: unless-stopped
     networks:
@@ -52,10 +73,26 @@ services:
       - POSTGRES_USER=yenimenzil
       - POSTGRES_PASSWORD=yenimenzil
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U yenimenzil"]
+      test: ["CMD-SHELL", "pg_isready -U yenimenzil -d yenimenzil"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: yenimenzil-migrate
+    restart: on-failure
+    networks:
+      - backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: *api-env
+      DATABASE_URL: ${PROD_DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil}
+    command: ["alembic", "upgrade", "head"]
 
   redis:
     image: redis:7-alpine
@@ -100,33 +137,42 @@ services:
     networks:
       - frontend
       - backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
-      - S3_ENDPOINT=http://minio:9000
-      - S3_BUCKET=yenimenzil-media
-      - S3_ACCESS_KEY=minioadmin
-      - S3_SECRET_KEY=minioadmin
-      - S3_PUBLIC_URL=http://localhost:9000/media
-      - S3_SECURE=false
+      <<: *api-env
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health/live"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/v1/health/ready"]
       interval: 30s
       timeout: 5s
-      start_period: 40s
-      retries: 3
+      start_period: 60s
+      retries: 5
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${WEB_API_URL:-http://localhost/api/v1}
+        NEXT_PUBLIC_USE_DEMO_DATA: "false"
     container_name: yenimenzil-web
     restart: unless-stopped
     networks:
       - frontend
     depends_on:
-      - migrate
+      api:
+        condition: service_healthy
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - NEXT_PUBLIC_USE_DEMO_DATA=false
+      NEXT_PUBLIC_API_URL: ${WEB_API_URL:-http://localhost/api/v1}
+      NEXT_PUBLIC_USE_DEMO_DATA: "false"
+      # Server-side components reach the API via the container network;
+      # browsers keep using the public NEXT_PUBLIC_API_URL above.
+      API_INTERNAL_URL: ${WEB_INTERNAL_API_URL:-http://api:8000/api/v1}
 
   worker:
     build:
@@ -136,6 +182,12 @@ services:
     restart: unless-stopped
     networks:
       - backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql+asyncpg://yenimenzil:yenimenzil@db:5432/yenimenzil
+      <<: *api-env

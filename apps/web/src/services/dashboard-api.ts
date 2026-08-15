@@ -5,7 +5,9 @@
  * Auth is via httpOnly cookies (same as auth-api).
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+import { API_BASE_URL } from "@/services/api-base";
+
+const BASE = API_BASE_URL;
 
 class ApiError extends Error {
   status: number;
