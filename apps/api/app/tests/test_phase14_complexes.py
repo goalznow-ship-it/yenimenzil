@@ -76,7 +76,7 @@ async def test_complex_crud_and_public_detail(client, auth_user, db, feature_cat
     assert patched.json()["is_verified"] is True
 
     deleted = await client.delete(f"/api/v1/complexes/{complex_id}")
-    assert deleted.status_code == 204
+    assert deleted.status_code == 200
     gone = await client.get(f"/api/v1/complexes/{complex_id}")
     assert gone.status_code == 404
 

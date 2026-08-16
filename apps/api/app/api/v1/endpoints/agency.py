@@ -284,7 +284,7 @@ async def create_invite(
     return invite
 
 
-@router.delete("/me/invites/{invite_id}", status_code=204)
+@router.delete("/me/invites/{invite_id}")
 async def cancel_invite(
     invite_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

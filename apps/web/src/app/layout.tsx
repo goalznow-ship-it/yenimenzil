@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { CookieConsent } from "@/components/cookie-consent";
+import { AdsRootProvider } from "@/components/ads/ads-root-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -65,13 +66,15 @@ export default function RootLayout({
       <body className="min-h-dvh font-sans">
         <TooltipProvider delayDuration={300}>
           <AuthProvider>
-            <div className="flex min-h-dvh flex-col">
-              <Header />
-              <main className="flex-1 pb-20 md:pb-0">{children}</main>
-              <Footer />
-              <MobileNav />
-              <CookieConsent />
-            </div>
+            <AdsRootProvider>
+              <div className="flex min-h-dvh flex-col">
+                <Header />
+                <main className="flex-1 pb-20 md:pb-0">{children}</main>
+                <Footer />
+                <MobileNav />
+                <CookieConsent />
+              </div>
+            </AdsRootProvider>
           </AuthProvider>
         </TooltipProvider>
       </body>

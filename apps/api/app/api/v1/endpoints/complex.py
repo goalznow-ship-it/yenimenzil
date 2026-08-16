@@ -173,7 +173,7 @@ async def update_complex(
     return _to_read(complex_row, count, units)
 
 
-@router.delete("/{complex_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{complex_id}")
 async def delete_complex(
     complex_id: uuid.UUID,
     current_user: User = Depends(get_current_user),

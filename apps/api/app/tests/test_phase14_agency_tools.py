@@ -89,7 +89,7 @@ async def test_agency_invite_accept_flow(client, auth_user, db):
         )
     ).json()
     cancelled = await client.delete(f"/api/v1/agencies/me/invites/{invite2['id']}")
-    assert cancelled.status_code == 204
+    assert cancelled.status_code == 200
 
     # duplicate pending invite rejected
     dup1 = (

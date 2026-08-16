@@ -1,3 +1,6 @@
+from app.models.ad_campaign import AdCampaign
+from app.models.ad_daily_stats import AdDailyStats
+from app.models.ad_event import AdEvent
 from app.models.admin_log import AdminActionLog
 from app.models.agency import Agency, Agent
 from app.models.agency_invite import AgencyInvite
@@ -48,6 +51,9 @@ from app.models.wallet import Wallet, WalletTransaction
 __all__ = [
     "AdminActionLog",
     "AdminAnnouncement",
+    "AdCampaign",
+    "AdDailyStats",
+    "AdEvent",
     "Agency",
     "AgencyInvite",
     "Agent",

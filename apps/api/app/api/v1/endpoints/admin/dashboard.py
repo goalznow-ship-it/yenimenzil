@@ -290,4 +290,7 @@ admin_router.include_router(admin_locations_router)
 admin_router.include_router(admin_intelligence_router)
 admin_router.include_router(admin_analytics_router)
 admin_router.include_router(admin_wallet_router)
+from .advertising import router as admin_advertising_router
+
+admin_router.include_router(admin_advertising_router)
 admin_router.include_router(admin_platform_router)

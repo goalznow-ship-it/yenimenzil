@@ -12,6 +12,7 @@ import { MapView } from "@/features/map/map-view";
 import { FilterControls } from "./filter-controls";
 import { PropertyListRow } from "./property-list-row";
 import { PropertyGrid } from "@/features/properties/property-grid";
+import { AdSlot } from "@/components/ads/ad-slot";
 import {
   EmptyState,
   cn,
@@ -447,18 +448,30 @@ export function SearchClient() {
             />
           ) : view === "list" ? (
             <div className="space-y-3">
-              {results.map((p) => (
+              {results.map((p, i) => (
                 <div
                   key={p.id}
                   onMouseEnter={() => setActiveMarkerId(p.id)}
                   onMouseLeave={() => setActiveMarkerId(null)}
                 >
                   <PropertyListRow property={p} />
+                  {i === 3 ? (
+                    <AdSlot
+                      placement="SEARCH_INLINE_BANNER"
+                      className="mt-3"
+                    />
+                  ) : null}
                 </div>
               ))}
             </div>
           ) : (
-            <PropertyGrid listings={results} columns={3} />
+            <div>
+              <PropertyGrid listings={results.slice(0, 6)} columns={3} />
+              <AdSlot placement="SEARCH_INLINE_BANNER" className="mt-4" />
+              {results.length > 6 ? (
+                <PropertyGrid listings={results.slice(6)} columns={3} className="mt-4" />
+              ) : null}
+            </div>
           )}
         </div>
 

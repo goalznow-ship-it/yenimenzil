@@ -263,3 +263,42 @@ export const COMPLEX_STATUS_LABELS: Record<ComplexStatus, string> = {
   under_construction: "Tikilir",
   ready: "Hazırdır"
 };
+
+export type AdPlacement =
+  | "LEFT_RAIL"
+  | "RIGHT_RAIL"
+  | "HOME_TOP_BANNER"
+  | "HOME_MIDDLE_BANNER"
+  | "SEARCH_TOP_BANNER"
+  | "SEARCH_INLINE_BANNER"
+  | "SEARCH_BOTTOM_BANNER"
+  | "PROPERTY_SIDE_AD"
+  | "PROPERTY_INLINE_AD"
+  | "MOBILE_TOP"
+  | "MOBILE_INLINE"
+  | "MOBILE_BOTTOM";
+
+export interface AdCampaignPublic {
+  id: string;
+  placement: AdPlacement;
+  desktop_creative_url: string | null;
+  mobile_creative_url: string | null;
+  alt_text: string | null;
+  destination_url: string;
+  open_in_new_tab: boolean;
+}
+
+export const AD_PLACEMENT_DIMS: Record<AdPlacement, { width: number; height: number }> = {
+  LEFT_RAIL: { width: 300, height: 600 },
+  RIGHT_RAIL: { width: 300, height: 600 },
+  HOME_TOP_BANNER: { width: 970, height: 250 },
+  HOME_MIDDLE_BANNER: { width: 970, height: 180 },
+  SEARCH_TOP_BANNER: { width: 970, height: 180 },
+  SEARCH_INLINE_BANNER: { width: 970, height: 180 },
+  SEARCH_BOTTOM_BANNER: { width: 970, height: 180 },
+  PROPERTY_SIDE_AD: { width: 300, height: 600 },
+  PROPERTY_INLINE_AD: { width: 970, height: 180 },
+  MOBILE_TOP: { width: 320, height: 50 },
+  MOBILE_INLINE: { width: 320, height: 100 },
+  MOBILE_BOTTOM: { width: 320, height: 100 },
+};

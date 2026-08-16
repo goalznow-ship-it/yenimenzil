@@ -7,6 +7,7 @@ import { fetchComplexes } from "@/services/complex-api";
 import { SearchBar } from "@/features/search/search-bar";
 import { PropertyGrid } from "@/features/properties/property-grid";
 import { MapDiscover } from "@/features/map/map-discover";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { getPopularAreas } from "@/data/areas";
 
 export const metadata: Metadata = {
@@ -48,6 +49,7 @@ export default async function HomePage() {
           <div className="mx-auto mt-6 max-w-4xl">
             <SearchBar />
           </div>
+          <AdSlot placement="HOME_TOP_BANNER" />
           <dl className="mx-auto mt-6 flex max-w-lg items-center justify-center gap-6 text-center md:gap-10">
             {stats.map((stat) => (
               <div key={stat.label} className="flex flex-col-reverse">
@@ -73,6 +75,8 @@ export default async function HomePage() {
           />
           <PropertyGrid listings={sections.newest.slice(0, 8)} columns={4} />
         </section>
+
+        <AdSlot placement="HOME_MIDDLE_BANNER" />
 
         <MapDiscover />
 
