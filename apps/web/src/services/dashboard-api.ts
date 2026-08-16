@@ -6,6 +6,7 @@
  */
 
 import { API_BASE_URL } from "@/services/api-base";
+import type { Property } from "@yenimenzil/types";
 
 const BASE = API_BASE_URL;
 
@@ -55,6 +56,7 @@ export interface SavedSearch {
   name: string;
   filters: Record<string, unknown>;
   is_active: boolean;
+  email_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -63,6 +65,7 @@ export interface SavedSearchInput {
   name: string;
   filters: Record<string, unknown>;
   is_active?: boolean;
+  email_enabled?: boolean;
 }
 
 export interface NotificationItem {
@@ -77,10 +80,16 @@ export interface NotificationItem {
 }
 
 export interface NotificationPreference {
-  email_notifications: boolean;
-  push_notifications: boolean;
-  digest_frequency: string;
-  [key: string]: unknown;
+  email_enabled: boolean;
+  push_enabled: boolean;
+}
+
+export interface FavoriteCollection {
+  id: string;
+  name: string;
+  is_default: boolean;
+  created_at: string;
+  favorite_count: number;
 }
 
 export interface MessageUser {
@@ -241,8 +250,72 @@ export const dashboardApi = {
     whatsapp_clicks: number;
     messages: number;
     viewing_requests: number;
+    days: number;
+    period_views: number;
+    trend: {
+      date: string;
+      views: number;
+      favorites: number;
+      phone_reveals: number;
+      whatsapp_clicks: number;
+      messages: number;
+    }[];
+    conversion: {
+      favorite_rate: number;
+      phone_rate: number;
+      whatsapp_rate: number;
+      message_rate: number;
+      viewing_request_rate: number;
+    };
   }> {
-    return request(`/properties/${id}/analytics`);
+    return request(`/properties/${id}/analytics?days=30`, {
+      cache: "no-store"
+    });
+  },
+
+  async listingQuality(id: string): Promise<{
+    score: number;
+    sections: Record<string, { score: number; max: number }>;
+    warnings: string[];
+    duplicates: {
+      property_id: string;
+      title: string;
+      confidence: number;
+      reason: string;
+    }[];
+    market_avg_price_per_m2: number | null;
+    listing_price_per_m2: number | null;
+  }> {
+    return request(`/properties/${id}/quality`, {
+      cache: "no-store"
+    });
+  },
+
+  async agencyAnalytics(): Promise<{
+    agency_id: string | null;
+    agency_name: string;
+    days: number;
+    listings_count: number;
+    total_views: number;
+    total_favorites: number;
+    total_leads: number;
+    avg_price: number;
+    top_listings: {
+      property_id: string;
+      title: string;
+      views: number;
+      favorites: number;
+      phone_reveals: number;
+      messages: number;
+    }[];
+  } | null> {
+    try {
+      return await request("/agencies/me/analytics?days=30", {
+        cache: "no-store"
+      });
+    } catch {
+      return null;
+    }
   },
 
   async listSavedSearches(): Promise<SavedSearch[]> {
@@ -308,6 +381,13 @@ export const dashboardApi = {
     return request("/conversations");
   },
 
+  async createConversation(propertyId: string, message: string): Promise<Conversation> {
+    return request("/conversations", {
+      method: "POST",
+      body: JSON.stringify({ property_id: propertyId, message })
+    });
+  },
+
   async unreadConversationCount(): Promise<number> {
     const { total } = await request<{ total: number; conversations: number }>(
       "/conversations/unread-count"
@@ -332,6 +412,58 @@ export const dashboardApi = {
 
   async deleteConversation(conversationId: string): Promise<void> {
     return request(`/conversations/${conversationId}`, { method: "DELETE" });
+  },
+
+  async favoriteCollections(): Promise<FavoriteCollection[]> {
+    return request("/favorites/collections");
+  },
+
+  async createFavoriteCollection(name: string): Promise<FavoriteCollection> {
+    return request("/favorites/collections", {
+      method: "POST",
+      body: JSON.stringify({ name })
+    });
+  },
+
+  async renameFavoriteCollection(
+    collectionId: string,
+    name: string
+  ): Promise<FavoriteCollection> {
+    return request(`/favorites/collections/${collectionId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ name })
+    });
+  },
+
+  async deleteFavoriteCollection(collectionId: string): Promise<void> {
+    return request(`/favorites/collections/${collectionId}`, {
+      method: "DELETE"
+    });
+  },
+
+  async favorites(collectionId?: string): Promise<Property[]> {
+    const query = collectionId
+      ? `?collection_id=${encodeURIComponent(collectionId)}`
+      : "";
+    return request(`/favorites${query}`);
+  },
+
+  async addFavorite(propertyId: string, collectionId?: string): Promise<void> {
+    return request(`/favorites/${propertyId}`, {
+      method: "POST",
+      body: JSON.stringify({ collection_id: collectionId ?? null })
+    });
+  },
+
+  async removeFavorite(propertyId: string): Promise<void> {
+    return request(`/favorites/${propertyId}`, { method: "DELETE" });
+  },
+
+  async moveFavorite(propertyId: string, collectionId: string | null): Promise<void> {
+    return request(`/favorites/${propertyId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ collection_id: collectionId })
+    });
   },
 
   async wallet(): Promise<Wallet> {

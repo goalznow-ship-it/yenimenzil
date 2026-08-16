@@ -35,6 +35,23 @@ class PopularSearchRead(BaseModel):
     count: int
 
 
+class DailyAnalyticsPoint(BaseModel):
+    date: str
+    views: int = 0
+    favorites: int = 0
+    phone_reveals: int = 0
+    whatsapp_clicks: int = 0
+    messages: int = 0
+
+
+class ConversionRates(BaseModel):
+    favorite_rate: float = 0.0
+    phone_rate: float = 0.0
+    whatsapp_rate: float = 0.0
+    message_rate: float = 0.0
+    viewing_request_rate: float = 0.0
+
+
 class ListingAnalyticsRead(BaseModel):
     property_id: uuid.UUID
     views: int = 0
@@ -43,3 +60,28 @@ class ListingAnalyticsRead(BaseModel):
     whatsapp_clicks: int = 0
     messages: int = 0
     viewing_requests: int = 0
+    days: int = 30
+    period_views: int = 0
+    trend: list[DailyAnalyticsPoint] = []
+    conversion: ConversionRates = ConversionRates()
+
+
+class AgencyListingPoint(BaseModel):
+    property_id: uuid.UUID
+    title: str
+    views: int
+    favorites: int
+    phone_reveals: int
+    messages: int
+
+
+class AgencyAnalyticsRead(BaseModel):
+    agency_id: uuid.UUID | None = None
+    agency_name: str = ""
+    days: int = 30
+    listings_count: int = 0
+    total_views: int = 0
+    total_favorites: int = 0
+    total_leads: int = 0
+    avg_price: float = 0.0
+    top_listings: list[AgencyListingPoint] = []

@@ -14,6 +14,25 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
+class FavoriteCollection(Base):
+    __tablename__ = "favorite_collections"
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="uq_user_collection_name"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(nullable=False)
+    is_default: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    user: Mapped[User] = relationship(back_populates="favorite_collections")
+
+
 class Favorite(Base):
     __tablename__ = "favorites"
     __table_args__ = (
@@ -27,9 +46,15 @@ class Favorite(Base):
     property_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("properties.id", ondelete="CASCADE"), index=True
     )
+    collection_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("favorite_collections.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
 
     user: Mapped[User] = relationship(back_populates="favorites")
     property: Mapped[Property] = relationship(back_populates="favorites")
+    collection: Mapped[FavoriteCollection | None] = relationship()

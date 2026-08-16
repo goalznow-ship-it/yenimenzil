@@ -23,6 +23,7 @@ class SavedSearch(Base):
     name: Mapped[str] = mapped_column(String(150))
     filters: Mapped[dict] = mapped_column(JSON, default=dict)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    email_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

@@ -72,6 +72,7 @@ class PropertyCreate(PropertyBase):
     owner_id: uuid.UUID | None = None
     agency_id: uuid.UUID | None = None
     agent_id: uuid.UUID | None = None
+    complex_id: uuid.UUID | None = None
     seller_kind: SellerKind = SellerKind.OWNER
     status: PropertyStatus = PropertyStatus.DRAFT
     is_verified: bool = False
@@ -252,7 +253,9 @@ class PropertyRead(PropertySummaryRead):
     owner_id: uuid.UUID
     agency_id: uuid.UUID | None
     agent_id: uuid.UUID | None
+    complex_id: uuid.UUID | None = None
     views: int
+    quality_score: float | None = None
     created_at: datetime
     updated_at: datetime
     features: list[str]

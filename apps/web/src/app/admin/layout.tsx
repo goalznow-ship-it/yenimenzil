@@ -16,7 +16,8 @@ import {
   Megaphone,
   TrendingUp,
   UserCheck,
-  UsersRound
+  UsersRound,
+  Wallet
 } from "lucide-react";
 import { cn } from "@yenimenzil/ui";
 import { RequireAuth } from "@/components/auth/auth-provider";
@@ -30,6 +31,7 @@ const NAV = [
   { href: "/admin/agencies", label: "Agentliklər", icon: Building2 },
   { href: "/admin/agents", label: "Agentlər", icon: UserCheck },
   { href: "/admin/promotions", label: "Promosiyalar", icon: Megaphone },
+  { href: "/admin/payments", label: "Ödənişlər", icon: Wallet },
   { href: "/admin/analytics", label: "Analitika", icon: BarChart3 },
   { href: "/admin/features", label: "Kataloq", icon: FolderCog },
   { href: "/admin/locations", label: "Lokasiyalar", icon: MapPin },

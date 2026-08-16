@@ -264,6 +264,29 @@ function qs(params: Record<string, string | number | boolean | undefined>) {
   return str ? `?${str}` : "";
 }
 
+export interface AdminPayment {
+  id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  provider: string;
+  provider_payment_id: string | null;
+  checkout_url: string | null;
+  failure_reason: string | null;
+  created_at: string | null;
+}
+
+export interface WebhookEventRow {
+  id: string;
+  provider: string;
+  event_type: string | null;
+  payment_id: string | null;
+  status: string;
+  error: string | null;
+  created_at: string | null;
+}
+
 export const adminApi = {
   async stats(): Promise<AdminStats> {
     return request("/admin/dashboard/stats");
@@ -525,6 +548,33 @@ export const adminApi = {
     tiers: Record<string, { label_az: string; days: number }>;
   }> {
     return request(`/admin/promotions/listings${qs({ page: 1, limit: 20, ...params })}`);
+  },
+
+  async payments(params: {
+    status?: string;
+    provider?: string;
+    limit?: number;
+  } = {}): Promise<AdminPayment[]> {
+    return request(`/admin/payments${qs({ limit: 100, ...params })}`);
+  },
+
+  async paymentsSummary(): Promise<{
+    by_status: Record<
+      string,
+      { count: number; amount: number }
+    >;
+    revenue_azn: number;
+    payments_last_24h: number;
+    webhook_counts: Record<string, number>;
+  }> {
+    return request("/admin/payments/summary", { cache: "no-store" });
+  },
+
+  async webhookEvents(params: {
+    status?: string;
+    limit?: number;
+  } = {}): Promise<WebhookEventRow[]> {
+    return request(`/admin/payments/webhook-events${qs({ limit: 100, ...params })}`);
   },
 
   ApiError

@@ -14,6 +14,7 @@ import { propertyMetadata, jsonLdProperty } from "@/lib/seo";
 import { formatPricePerSqm, formatPriceWithPeriod, formatDate, timeAgo } from "@/lib/format";
 import { PropertyGallery } from "@/features/properties/property-gallery";
 import { ContactCard } from "@/features/properties/contact-card";
+import { MobileContactBar } from "@/features/properties/mobile-contact-bar";
 import { ShareBar } from "@/features/properties/share-bar";
 import { MortgageCalculator } from "@/features/properties/mortgage-calculator";
 import { PriceAnalysisCard } from "@/features/properties/price-analysis-card";
@@ -32,7 +33,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
   const property = await fetchPropertyById(id);
   if (!property) return { title: "Elan tapılmadı" };
-  return propertyMetadata(property);
+  const base = propertyMetadata(property);
+  if (property.status !== "active") {
+    base.robots = { index: false, follow: false };
+  }
+  return base;
 }
 
 function AttributeRow({
@@ -235,11 +240,6 @@ export default async function PropertyPage({ params }: PageProps) {
     <div className="mx-auto max-w-[1200px] px-4 py-5 lg:px-6 lg:py-7">
       <PropertyViewTracker property={property} />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdProperty(property)) }}
-      />
-
       <nav aria-label="Breadcrumb" className="mb-4">
         <ol className="flex flex-wrap items-center gap-1.5 text-[13px] text-muted-foreground">
           <li>
@@ -302,7 +302,7 @@ export default async function PropertyPage({ params }: PageProps) {
           <AreaIntelligence property={property} />
         </div>
 
-        <aside className="lg:sticky lg:top-20 lg:h-fit">
+        <aside id="contact-card" className="scroll-mt-24 lg:sticky lg:top-20 lg:h-fit">
           <ContactCard property={property} />
           {property.mortgageAvailable ? (
             <div className="mt-4">
@@ -334,6 +334,7 @@ export default async function PropertyPage({ params }: PageProps) {
       ) : null}
 
       <RecentlyViewedSection excludeId={property.id} />
+      <MobileContactBar property={property} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Building2 } from "lucide-react";
 import { SectionHeading } from "@yenimenzil/ui";
 import { fetchFeaturedSections } from "@/services/property-api";
+import { fetchComplexes } from "@/services/complex-api";
 import { SearchBar } from "@/features/search/search-bar";
 import { PropertyGrid } from "@/features/properties/property-grid";
 import { MapDiscover } from "@/features/map/map-discover";
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const sections = await fetchFeaturedSections();
+  const complexes = await fetchComplexes();
   const all = sections.all;
   const activeCount = all.filter((p) => p.status === "active").length;
   const droppedCount = all.filter(
@@ -120,6 +122,38 @@ export default async function HomePage() {
           />
           <PropertyGrid listings={sections.newBuildings.slice(0, 4)} columns={4} />
         </section>
+
+        {complexes.length > 0 && (
+          <section aria-labelledby="complexes-title">
+            <SectionHeading
+              title="Yaşayış kompleksləri"
+              subtitle="Tikinti şirkətlərinin təqdimatı"
+            />
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {complexes.slice(0, 6).map((complex) => (
+                <Link
+                  key={complex.id}
+                  href={`/complexes/${complex.id}`}
+                  className="group flex items-center gap-3 rounded-2xl bg-surface px-4 py-4 ring-1 ring-border/70 transition-all hover:-translate-y-0.5 hover:shadow-card hover:ring-brand/25"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand transition-colors group-hover:bg-brand group-hover:text-white">
+                    <Building2 className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-semibold text-foreground">
+                      {complex.name}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {complex.propertiesCount} elan
+                      {complex.developerName ? ` · ${complex.developerName}` : ""}
+                    </span>
+                  </span>
+                  <ArrowRight className="ml-auto h-4 w-4 text-foreground/25 transition-colors group-hover:text-brand" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section aria-labelledby="popular-areas-title">
           <SectionHeading

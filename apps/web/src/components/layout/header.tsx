@@ -19,6 +19,28 @@ import { Logo } from "./logo";
 import { UserAvatarLink, UserMenu } from "./user-menu";
 import { LANGUAGE_OPTIONS } from "@/lib/languages";
 import { useComparisonStore } from "@/stores/comparison-store";
+import { useConversationEvents } from "@/hooks/use-conversation-events";
+import { useAuth } from "@/store/auth";
+
+function MessagesLink() {
+  const status = useAuth((s) => s.status);
+  const { unread } = useConversationEvents(() => {});
+  const count = status === "authenticated" ? unread : 0;
+  return (
+    <Link
+      href="/messages"
+      aria-label="Mesajlar"
+      className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground md:flex"
+    >
+      <MessageCircle className="h-[19px] w-[19px]" />
+      {count > 0 ? (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand px-1 text-[10px] font-bold text-white">
+          {count > 99 ? "99+" : count}
+        </span>
+      ) : null}
+    </Link>
+  );
+}
 
 function CompareLink() {
   const count = useComparisonStore((s) => s.ids.length);
@@ -140,13 +162,7 @@ export function Header() {
             <Heart className="h-[19px] w-[19px]" />
           </Link>
           <CompareLink />
-          <Link
-            href="/messages"
-            aria-label="Mesajlar"
-            className="hidden h-10 w-10 items-center justify-center rounded-xl text-foreground/60 transition-colors hover:bg-foreground/[0.05] hover:text-foreground md:flex"
-          >
-            <MessageCircle className="h-[19px] w-[19px]" />
-          </Link>
+          <MessagesLink />
 
           <div className="relative hidden md:block">
             <button

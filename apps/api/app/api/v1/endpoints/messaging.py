@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
@@ -20,8 +21,22 @@ from app.schemas.messaging import (
     MessageRead,
     UnreadCountsRead,
 )
+from app.services.realtime import publish_user_event, user_event_stream
 
 router = APIRouter(prefix="/conversations", tags=["messaging"])
+
+
+async def _notify_participants(conversation: Conversation, event_type: str) -> None:
+    """Best-effort push of a realtime event to both participants."""
+    event = {
+        "type": event_type,
+        "conversation_id": str(conversation.id),
+        "property_id": str(conversation.property_id)
+        if conversation.property_id
+        else None,
+    }
+    for user_id in (conversation.buyer_id, conversation.seller_id):
+        await publish_user_event(user_id, event)
 
 
 def _conv_options():
@@ -161,8 +176,38 @@ async def start_conversation(
     conversation.last_message_at = message.created_at
     await db.commit()
 
+    await _notify_participants(conversation, "conversation")
+
     conversation = await _get_conversation(db, conversation.id)
     return _conversation_read(conversation, current_user.id)
+
+
+@router.get("/stream")
+async def conversation_stream(
+    current_user: User = Depends(get_current_user),
+) -> StreamingResponse:
+    """Server-sent events for live conversation updates.
+
+    Emits `conversation`/`message` events as JSON payloads with a 15s
+    heartbeat comment. Clients should fall back to polling on error.
+    """
+
+    async def event_generator():
+        async for _, payload in user_event_stream(current_user.id):
+            if payload is None:
+                yield ": ping\n\n"
+            else:
+                yield f"data: {payload}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/unread-count", response_model=UnreadCountsRead)
@@ -172,13 +217,14 @@ async def unread_counts(
 ) -> UnreadCountsRead:
     me_id = current_user.id
 
-    # Count unread messages for the current user
+    # Count unread messages FOR the current user (excluding own sent messages)
     total = (
         await db.execute(
             select(func.count(Message.id))
             .join(Conversation, Conversation.id == Message.conversation_id)
             .where(
                 Message.is_read.is_(False),
+                Message.sender_id != me_id,
                 or_(
                     (Conversation.buyer_id == me_id)
                     & (Conversation.buyer_archived.is_(False)),
@@ -189,13 +235,14 @@ async def unread_counts(
         )
     ).scalar() or 0
 
-    # Count conversations with unread messages
+    # Count conversations with unread messages for the current user
     conversations = (
         await db.execute(
             select(func.count(func.distinct(Message.conversation_id)))
             .join(Conversation, Conversation.id == Message.conversation_id)
             .where(
                 Message.is_read.is_(False),
+                Message.sender_id != me_id,
                 or_(
                     (Conversation.buyer_id == me_id)
                     & (Conversation.buyer_archived.is_(False)),
@@ -233,10 +280,13 @@ async def list_messages(
     if conversation is None or not _is_participant(conversation, current_user):
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    # Mark all unread messages in the conversation as read for the current user
+    # Mark messages FROM THE OTHER SIDE as read for the current user.
+    # The sender's own messages stay unread so the recipient's unread
+    # count is not cleared by the sender opening the thread.
     result = await db.execute(
         select(Message).where(
             Message.conversation_id == conversation_id,
+            Message.sender_id != current_user.id,
             Message.is_read.is_(False),
         )
     )
@@ -299,6 +349,7 @@ async def send_message(
     conversation.seller_archived = False
     await db.commit()
     await db.refresh(message)
+    await _notify_participants(conversation, "message")
     return message
 
 

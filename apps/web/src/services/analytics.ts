@@ -44,21 +44,21 @@ export async function track(event: AnalyticsEvent, payload?: Record<string, unkn
 
   // Send to backend
   try {
+    const body: Record<string, unknown> = {
+      event_type: event.toLowerCase(),
+      payload: payload ?? {},
+    };
+    const propertyId =
+      payload?.propertyId ?? payload?.property_id ?? payload?.id ?? null;
+    if (typeof propertyId === "string" && propertyId) {
+      body.property_id = propertyId;
+    }
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        event_type: event.toLowerCase(),
-        payload: payload ?? {},
-        // We don't have user_id, property_id, ip_address, user_agent here.
-        // The backend can extract ip_address and user_agent from the request.
-        // We'll leave them as null and let the backend handle it.
-        // Alternatively, we could try to get the user from cookies, but it's complex.
-        // For now, we'll send only event_type and payload.
-        // The backend endpoint expects user_id, property_id, etc. but they are nullable.
-      }),
+      body: JSON.stringify(body),
     });
     if (!response.ok) {
       console.warn("[analytics] Failed to send event to backend", response.status, response.statusText);

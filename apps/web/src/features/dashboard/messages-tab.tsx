@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 import { Skeleton, EmptyState } from "@yenimenzil/ui";
 import { MessageSquare, Send, Archive, Trash2 } from "lucide-react";
 import { dashboardApi, type Conversation, type Message } from "@/services/dashboard-api";
 import { useAuth } from "@/store/auth";
 import { timeAgo } from "@/lib/format";
+import { useConversationEvents } from "@/hooks/use-conversation-events";
 
 export function MessagesTab() {
   const user = useAuth((s) => s.user);
@@ -16,6 +18,8 @@ export function MessagesTab() {
   const [draft, setDraft] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const threadRef = React.useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const pendingProperty = searchParams.get("property");
 
   const load = React.useCallback(() => {
     dashboardApi
@@ -27,9 +31,42 @@ export function MessagesTab() {
       .catch((err) => setError(err instanceof Error ? err.message : "Xəta"));
   }, []);
 
+  const loadThread = React.useCallback((conversationId: string) => {
+    dashboardApi
+      .messages(conversationId)
+      .then((data) => setMessages(data))
+      .catch((err) => setError(err instanceof Error ? err.message : "Xəta"));
+  }, []);
+
   React.useEffect(() => {
     load();
   }, [load]);
+
+  const openedPropertyRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (!pendingProperty || pendingProperty === openedPropertyRef.current) return;
+    openedPropertyRef.current = pendingProperty;
+    const existing = conversations?.find((c) => c.property_id === pendingProperty);
+    if (existing) {
+      void Promise.resolve().then(() => setSelected(existing.id));
+      return;
+    }
+    dashboardApi
+      .createConversation(pendingProperty, "Salam, elanla bağlı maraqlanıram.")
+      .then((conversation) => {
+        setSelected(conversation.id);
+        load();
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Xəta"));
+  }, [pendingProperty, conversations, load]);
+
+  useConversationEvents((event) => {
+    if (selected && event.conversation_id === selected) {
+      loadThread(selected);
+    } else {
+      load();
+    }
+  });
 
   React.useEffect(() => {
     if (!selected) return;

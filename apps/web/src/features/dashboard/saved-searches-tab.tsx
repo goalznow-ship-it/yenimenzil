@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Skeleton, EmptyState, Button, Input, Badge } from "@yenimenzil/ui";
-import { Search, Bell, BellOff, Trash2, Plus } from "lucide-react";
+import { Search, Bell, BellOff, Mail, MailX, Trash2, Plus } from "lucide-react";
 import { dashboardApi, type SavedSearch } from "@/services/dashboard-api";
 import { formatDate } from "@/lib/format";
 
@@ -95,6 +95,22 @@ export function SavedSearchesTab() {
     try {
       const updated = await dashboardApi.updateSavedSearch(search.id, {
         is_active: !search.is_active
+      });
+      setSearches(searches.map((s) => (s.id === search.id ? updated : s)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xəta");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const toggleEmail = async (search: SavedSearch) => {
+    if (!searches) return;
+    setBusyId(search.id);
+    setError(null);
+    try {
+      const updated = await dashboardApi.updateSavedSearch(search.id, {
+        email_enabled: !search.email_enabled
       });
       setSearches(searches.map((s) => (s.id === search.id ? updated : s)));
     } catch (err) {
@@ -213,6 +229,23 @@ export function SavedSearchesTab() {
                   className="rounded-xl bg-foreground/[0.05] px-3 py-2 text-[13px] font-medium transition-colors hover:bg-foreground/[0.09] disabled:opacity-50"
                 >
                   {search.is_active ? "Deaktiv et" : "Aktiv et"}
+                </button>
+                <button
+                  onClick={() => toggleEmail(search)}
+                  disabled={busyId === search.id}
+                  title={search.email_enabled ? "E-poçt xəbərdarlığı açıqdır" : "E-poçt xəbərdarlığı bağlıdır"}
+                  className={
+                    "rounded-xl px-3 py-2 text-[13px] font-medium transition-colors disabled:opacity-50 " +
+                    (search.email_enabled
+                      ? "bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15"
+                      : "bg-foreground/[0.05] text-foreground/60 hover:bg-foreground/[0.09]")
+                  }
+                >
+                  {search.email_enabled ? (
+                    <Mail className="h-4 w-4" />
+                  ) : (
+                    <MailX className="h-4 w-4" />
+                  )}
                 </button>
                 <button
                   onClick={() => remove(search.id)}

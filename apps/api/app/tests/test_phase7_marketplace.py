@@ -108,25 +108,26 @@ async def test_conversation_unread_counts(client, auth_user, feature_catalog, db
     assert response.status_code == 201, response.text
     conv_id = response.json()["id"]
 
-    # Debug: Print cookies and conversation details
-    print(f"Cookies after conversation creation: {buyer_client.cookies}")
+    # The sender never sees their own message as unread; the owner does.
+    owner_client = await _create_authenticated_client(auth_user, "owner-unread@test.az")
 
-    # Debug: Check the conversation details
-    conv_response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
-    print(f"Conversation details: {conv_response.json()}")
-
-    # Debug: Check the unread count for the conversation
     unread = await buyer_client.get("/api/v1/conversations/unread-count")
-    print(f"Unread count response: {unread.json()}")
+    assert unread.json() == {"total": 0, "conversations": 0}
 
-    # Debug: Manually check the unread count for the conversation
-    conv_response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
-    print(f"Conversation unread_count: {conv_response.json()['unread_count']}")
-
+    unread = await owner_client.get("/api/v1/conversations/unread-count")
     assert unread.json() == {"total": 1, "conversations": 1}
 
-    response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
-    assert response.json()["unread_count"] == 0
+    conv_response = await buyer_client.get(f"/api/v1/conversations/{conv_id}")
+    assert conv_response.json()["unread_count"] == 0
+
+    conv_response = await owner_client.get(f"/api/v1/conversations/{conv_id}")
+    assert conv_response.json()["unread_count"] == 1
+
+    # Reading the thread clears it
+    response = await owner_client.get(f"/api/v1/conversations/{conv_id}/messages")
+    assert response.status_code == 200
+    conv_response = await owner_client.get(f"/api/v1/conversations/{conv_id}")
+    assert conv_response.json()["unread_count"] == 0
 
 
 @pytest.mark.asyncio

@@ -28,7 +28,7 @@ from app.core.storage import delete_file, upload_file
 from app.db.session import get_db
 from app.models.analytics import AnalyticsEvent
 from app.models.appointment import ViewingAppointment
-from app.models.enums import PropertyStatus, UserRole
+from app.models.enums import AnalyticsEventType, PropertyStatus, UserRole
 from app.models.favorite import Favorite
 from app.models.messaging import Conversation, Message
 from app.models.property import (
@@ -39,7 +39,11 @@ from app.models.property import (
 )
 from app.models.user import User
 from app.repositories.property import PropertyRepository
-from app.schemas.analytics import ListingAnalyticsRead
+from app.schemas.analytics import (
+    ConversionRates,
+    DailyAnalyticsPoint,
+    ListingAnalyticsRead,
+)
 from app.schemas.common import PaginatedResponse
 from app.schemas.property import (
     PropertyCreate,
@@ -96,9 +100,35 @@ async def _get_property_or_404(
 async def list_properties(
     params: Annotated[PropertyQueryParams, Query()],
     db: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_optional_user),
 ) -> PaginatedResponse[PropertySummaryRead]:
     """Search listings with filters, bounding box, sorting and pagination."""
-    return await _repo(db).list(params)
+    results = await _repo(db).list(params)
+    if params.page == 1:
+        query = " ".join(
+            str(v)
+            for v in [
+                params.city or params.district or params.metro,
+                params.property_type,
+                params.deal,
+            ]
+            if v
+        ).strip()
+        if query:
+            db.add(
+                AnalyticsEvent(
+                    user_id=current_user.id if current_user else None,
+                    event_type=AnalyticsEventType.SEARCH.value,
+                    payload={
+                        "query": query[:200],
+                        "rooms": params.rooms,
+                        "price_min": params.min_price,
+                        "price_max": params.max_price,
+                    },
+                )
+            )
+            await db.commit()
+    return results
 
 
 @router.get("/mine", response_model=list[PropertySummaryRead])
@@ -251,6 +281,22 @@ async def submit_property(
         prop.published_at = prop.published_at or _now()
     else:
         prop.status = PropertyStatus.PENDING_REVIEW.value
+
+    from app.services.listing_quality import score_listing
+
+    report = await score_listing(db, prop)
+    prop.quality_score = report.score
+    db.add(
+        AnalyticsEvent(
+            user_id=user.id,
+            property_id=property_id,
+            event_type=AnalyticsEventType.LISTING_SUBMITTED.value,
+            payload={
+                "quality_score": report.score,
+                "duplicate_count": len(report.duplicates),
+            },
+        )
+    )
     await db.commit()
     return repo.to_read(await repo.get_by_id(prop.id))  # type: ignore[arg-type]
 
@@ -760,8 +806,11 @@ async def get_listing_analytics(
     property_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    days: int = Query(default=30, ge=1, le=365),
 ) -> ListingAnalyticsRead:
-    """Per-listing engagement analytics (owner or staff only)."""
+    """Per-listing engagement analytics with conversion rates and daily trend."""
+    from datetime import UTC, datetime, timedelta
+
     repo = _repo(db)
     prop = await _get_property_or_404(repo, property_id)
     if not can_edit_property(prop, current_user):
@@ -770,42 +819,127 @@ async def get_listing_analytics(
             detail="Bu elanın analitikasına baxa bilməzsiniz",
         )
 
+    since = datetime.now(UTC) - timedelta(days=days)
+
     async def _count(event_type: str) -> int:
         stmt = select(func.count(AnalyticsEvent.id)).where(
             AnalyticsEvent.property_id == property_id,
             AnalyticsEvent.event_type == event_type,
+            AnalyticsEvent.created_at >= since,
         )
         return (await db.execute(stmt)).scalar() or 0
 
+    period_views = await _count("property_view")
     favorites = (
         await db.execute(
-            select(func.count(Favorite.id)).where(Favorite.property_id == property_id)
+            select(func.count(Favorite.id)).where(
+                Favorite.property_id == property_id,
+                Favorite.created_at >= since,
+            )
         )
     ).scalar() or 0
     messages = (
         await db.execute(
             select(func.count(Message.id)).where(
+                Message.created_at >= since,
                 Message.conversation_id.in_(
                     select(Conversation.id).where(
                         Conversation.property_id == property_id
                     )
-                )
+                ),
             )
         )
     ).scalar() or 0
     viewing_requests = (
         await db.execute(
             select(func.count(ViewingAppointment.id)).where(
-                ViewingAppointment.property_id == property_id
+                ViewingAppointment.property_id == property_id,
+                ViewingAppointment.created_at >= since,
             )
         )
     ).scalar() or 0
+
+    phone_reveals = await _count("phone_reveal")
+    whatsapp_clicks = await _count("whatsapp_click")
+
+    trend_rows = (
+        await db.execute(
+            select(
+                func.date_trunc("day", AnalyticsEvent.created_at).label("day"),
+                AnalyticsEvent.event_type,
+                func.count(AnalyticsEvent.id),
+            )
+            .where(
+                AnalyticsEvent.property_id == property_id,
+                AnalyticsEvent.created_at >= since,
+            )
+            .group_by("day", AnalyticsEvent.event_type)
+            .order_by("day")
+        )
+    ).all()
+    trend_map: dict[str, dict[str, int]] = {}
+    for day, event_type, count in trend_rows:
+        key = day.strftime("%Y-%m-%d") if hasattr(day, "strftime") else str(day)
+        trend_map.setdefault(key, {})[event_type] = int(count)
+    base: dict[str, dict[str, int]] = {}
+    for offset in range(days):
+        day = (datetime.now(UTC) - timedelta(days=days - 1 - offset)).date()
+        base[day.isoformat()] = {}
+    for key, counts in trend_map.items():
+        base.setdefault(key, {}).update(counts)
+    trend = [
+        DailyAnalyticsPoint(
+            date=key,
+            views=counts.get("property_view", 0),
+            favorites=counts.get("property_favorite", 0),
+            phone_reveals=counts.get("phone_reveal", 0),
+            whatsapp_clicks=counts.get("whatsapp_click", 0),
+            messages=counts.get("message_click", 0),
+        )
+        for key, counts in base.items()
+    ]
+
+    def _rate(numerator: int) -> float:
+        if period_views <= 0:
+            return 0.0
+        return round(numerator * 100.0 / period_views, 1)
+
     return ListingAnalyticsRead(
         property_id=property_id,
         views=prop.views,
         favorites=favorites,
-        phone_reveals=await _count("phone_reveal"),
-        whatsapp_clicks=await _count("whatsapp_click"),
+        phone_reveals=phone_reveals,
+        whatsapp_clicks=whatsapp_clicks,
         messages=messages,
         viewing_requests=viewing_requests,
+        days=days,
+        period_views=period_views,
+        trend=trend,
+        conversion=ConversionRates(
+            favorite_rate=_rate(favorites),
+            phone_rate=_rate(phone_reveals),
+            whatsapp_rate=_rate(whatsapp_clicks),
+            message_rate=_rate(messages),
+            viewing_request_rate=_rate(viewing_requests),
+        ),
     )
+
+
+@router.get("/{property_id}/quality")
+async def get_listing_quality(
+    property_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Live quality report and duplicate-risk check (owner or staff only)."""
+    from app.services.listing_quality import report_to_dict, score_listing
+
+    repo = _repo(db)
+    prop = await _get_property_or_404(repo, property_id)
+    if not can_edit_property(prop, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bu elanın keyfiyyət hesabatına baxa bilməzsiniz",
+        )
+    report = await score_listing(db, prop)
+    return report_to_dict(report)

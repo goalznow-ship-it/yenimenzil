@@ -225,7 +225,25 @@ async def test_saved_search_alerts_notifies_matching_listings(
     from app.models.notification import Notification
     from app.models.property import Property, PropertyStatus
     from app.models.saved_search import SavedSearch
+    from app.services import expiry_watcher, saved_search_alerts
     from app.services.expiry_watcher import _run_saved_search_alerts
+
+    # Clear any throttle state left by previous runs so the test is
+    # deterministic regardless of Redis persistence.
+    expiry_watcher._last_alert_run = None
+    saved_search_alerts._last_alert_run = None
+    try:
+        import redis.asyncio as aioredis
+
+        from app.core.config import get_settings
+
+        client_redis = aioredis.from_url(
+            get_settings().REDIS_URL, socket_connect_timeout=1, socket_timeout=1
+        )
+        await client_redis.delete("saved_search_alerts:last_run")
+        await client_redis.aclose()
+    except Exception:  # noqa: BLE001, S110 - best-effort throttle reset
+        pass
 
     user = await auth_user(email="alerts@test.az", is_verified=True)
 

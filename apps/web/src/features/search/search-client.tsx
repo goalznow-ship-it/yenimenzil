@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import type { Property } from "@yenimenzil/types";
 import type { MapBounds } from "@/lib/map/types";
 import { isPointInBounds } from "@/lib/map/types";
@@ -29,10 +29,14 @@ import {
   MapPin,
   SlidersHorizontal,
   X,
-  SearchX
+  SearchX,
+  BookmarkPlus,
+  Check
 } from "lucide-react";
 import { formatPriceShort } from "@/lib/format";
 import type { SortKey } from "@yenimenzil/types";
+import { useAuth } from "@/store/auth";
+import { dashboardApi } from "@/services/dashboard-api";
 
 function parseBoundsParam(searchParams: URLSearchParams): MapBounds | undefined {
   const north = Number(searchParams.get("north"));
@@ -73,6 +77,7 @@ function activeFilterCount(filters: ReturnType<typeof useSearchFilters>["filters
 export function SearchClient() {
   const { filters, setFilter, push, resetAll } = useSearchFilters();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [view, setView] = React.useState<ViewMode>(() =>
     (searchParams.get("view") as ViewMode) ?? "list"
@@ -89,9 +94,13 @@ export function SearchClient() {
   const [pendingBounds, setPendingBounds] = React.useState<MapBounds | null>(null);
   const [unfiltered, setUnfiltered] = React.useState<Property[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [savingSearch, setSavingSearch] = React.useState(false);
+  const [searchSaved, setSearchSaved] = React.useState(false);
+  const user = useAuth((s) => s.user);
 
   React.useEffect(() => {
     let cancelled = false;
+    const committed = boundsCommitted ? mapBounds : undefined;
     searchProperties({
       deal: filters.deal,
       district: filters.district,
@@ -104,14 +113,18 @@ export function SearchClient() {
       metro: filters.metro,
       buildingType: filters.buildingType,
       repairStatus: filters.repairStatus,
-    ownerOnly: filters.ownerOnly,
-    verifiedOnly: filters.verifiedOnly,
-    withPhoto: filters.withPhoto,
-    minYear: filters.minYear,
-    maxYear: filters.maxYear,
-    minFloor: filters.minFloor,
-    maxFloor: filters.maxFloor,
-    sort: filters.sort
+      ownerOnly: filters.ownerOnly,
+      verifiedOnly: filters.verifiedOnly,
+      withPhoto: filters.withPhoto,
+      minYear: filters.minYear,
+      maxYear: filters.maxYear,
+      minFloor: filters.minFloor,
+      maxFloor: filters.maxFloor,
+      north: committed?.north,
+      south: committed?.south,
+      east: committed?.east,
+      west: committed?.west,
+      sort: filters.sort
     })
       .then((res) => {
         if (cancelled) return;
@@ -126,14 +139,17 @@ export function SearchClient() {
     return () => {
       cancelled = true;
     };
-  }, [filters]);
+  }, [filters, mapBounds, boundsCommitted]);
 
+  // Backend applies committed bounds; only the interactive (uncommitted) map
+  // view filters client-side so the list follows the viewport.
   const results = React.useMemo(() => {
+    if (boundsCommitted) return unfiltered;
     if (!mapBounds) return unfiltered;
     return unfiltered.filter((p) =>
       isPointInBounds(p.location.point, mapBounds)
     );
-  }, [unfiltered, mapBounds]);
+  }, [unfiltered, mapBounds, boundsCommitted]);
 
   const markers = React.useMemo<MapMarkerData[]>(
     () =>
@@ -221,6 +237,38 @@ export function SearchClient() {
       ? `${results.length} elan`
       : `${unfiltered.length} elan`;
 
+  const saveSearch = async () => {
+    if (!user) {
+      router.push("/login?next=" + encodeURIComponent("/search?" + searchParams.toString()));
+      return;
+    }
+    if (savingSearch || searchSaved) return;
+    setSavingSearch(true);
+    try {
+      const name = window.prompt("Axtarış üçün ad daxil edin", "Axtarışım");
+      if (name === null) return;
+      const savedFilters: Record<string, unknown> = {};
+      savedFilters.deal_type = filters.deal;
+      if (filters.propertyType !== "all") savedFilters.property_type = filters.propertyType;
+      if (filters.district) savedFilters.district = filters.district;
+      if (filters.metro) savedFilters.metro = filters.metro;
+      if (filters.rooms.length > 0) savedFilters.rooms = filters.rooms.join(",");
+      if (filters.minPrice != null) savedFilters.price_min = filters.minPrice;
+      if (filters.maxPrice != null) savedFilters.price_max = filters.maxPrice;
+      await dashboardApi.createSavedSearch({
+        name: name.trim() || "Axtarışım",
+        filters: savedFilters,
+        email_enabled: true
+      });
+      setSearchSaved(true);
+      window.setTimeout(() => setSearchSaved(false), 3000);
+    } catch {
+      // non-fatal
+    } finally {
+      setSavingSearch(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-[1440px] px-4 lg:px-6">
       {/* Desktop filter bar */}
@@ -294,6 +342,27 @@ export function SearchClient() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={saveSearch}
+            disabled={savingSearch}
+            title="Bu axtarışı saxla və yeni uyğun elanlardan xəbərdar ol"
+            className={
+              "flex shrink-0 items-center gap-1.5 rounded-[10px] border px-3 py-2 text-[13px] font-medium transition-colors disabled:opacity-60 " +
+              (searchSaved
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
+                : "border-border bg-surface text-foreground/75 hover:border-brand/40 hover:text-brand")
+            }
+          >
+            {searchSaved ? (
+              <Check className="h-3.5 w-3.5" />
+            ) : (
+              <BookmarkPlus className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden sm:inline">
+              {searchSaved ? "Saxlandı" : "Axtarışı saxla"}
+            </span>
+          </button>
           <div className="hidden sm:block">
             <Select
               value={filters.sort}

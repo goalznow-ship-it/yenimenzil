@@ -115,89 +115,15 @@ ALERT_INTERVAL = timedelta(hours=24)
 async def _run_saved_search_alerts() -> bool:
     """Daily digest: notify users when new active listings match saved searches.
 
+    Delegates to the dedicated saved-search alert service which adds
+    deduplication and email digests (Phase 14).
+
     Returns True when a run was performed.
     """
     global _last_alert_run
-    now = datetime.now(UTC)
-    if _last_alert_run is not None and now - _last_alert_run < ALERT_INTERVAL:
-        return False
-    _last_alert_run = now
+    from app.services.saved_search_alerts import _run_saved_search_alerts as _impl
 
-    from urllib.parse import urlencode
-
-    from app.models.notification import Notification
-    from app.models.property import PropertyLocation
-    from app.models.saved_search import SavedSearch
-
-    async with async_session_factory() as session:
-        since = now - ALERT_INTERVAL
-        searches = (
-            (
-                await session.execute(
-                    select(SavedSearch).where(SavedSearch.is_active.is_(True))
-                )
-            )
-            .scalars()
-            .all()
-        )
-
-        created = 0
-        for search in searches:
-            filters = search.filters or {}
-            stmt = select(Property.id).where(
-                Property.status == PropertyStatus.ACTIVE.value,
-                Property.published_at >= since,
-            )
-            deal_type = filters.get("deal_type")
-            if deal_type:
-                stmt = stmt.where(Property.deal_type == deal_type)
-            property_type = filters.get("property_type")
-            if property_type:
-                stmt = stmt.where(Property.property_type == property_type)
-            price_min = filters.get("price_min")
-            if isinstance(price_min, (int, float)):
-                stmt = stmt.where(Property.price >= float(price_min))
-            price_max = filters.get("price_max")
-            if isinstance(price_max, (int, float)):
-                stmt = stmt.where(Property.price <= float(price_max))
-            rooms = filters.get("rooms")
-            if rooms is not None and str(rooms).isdigit():
-                stmt = stmt.where(Property.rooms == int(rooms))
-            city = filters.get("city") or filters.get("location_city")
-            district = filters.get("district")
-            metro = filters.get("metro")
-            if city or district or metro:
-                stmt = stmt.join(
-                    PropertyLocation, PropertyLocation.property_id == Property.id
-                )
-                if city:
-                    stmt = stmt.where(PropertyLocation.city == city)
-                if district:
-                    stmt = stmt.where(PropertyLocation.district == district)
-                if metro:
-                    stmt = stmt.where(PropertyLocation.metro == metro)
-
-            matches = (await session.execute(stmt)).scalars().all()
-            if not matches:
-                continue
-
-            query = urlencode(
-                {key: str(value) for key, value in filters.items() if value is not None}
-            )
-            session.add(
-                Notification(
-                    user_id=search.user_id,
-                    title=f"{search.name}: {len(matches)} yeni elan",
-                    message=(
-                        f"Axtarışınıza uyğun {len(matches)} yeni elan dərc olundu."
-                    ),
-                    kind="saved_search",
-                    link=f"/search?{query}",
-                )
-            )
-            created += 1
-
-        if created:
-            await session.commit()
-            print(f"Saved-search alerts sent to {created} search(es)")
-    return True
+    ran = await _impl()
+    if ran:
+        _last_alert_run = datetime.now(UTC)
+    return ran

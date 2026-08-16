@@ -37,6 +37,7 @@ from app.models.enums import (
 if TYPE_CHECKING:
     from app.models.agency import Agency, Agent
     from app.models.analytics import AnalyticsEvent
+    from app.models.complex import ResidentialComplex
     from app.models.favorite import Favorite
     from app.models.moderation import ModerationLog
     from app.models.report import Report
@@ -62,6 +63,11 @@ class Property(Base):
     )
     agent_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("agents.id", ondelete="SET NULL"), nullable=True
+    )
+    complex_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("residential_complexes.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     seller_kind: Mapped[SellerKind] = mapped_column(
         _enum(SellerKind), default=SellerKind.OWNER.value, nullable=False
@@ -114,6 +120,7 @@ class Property(Base):
         DateTime(timezone=True), nullable=True
     )
     views: Mapped[int] = mapped_column(Integer, default=0)
+    quality_score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     published_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -135,6 +142,9 @@ class Property(Base):
     owner: Mapped[User] = relationship(back_populates="properties")
     agency: Mapped[Agency | None] = relationship(back_populates="properties")
     agent: Mapped[Agent | None] = relationship(back_populates="properties")
+    complex: Mapped[ResidentialComplex | None] = relationship(
+        back_populates="properties"
+    )
 
     location: Mapped[PropertyLocation] = relationship(
         back_populates="property", uselist=False, cascade="all, delete-orphan"

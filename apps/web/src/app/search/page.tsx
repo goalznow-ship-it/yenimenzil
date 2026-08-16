@@ -5,7 +5,9 @@ import { SearchClient, SearchResultsSkeleton } from "@/features/search/search-cl
 export const metadata: Metadata = {
   title: "Elan axtarışı",
   description:
-    "Azərbaycan üzrə mənzil, kirayə, villa, torpaq və digər daşınmaz əmlak elanlarını axtar."
+    "Azərbaycan üzrə mənzil, kirayə, villa, torpaq və digər daşınmaz əmlak elanlarını axtar.",
+  alternates: { canonical: "/search" },
+  robots: { index: false, follow: true }
 };
 
 export default function SearchPage() {

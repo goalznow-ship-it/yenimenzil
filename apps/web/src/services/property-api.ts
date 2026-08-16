@@ -260,6 +260,10 @@ function toSearchParams(filters: Partial<SearchFilters>): URLSearchParams {
   set("max_price", filters.maxPrice);
   set("min_area", filters.minArea);
   set("max_area", filters.maxArea);
+  set("north", filters.north);
+  set("south", filters.south);
+  set("east", filters.east);
+  set("west", filters.west);
   set("metro", filters.metro);
   set("building_type", filters.buildingType);
   set("repair_status", filters.repairStatus);

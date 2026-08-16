@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from app.models.analytics import AnalyticsEvent
     from app.models.appointment import ViewingAppointment
     from app.models.auth import RefreshToken
-    from app.models.favorite import Favorite
+    from app.models.favorite import Favorite, FavoriteCollection
     from app.models.messaging import Conversation, Message
     from app.models.notification import Notification
     from app.models.property import Property
@@ -61,6 +61,9 @@ class User(Base):
     )
     properties: Mapped[list[Property]] = relationship(back_populates="owner")
     favorites: Mapped[list[Favorite]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
+    favorite_collections: Mapped[list[FavoriteCollection]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
     refresh_tokens: Mapped[list[RefreshToken]] = relationship(

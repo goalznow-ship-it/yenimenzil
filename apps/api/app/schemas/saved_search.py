@@ -11,6 +11,7 @@ class SavedSearchBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=150)
     filters: dict[str, Any] = Field(default_factory=dict)
     is_active: bool = True
+    email_enabled: bool = True
 
 
 class SavedSearchCreate(SavedSearchBase):
@@ -21,6 +22,7 @@ class SavedSearchUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=150)
     filters: dict[str, Any] | None = None
     is_active: bool | None = None
+    email_enabled: bool | None = None
 
 
 class SavedSearchRead(SavedSearchBase):

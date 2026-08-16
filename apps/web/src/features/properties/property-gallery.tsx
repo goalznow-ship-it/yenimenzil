@@ -9,7 +9,6 @@ export function PropertyGallery({ property }: { property: Property }) {
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(0);
   const images = property.images;
-  if (images.length === 0) return null;
 
   const hero = images[0]!;
   const thumbs = images.slice(1, 5);
@@ -18,6 +17,42 @@ export function PropertyGallery({ property }: { property: Property }) {
     setActiveIndex(index);
     setLightboxOpen(true);
   };
+
+  const next = React.useCallback(
+    () => setActiveIndex((i) => (i + 1) % images.length),
+    [images.length]
+  );
+  const prev = React.useCallback(
+    () => setActiveIndex((i) => (i - 1 + images.length) % images.length),
+    [images.length]
+  );
+
+  const touchStartX = React.useRef<number | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0]?.clientX ?? null;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const deltaX = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(deltaX) > 40) {
+      if (deltaX < 0) next();
+      else prev();
+    }
+  };
+
+  React.useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+      if (e.key === "Escape") setLightboxOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxOpen, next, prev]);
+
+  if (images.length === 0) return null;
 
   return (
     <>
@@ -99,7 +134,11 @@ export function PropertyGallery({ property }: { property: Property }) {
       </button>
 
       {lightboxOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/95">
+        <div
+          className="fixed inset-0 z-50 bg-black/95"
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+        >
           <button
             type="button"
             onClick={() => setLightboxOpen(false)}
@@ -123,18 +162,14 @@ export function PropertyGallery({ property }: { property: Property }) {
           <div className="absolute inset-x-0 bottom-4 flex justify-center gap-2">
             <button
               type="button"
-              onClick={() =>
-                setActiveIndex((i) => (i - 1 + images.length) % images.length)
-              }
+              onClick={prev}
               className="rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
             >
               ← Əvvəl
             </button>
             <button
               type="button"
-              onClick={() =>
-                setActiveIndex((i) => (i + 1) % images.length)
-              }
+              onClick={next}
               className="rounded-full bg-white/10 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-white/20"
             >
               Sonrakı →

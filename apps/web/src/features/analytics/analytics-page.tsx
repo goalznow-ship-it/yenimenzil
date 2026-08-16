@@ -3,10 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { Skeleton, Badge } from "@yenimenzil/ui";
-import { Eye, Heart, Phone, MessageSquare, TrendingUp } from "lucide-react";
+import {
+  Eye,
+  Heart,
+  Phone,
+  MessageSquare,
+  TrendingUp,
+  Building2
+} from "lucide-react";
 import { dashboardApi, type MyPropertySummary } from "@/services/dashboard-api";
 import { formatPriceShort } from "@/lib/format";
 import { RequireAuth } from "@/components/auth/auth-provider";
+import { useAuth } from "@/store/auth";
 
 interface ListingAnalytics {
   property_id: string;
@@ -16,6 +24,42 @@ interface ListingAnalytics {
   whatsapp_clicks: number;
   messages: number;
   viewing_requests: number;
+  days: number;
+  period_views: number;
+  trend: {
+    date: string;
+    views: number;
+    favorites: number;
+    phone_reveals: number;
+    whatsapp_clicks: number;
+    messages: number;
+  }[];
+  conversion: {
+    favorite_rate: number;
+    phone_rate: number;
+    whatsapp_rate: number;
+    message_rate: number;
+    viewing_request_rate: number;
+  };
+}
+
+interface AgencyAnalytics {
+  agency_id: string | null;
+  agency_name: string;
+  days: number;
+  listings_count: number;
+  total_views: number;
+  total_favorites: number;
+  total_leads: number;
+  avg_price: number;
+  top_listings: {
+    property_id: string;
+    title: string;
+    views: number;
+    favorites: number;
+    phone_reveals: number;
+    messages: number;
+  }[];
 }
 
 export function AnalyticsPage() {
@@ -26,8 +70,11 @@ export function AnalyticsPage() {
     total_favorites: number;
     property_status_counts: Record<string, number>;
   } | null>(null);
+  const [agency, setAgency] = React.useState<AgencyAnalytics | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+
+  const user = useAuth((s) => s.user);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -52,6 +99,9 @@ export function AnalyticsPage() {
           if (entry) map[entry[0]] = entry[1];
         }
         setAnalytics(map);
+        const agencyData = await dashboardApi.agencyAnalytics();
+        if (cancelled) return;
+        setAgency(agencyData);
         setLoading(false);
       })
       .catch((err) => {
@@ -89,6 +139,64 @@ export function AnalyticsPage() {
     { label: "Telefon + WhatsApp", value: formatPriceShort(totalReveals), icon: Phone },
     { label: "Mesaj + baxış təklifi", value: formatPriceShort(totalMessages), icon: MessageSquare }
   ];
+
+  const periodViews = Object.values(analytics).reduce(
+    (acc, a) => acc + a.period_views,
+    0
+  );
+  const conversionCards = [
+    {
+      label: "Baxış → Seçilmiş",
+      value: (() => {
+        const favorites = Object.values(analytics).reduce(
+          (acc, a) => acc + a.favorites,
+          0
+        );
+        return periodViews > 0 ? ((favorites * 100) / periodViews).toFixed(1) : "0";
+      })() + "%"
+    },
+    {
+      label: "Baxış → Telefon",
+      value: (() => {
+        const reveals = Object.values(analytics).reduce(
+          (acc, a) => acc + a.phone_reveals,
+          0
+        );
+        return periodViews > 0 ? ((reveals * 100) / periodViews).toFixed(1) : "0";
+      })() + "%"
+    },
+    {
+      label: "Baxış → Mesaj",
+      value: (() => {
+        const messages = Object.values(analytics).reduce(
+          (acc, a) => acc + a.messages,
+          0
+        );
+        return periodViews > 0 ? ((messages * 100) / periodViews).toFixed(1) : "0";
+      })() + "%"
+    },
+    {
+      label: "Baxış → WhatsApp",
+      value: (() => {
+        const clicks = Object.values(analytics).reduce(
+          (acc, a) => acc + a.whatsapp_clicks,
+          0
+        );
+        return periodViews > 0 ? ((clicks * 100) / periodViews).toFixed(1) : "0";
+      })() + "%"
+    }
+  ];
+
+  const trendByDate = new Map<string, number>();
+  for (const a of Object.values(analytics)) {
+    for (const point of a.trend) {
+      trendByDate.set(point.date, (trendByDate.get(point.date) ?? 0) + point.views);
+    }
+  }
+  const trendDates = Array.from(trendByDate.keys());
+  const maxTrend = Math.max(1, ...trendByDate.values());
+  const isAgencyMember =
+    user?.role === "agent" || user?.role === "agency_admin";
 
   return (
     <RequireAuth>
@@ -143,6 +251,95 @@ export function AnalyticsPage() {
                 </div>
               ))}
             </div>
+
+            <h2 className="mt-8 mb-3 flex items-center gap-2 text-[15px] font-semibold">
+              <TrendingUp className="h-4 w-4 text-brand" />
+              Konversiya (son 30 gün)
+            </h2>
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {conversionCards.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl bg-surface p-4 ring-1 ring-border/70"
+                >
+                  <p className="text-xl font-semibold tabular-nums tracking-tight">
+                    {stat.value}
+                  </p>
+                  <p className="mt-0.5 text-[13px] text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {trendDates.length > 0 ? (
+              <div className="mt-6 rounded-2xl bg-surface p-5 ring-1 ring-border/70">
+                <p className="mb-4 text-[13px] font-medium text-muted-foreground">
+                  Gündəlik baxış tendensiyası
+                </p>
+                <div className="flex h-32 items-end gap-1">
+                  {trendDates.map((date) => {
+                    const value = trendByDate.get(date) ?? 0;
+                    const height = Math.max(4, Math.round((value / maxTrend) * 100));
+                    return (
+                      <div key={date} className="group relative flex-1">
+                        <div
+                          className="w-full rounded-t bg-brand/70 transition-colors group-hover:bg-brand"
+                          style={{ height: `${height}%` }}
+                        />
+                        <div className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] text-background opacity-0 transition-opacity group-hover:opacity-100">
+                          {date}: {value}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+
+            {isAgencyMember && agency && agency.listings_count > 0 ? (
+              <div className="mt-8 rounded-2xl bg-surface p-5 ring-1 ring-border/70">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="flex items-center gap-2 text-[15px] font-semibold">
+                    <Building2 className="h-4 w-4 text-brand" />
+                    Agentlik portfeli — {agency.agency_name || "Agentlik"}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {agency.listings_count} elan · {formatPriceShort(agency.total_views)} baxış ·{" "}
+                    {agency.total_leads} lead
+                  </span>
+                </div>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[520px] text-sm">
+                    <thead>
+                      <tr className="border-b border-border/70 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                        <th className="p-2.5 font-medium">Elan</th>
+                        <th className="p-2.5 text-right font-medium">Baxış</th>
+                        <th className="p-2.5 text-right font-medium">Seçilmiş</th>
+                        <th className="p-2.5 text-right font-medium">Telefon</th>
+                        <th className="p-2.5 text-right font-medium">Mesaj</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {agency.top_listings.map((listing) => (
+                        <tr key={listing.property_id} className="border-b border-border/50 last:border-0">
+                          <td className="max-w-[300px] p-2.5">
+                            <Link
+                              href={`/property/${listing.property_id}`}
+                              className="line-clamp-1 font-medium text-foreground transition-colors hover:text-brand"
+                            >
+                              {listing.title}
+                            </Link>
+                          </td>
+                          <td className="p-2.5 text-right tabular-nums">{listing.views}</td>
+                          <td className="p-2.5 text-right tabular-nums">{listing.favorites}</td>
+                          <td className="p-2.5 text-right tabular-nums">{listing.phone_reveals}</td>
+                          <td className="p-2.5 text-right tabular-nums">{listing.messages}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
 
             <h2 className="mt-8 mb-3 flex items-center gap-2 text-[15px] font-semibold">
               <TrendingUp className="h-4 w-4 text-brand" />

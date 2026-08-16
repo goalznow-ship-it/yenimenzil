@@ -3,13 +3,22 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/store/auth";
+import { useFavoritesStore } from "@/stores/favorites-store";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hydrate = useAuth((s) => s.hydrate);
+  const hydrateFavorites = useFavoritesStore((s) => s.hydrate);
+  const status = useAuth((s) => s.status);
 
   React.useEffect(() => {
     void hydrate();
   }, [hydrate]);
+
+  React.useEffect(() => {
+    if (status === "authenticated") {
+      void hydrateFavorites();
+    }
+  }, [status, hydrateFavorites]);
 
   return children;
 }

@@ -17,6 +17,7 @@ import {
 import { RequireAuth } from "@/components/auth/auth-provider";
 import { CITIES, DISTRICTS, METRO_STATIONS } from "@/data/locations";
 import { listingWriteApi, type ListingInput, type ListingDetail } from "@/services/listing-write-api";
+import { dashboardApi } from "@/services/dashboard-api";
 
 const PROPERTY_TYPES = [
   { value: "apartment", label: "Mənzil" },
@@ -206,6 +207,12 @@ export function ListingWizard({
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
+  const [qualityReport, setQualityReport] = React.useState<{
+    score: number;
+    sections: Record<string, { score: number; max: number }>;
+    warnings: string[];
+    duplicates: { property_id: string; title: string; confidence: number; reason: string }[];
+  } | null>(null);
   const router = useRouter();
 
   const set = <K extends keyof WizardState>(key: K, value: WizardState[K]) =>
@@ -298,11 +305,22 @@ export function ListingWizard({
           .filter((u) => u.trim())
           .map((url, i) => ({ url: url.trim(), is_cover: i === 0 }))
       };
+      let submittedId: string | null = null;
       if (listingId) {
         await listingWriteApi.update(listingId, input);
+        submittedId = listingId;
       } else {
         const created = await listingWriteApi.create(input);
+        submittedId = created.id;
         await listingWriteApi.submit(created.id);
+      }
+      if (submittedId) {
+        try {
+          const report = await dashboardApi.listingQuality(submittedId);
+          setQualityReport(report);
+        } catch {
+          // quality report is non-fatal
+        }
       }
       setDone(true);
     } catch (err) {
@@ -326,6 +344,50 @@ export function ListingWizard({
             ? "Dəyişikliklər yadda saxlanıldı. Elanınızın vəziyyəti qorunub saxlanıldı."
             : "Elanınız baxış üçün moderatora göndərildi. Təsdiqləndikdən sonra dərc olunacaq və sizə bildiriş göndəriləcək."}
         </p>
+
+        {qualityReport ? (
+          <div className="mt-6 w-full rounded-2xl bg-surface p-5 text-left ring-1 ring-border/70">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">Elan keyfiyyət balı</p>
+              <p
+                className={
+                  "text-xl font-semibold tabular-nums " +
+                  (qualityReport.score >= 70
+                    ? "text-emerald-600"
+                    : qualityReport.score >= 40
+                      ? "text-amber-600"
+                      : "text-red-600")
+                }
+              >
+                {qualityReport.score}/100
+              </p>
+            </div>
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-foreground/10">
+              <div
+                className={
+                  "h-full rounded-full " +
+                  (qualityReport.score >= 70
+                    ? "bg-emerald-500"
+                    : qualityReport.score >= 40
+                      ? "bg-amber-500"
+                      : "bg-red-500")
+                }
+                style={{ width: `${Math.max(4, qualityReport.score)}%` }}
+              />
+            </div>
+            {qualityReport.warnings.length > 0 ? (
+              <ul className="mt-3 space-y-1 text-[13px] text-foreground/70">
+                {qualityReport.warnings.slice(0, 4).map((warning) => (
+                  <li key={warning} className="flex gap-2">
+                    <span className="text-amber-500">•</span>
+                    {warning}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="mt-6 flex gap-3">
           <Button variant="outline" onClick={() => router.push("/profile")}>
             İdarə panelim

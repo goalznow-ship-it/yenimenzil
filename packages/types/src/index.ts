@@ -155,6 +155,10 @@ export interface SearchFilters {
   maxYear?: number;
   minFloor?: number;
   maxFloor?: number;
+  north?: number;
+  south?: number;
+  east?: number;
+  west?: number;
   sort: SortKey;
 }
 
@@ -223,4 +227,39 @@ export const REPAIR_LABELS: Record<RepairStatus, string> = {
 export const BUILDING_TYPE_LABELS: Record<BuildingType, string> = {
   new: "Yeni tikili",
   old: "Köhnə tikili"
+};
+
+export type ComplexStatus = "announced" | "under_construction" | "ready";
+
+export interface ResidentialComplex {
+  id: string;
+  name: string;
+  slug: string;
+  developerName?: string;
+  status: ComplexStatus;
+  description?: string;
+  addressText?: string;
+  city?: string;
+  district?: string;
+  metro?: string;
+  latitude?: number;
+  longitude?: number;
+  completionYear?: number;
+  totalUnits?: number;
+  coverImage?: string;
+  amenities: string[];
+  isVerified: boolean;
+  propertiesCount: number;
+  unitsAvailable: number;
+  createdAt: string;
+}
+
+export interface ComplexDetail extends ResidentialComplex {
+  properties: Property[];
+}
+
+export const COMPLEX_STATUS_LABELS: Record<ComplexStatus, string> = {
+  announced: "Elan edilib",
+  under_construction: "Tikilir",
+  ready: "Hazırdır"
 };

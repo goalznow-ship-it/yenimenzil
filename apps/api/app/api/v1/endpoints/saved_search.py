@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -7,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
+from app.core.config import get_settings
 from app.db.session import get_db
 from app.models.saved_search import SavedSearch
 from app.models.user import User
@@ -17,6 +20,36 @@ from app.schemas.saved_search import (
 )
 
 router = APIRouter(prefix="/saved-searches", tags=["saved-searches"])
+
+
+def unsubscribe_token(search_id: uuid.UUID, user_id: uuid.UUID) -> str:
+    """Signed token allowing one-click email unsubscribe without login."""
+    secret = get_settings().SECRET_KEY.encode()
+    return hmac.new(
+        secret, f"{search_id}:{user_id}".encode(), hashlib.sha256
+    ).hexdigest()
+
+
+def verify_unsubscribe_token(
+    search_id: uuid.UUID, user_id: uuid.UUID, token: str
+) -> bool:
+    return hmac.compare_digest(unsubscribe_token(search_id, user_id), token)
+
+
+@router.get("/unsubscribe")
+async def unsubscribe(
+    search_id: uuid.UUID = Query(...),
+    token: str = Query(...),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Disable email alerts for a saved search via a signed email link."""
+    result = await db.execute(select(SavedSearch).where(SavedSearch.id == search_id))
+    search = result.scalar_one_or_none()
+    if search is None or not verify_unsubscribe_token(search_id, search.user_id, token):
+        raise HTTPException(status_code=400, detail="Invalid unsubscribe link")
+    search.is_active = False
+    await db.commit()
+    return {"ok": True, "message": "Email bildirişləri dayandırıldı"}
 
 
 @router.get("", response_model=list[SavedSearchRead])
@@ -44,6 +77,7 @@ async def create_saved_search(
         name=payload.name,
         filters=payload.filters,
         is_active=payload.is_active,
+        email_enabled=payload.email_enabled,
     )
     db.add(search)
     await db.commit()
@@ -72,6 +106,8 @@ async def update_saved_search(
         search.filters = payload.filters
     if payload.is_active is not None:
         search.is_active = payload.is_active
+    if payload.email_enabled is not None:
+        search.email_enabled = payload.email_enabled
     await db.commit()
     await db.refresh(search)
     return search
