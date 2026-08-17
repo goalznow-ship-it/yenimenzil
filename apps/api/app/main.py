@@ -13,13 +13,18 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Background tasks on startup/shutdown."""
-    # Start expiry watcher task
-    from app.services.expiry_watcher import start_expiry_watcher, stop_expiry_watcher
+    """Async lifespan — start watcher as a background thread task."""
+    import asyncio
+    from app.services.expiry_watcher import start_expiry_watcher
 
-    start_expiry_watcher()
-    yield
-    stop_expiry_watcher()
+    # Start the watcher in a daemon thread via asyncio.to_thread.
+    # This ensures the coroutine is consumed (not unawaited) within
+    # the async context of the lifespan.
+    task = asyncio.create_task(asyncio.to_thread(start_expiry_watcher))
+    try:
+        yield
+    finally:
+        task.cancel()
 
 
 def create_app() -> FastAPI:

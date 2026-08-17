@@ -38,6 +38,10 @@ export function AdsProvider({
   const load = React.useCallback(async () => {
     setLoading(true);
     try {
+      if (placements.length === 0) {
+        setAds(Object.fromEntries(placements.map((p) => [p, null])) as Record<AdPlacement, AdCampaignPublic | null>);
+        return;
+      }
       const fetched = await fetchAdsForPlacements(placements, {
         device,
         city,

@@ -95,12 +95,16 @@ async def get_ads(
     """
     if placement and placements:
         raise HTTPException(400, "Provide either placement or placements, not both")
-    if not placement and not placements:
-        raise HTTPException(400, "placement or placements required")
 
-    targets = [p.strip() for p in (placements or placement).split(",")]
+    targets_str = (placements or placement) or ""
+    targets = [p.strip() for p in targets_str.split(",") if p.strip()]
     if not targets:
-        raise HTTPException(400, "No valid placements provided")
+        return []
+
+    valid = set(AdPlacement._placements)
+    invalid = [t for t in targets if t not in valid]
+    if invalid:
+        raise HTTPException(400, f"Invalid placement(s): {', '.join(invalid)}")
 
     # Validate placements
     valid = set(AdPlacement._placements)
