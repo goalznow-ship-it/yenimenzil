@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, Integer, JSON, String, Text, Uuid, func
+from sqlalchemy import JSON, Boolean, DateTime, Integer, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from app.models.ad_event import AdEvent
     from app.models.ad_daily_stats import AdDailyStats
+    from app.models.ad_event import AdEvent
 
 
 class AdCampaign(Base):
@@ -33,18 +33,26 @@ class AdCampaign(Base):
     # MOBILE_TOP | MOBILE_INLINE | MOBILE_BOTTOM
 
     # Creatives (desktop + optional mobile)
-    desktop_creative_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    desktop_creative_url: Mapped[str | None] = mapped_column(
+        String(1000), nullable=True
+    )
     mobile_creative_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     alt_text: Mapped[str | None] = mapped_column(String(300), nullable=True)
     destination_url: Mapped[str] = mapped_column(String(1000))
     open_in_new_tab: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Scheduling
-    start_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
-    end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    start_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+    end_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
 
     # Targeting
-    device_targeting: Mapped[str] = mapped_column(String(16), default="all")  # all | desktop | mobile
+    device_targeting: Mapped[str] = mapped_column(
+        String(16), default="all"
+    )  # all | desktop | mobile
     city_targeting: Mapped[list[str]] = mapped_column(JSON, default=list)
     property_category_targeting: Mapped[list[str]] = mapped_column(JSON, default=list)
 

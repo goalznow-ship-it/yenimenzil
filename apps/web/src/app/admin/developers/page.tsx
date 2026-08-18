@@ -1,10 +1,16 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+
+interface Developer {
+  id: number;
+  name: string;
+  contact: string;
+  is_active: boolean;
+}
 
 export default function AdminDevelopersPage() {
-  const [developers, setDevelopers] = useState([]);
+  const [developers, setDevelopers] = useState<Developer[]>([]);
 
   React.useEffect(() => {
     fetch("/api/admin/developers", { credentials: "include" })
@@ -37,7 +43,7 @@ export default function AdminDevelopersPage() {
             </tr>
           </thead>
           <tbody>
-            {developers.map((dev: any) => (
+            {developers.map((dev) => (
               <tr key={dev.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
                 <td className="px-4 py-3">{dev.name}</td>
                 <td className="px-4 py-3">{dev.contact || "—"}</td>

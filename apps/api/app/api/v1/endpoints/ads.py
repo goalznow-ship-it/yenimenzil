@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Literal
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
-from sqlalchemy import and_, or_, select
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_optional_user
@@ -24,7 +24,6 @@ from app.schemas.ad_campaign import (
     AdImpressionRequest,
     AdPlacement,
 )
-from app.services.admin_log import log_admin_action
 
 router = APIRouter(prefix="/ads", tags=["ads"])
 
@@ -47,16 +46,26 @@ def _ip_hash(ip: str) -> str:
     return hashlib.sha256(ip.encode()).hexdigest()[:64]
 
 
-def _is_campaign_active(campaign: AdCampaign, now: datetime, device: str, city: str | None, category: str | None) -> bool:
-    if campaign.state != "ACTIVE":
-        return False
-    if campaign.device_targeting != "all" and campaign.device_targeting != device:
-        return False
-    if city and campaign.city_targeting and city not in campaign.city_targeting:
-        return False
-    if category and campaign.property_category_targeting and category not in campaign.property_category_targeting:
-        return False
-    return True
+def _is_campaign_active(
+    campaign: AdCampaign,
+    now: datetime,
+    device: str,
+    city: str | None,
+    category: str | None,
+) -> bool:
+    return (
+        campaign.state == "ACTIVE"
+        and campaign.device_targeting == "all"
+        or campaign.device_targeting == device
+        and not (
+            city and campaign.city_targeting and city not in campaign.city_targeting
+        )
+        and not (
+            category
+            and campaign.property_category_targeting
+            and category not in campaign.property_category_targeting
+        )
+    )
 
 
 def _select_best_campaign(campaigns: list[AdCampaign]) -> AdCampaign | None:
@@ -69,6 +78,7 @@ def _select_best_campaign(campaigns: list[AdCampaign]) -> AdCampaign | None:
         return top[0]
     # Weighted random by priority (all same priority here, so equal weight)
     import random
+
     return random.choice(top)
 
 
@@ -140,15 +150,17 @@ async def get_ads(
         campaigns = eligible_by_placement.get(target, [])
         best = _select_best_campaign(campaigns)
         if best:
-            response.append(AdCampaignPublic(
-                id=best.id,
-                placement=best.placement,
-                desktop_creative_url=best.desktop_creative_url,
-                mobile_creative_url=best.mobile_creative_url,
-                alt_text=best.alt_text,
-                destination_url=best.destination_url,
-                open_in_new_tab=best.open_in_new_tab,
-            ))
+            response.append(
+                AdCampaignPublic(
+                    id=best.id,
+                    placement=best.placement,
+                    desktop_creative_url=best.desktop_creative_url,
+                    mobile_creative_url=best.mobile_creative_url,
+                    alt_text=best.alt_text,
+                    destination_url=best.destination_url,
+                    open_in_new_tab=best.open_in_new_tab,
+                )
+            )
 
     return response
 
@@ -172,24 +184,22 @@ async def _record_event(
     dedup_suffix = session_key or ip_h
     dedup_key = f"ad_dedup:{campaign_id}:{event_type}:{dedup_suffix}"
 
-    try:
-        redis = await _get_redis()
-        if await redis.get(dedup_key):
-            return  # duplicate within window
-        await redis.setex(dedup_key, DEDUPE_WINDOW_MINUTES * 60, "1")
-    except Exception:
-        # If Redis fails, skip dedup but still record
-        pass
+    redis = await _get_redis()
+    if await redis.get(dedup_key):
+        return  # duplicate within window
+    await redis.setex(dedup_key, DEDUPE_WINDOW_MINUTES * 60, "1")
 
     # Record event (fire-and-forget)
-    db.add(AdEvent(
-        campaign_id=campaign_id,
-        event_type=event_type,
-        session_key=session_key,
-        ip_hash=ip_h,
-        user_agent=request.headers.get("user-agent"),
-        referrer=request.headers.get("referer"),
-    ))
+    db.add(
+        AdEvent(
+            campaign_id=campaign_id,
+            event_type=event_type,
+            session_key=session_key,
+            ip_hash=ip_h,
+            user_agent=request.headers.get("user-agent"),
+            referrer=request.headers.get("referer"),
+        )
+    )
 
     # Increment campaign counters
     stmt = select(AdCampaign).where(AdCampaign.id == campaign_id)
@@ -201,10 +211,9 @@ async def _record_event(
             campaign.clicks += 1
 
     # Upsert daily stats
-    today = date.today()
+    today = datetime.now(tz=UTC).date()
     stmt = select(AdDailyStats).where(
-        AdDailyStats.campaign_id == campaign_id,
-        AdDailyStats.date == today
+        AdDailyStats.campaign_id == campaign_id, AdDailyStats.date == today
     )
     daily = (await db.execute(stmt)).scalar_one_or_none()
     if daily is None:
@@ -240,7 +249,9 @@ async def record_impression(
     campaign = (await db.execute(stmt)).scalar_one_or_none()
     if not campaign:
         return  # silent ignore - don't leak existence
-    await _record_event(db, campaign_id, "impression", payload.session_key, request, user)
+    await _record_event(
+        db, campaign_id, "impression", payload.session_key, request, user
+    )
 
 
 @router.post("/{campaign_id}/click")

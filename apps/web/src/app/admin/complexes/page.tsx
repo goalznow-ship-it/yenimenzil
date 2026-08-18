@@ -1,10 +1,16 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
+
+interface Complex {
+  id: number;
+  name: string;
+  location: string;
+  is_active: boolean;
+}
 
 export default function AdminComplexesPage() {
-  const [complexes, setComplexes] = useState([]);
+  const [complexes, setComplexes] = useState<Complex[]>([]);
 
   React.useEffect(() => {
     fetch("/api/admin/complexes", { credentials: "include" })
@@ -37,7 +43,7 @@ export default function AdminComplexesPage() {
             </tr>
           </thead>
           <tbody>
-            {complexes.map((comp: any) => (
+            {complexes.map((comp) => (
               <tr key={comp.id} className="border-b border-border/40 hover:bg-foreground/[0.02]">
                 <td className="px-4 py-3">{comp.name}</td>
                 <td className="px-4 py-3">{comp.location || "—"}</td>

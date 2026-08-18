@@ -5,16 +5,13 @@ Revises: 6c1ecabc29a8
 Create Date: 2026-08-15 20:18:54.989281
 
 """
-from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
+from collections.abc import Sequence
 
-
-revision: str = '38bab1bdf849'
-down_revision: Union[str, None] = '6c1ecabc29a8'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+revision: str = "38bab1bdf849"
+down_revision: str | None = "6c1ecabc29a8"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -77,7 +76,7 @@ async def test_ad_campaign_crud_and_states(client, auth_user, db):
     assert archived.json()["state"] == "ARCHIVED"
 
     # Non-admin cannot access
-    regular = await auth_user(email="ad-regular@test.az")
+    _ = await auth_user(email="ad-regular@test.az")
     regular_client = await _other_client(client, auth_user, "ad-regular@test.az")
     denied = await regular_client.get("/api/v1/admin/advertising")
     assert denied.status_code == 403
@@ -286,13 +285,21 @@ async def test_ad_device_targeting(client, auth_user, db):
     desk = await client.get("/api/v1/ads?placement=LEFT_RAIL&device=desktop")
     assert desk.status_code == 200
     assert len(desk.json()) == 1
-    assert desk.json()[0]["id"] == (await client.get("/api/v1/admin/advertising?search=Desktop")).json()[0]["id"]
+    assert (
+        desk.json()[0]["id"]
+        == (await client.get("/api/v1/admin/advertising?search=Desktop")).json()[0][
+            "id"
+        ]
+    )
 
     # Mobile request returns mobile campaign
     mob = await client.get("/api/v1/ads?placement=LEFT_RAIL&device=mobile")
     assert mob.status_code == 200
     assert len(mob.json()) == 1
-    assert mob.json()[0]["id"] == (await client.get("/api/v1/admin/advertising?search=Mobile")).json()[0]["id"]
+    assert (
+        mob.json()[0]["id"]
+        == (await client.get("/api/v1/admin/advertising?search=Mobile")).json()[0]["id"]
+    )
 
 
 @pytest.mark.asyncio
@@ -326,6 +333,7 @@ async def test_ad_overview_stats(client, auth_user, db):
 
 async def _other_client(client, auth_user, email):
     from app.tests.test_phase7_marketplace import _create_authenticated_client
+
     return await _create_authenticated_client(auth_user, email)
 
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function AdminHomepagePage() {
   const [heroContent, setHeroContent] = useState<string>("");

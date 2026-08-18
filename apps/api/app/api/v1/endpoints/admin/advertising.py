@@ -3,31 +3,25 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, date, datetime, timedelta
-from typing import Literal
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, status
-from sqlalchemy import and_, desc, func, select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.auth import get_current_user
-from app.core.storage import upload_file
 from app.db.session import get_db
 from app.models.ad_campaign import AdCampaign
 from app.models.ad_daily_stats import AdDailyStats
-from app.models.ad_event import AdEvent
 from app.models.enums import UserRole
 from app.models.user import User
 from app.schemas.ad_campaign import (
+    PLACEMENT_DIMS,
     AdCampaignCreate,
     AdCampaignRead,
     AdCampaignUpdate,
-    AdDailyStatsRead,
-    AdPlacement,
-    PLACEMENT_DIMS,
 )
 from app.services.admin_log import log_admin_action
-from sqlalchemy import or_
 
 router = APIRouter(prefix="/admin/advertising", tags=["admin-advertising"])
 
@@ -52,14 +46,16 @@ def _validate_url(url: str) -> bool:
     for scheme in blocked:
         if url_lower.startswith(scheme):
             return False
-    return url_lower.startswith("http://") or url_lower.startswith("https://")
+    return url_lower.startswith(("http://", "https://"))
 
 
 @router.get("", response_model=list[AdCampaignRead])
 async def admin_list_campaigns(
     current_user: User = Depends(_require_admin),
     db: AsyncSession = Depends(get_db),
-    state: str | None = Query(default=None, pattern="^(DRAFT|SCHEDULED|ACTIVE|PAUSED|EXPIRED|ARCHIVED)$"),
+    state: str | None = Query(
+        default=None, pattern="^(DRAFT|SCHEDULED|ACTIVE|PAUSED|EXPIRED|ARCHIVED)$"
+    ),
     placement: str | None = Query(default=None),
     search: str | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
@@ -152,17 +148,26 @@ async def admin_update_campaign(
 
     update_data = payload.model_dump(exclude_unset=True)
 
-    if "destination_url" in update_data and not _validate_url(update_data["destination_url"]):
+    if "destination_url" in update_data and not _validate_url(
+        update_data["destination_url"]
+    ):
         raise HTTPException(400, "Destination URL must use http:// or https:// scheme")
     if "start_at" in update_data and "end_at" in update_data:
-        if update_data["start_at"] and update_data["end_at"] and update_data["start_at"] >= update_data["end_at"]:
+        if (
+            update_data["start_at"]
+            and update_data["end_at"]
+            and update_data["start_at"] >= update_data["end_at"]
+        ):
             raise HTTPException(400, "start_at must be before end_at")
     elif "start_at" in update_data and update_data["start_at"] and campaign.end_at:
         if update_data["start_at"] >= campaign.end_at:
             raise HTTPException(400, "start_at must be before end_at")
-    elif "end_at" in update_data and update_data["end_at"] and campaign.start_at:
-        if campaign.start_at >= update_data["end_at"]:
-            raise HTTPException(400, "start_at must be before end_at")
+    elif (
+        "end_at" in update_data
+        and update_data["end_at"]
+        and campaign.start_at >= update_data["end_at"]
+    ):
+        raise HTTPException(400, "start_at must be before end_at")
 
     for key, value in update_data.items():
         setattr(campaign, key, value)
@@ -285,19 +290,13 @@ async def admin_advertising_overview(
     since = datetime.now(UTC) - timedelta(days=days)
 
     # Totals
-    total_impr = await db.scalar(
-        select(func.sum(AdCampaign.impressions))
-    ) or 0
-    total_clicks = await db.scalar(
-        select(func.sum(AdCampaign.clicks))
-    ) or 0
+    total_impr = await db.scalar(select(func.sum(AdCampaign.impressions))) or 0
+    total_clicks = await db.scalar(select(func.sum(AdCampaign.clicks))) or 0
     total_ctr = total_clicks / total_impr if total_impr else 0.0
 
     # Top campaign
     top_campaign = await db.execute(
-        select(AdCampaign)
-        .order_by(desc(AdCampaign.impressions))
-        .limit(1)
+        select(AdCampaign).order_by(desc(AdCampaign.impressions)).limit(1)
     )
     top_campaign = top_campaign.scalar_one_or_none()
 
@@ -345,12 +344,16 @@ async def admin_advertising_overview(
             "impressions": top_campaign.impressions,
             "clicks": top_campaign.clicks,
             "ctr": top_campaign.ctr,
-        } if top_campaign else None,
+        }
+        if top_campaign
+        else None,
         "top_placement": {
             "placement": top_placement.placement,
             "impressions": top_placement.imps or 0,
             "clicks": top_placement.clks or 0,
-        } if top_placement else None,
+        }
+        if top_placement
+        else None,
         "daily_trend": trend,
     }
 

@@ -20,7 +20,7 @@ export default function ContactPage() {
           {
             icon: Mail,
             label: "E-poçt",
-            value: "info@yenimenzil.az"
+            value: "info@idealev.az"
           },
           {
             icon: Phone,

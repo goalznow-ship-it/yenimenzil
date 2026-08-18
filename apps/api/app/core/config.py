@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     SMTP_USERNAME: str = ""
     SMTP_PASSWORD: str = ""
     SMTP_USE_TLS: bool = True
-    DEFAULT_FROM_EMAIL: str = "no-reply@yenimenzil.az"
+    DEFAULT_FROM_EMAIL: str = "no-reply@idealev.az"
 
     @property
     def cors_origins_list(self) -> list[str]:

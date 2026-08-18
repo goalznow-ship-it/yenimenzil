@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import ClassVar
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -25,12 +25,19 @@ class AdPlacement(str):
     MOBILE_INLINE = "MOBILE_INLINE"
     MOBILE_BOTTOM = "MOBILE_BOTTOM"
 
-    _placements = [
-        LEFT_RAIL, RIGHT_RAIL,
-        HOME_TOP_BANNER, HOME_MIDDLE_BANNER,
-        SEARCH_TOP_BANNER, SEARCH_INLINE_BANNER, SEARCH_BOTTOM_BANNER,
-        PROPERTY_SIDE_AD, PROPERTY_INLINE_AD,
-        MOBILE_TOP, MOBILE_INLINE, MOBILE_BOTTOM
+    _placements: ClassVar[list] = [
+        LEFT_RAIL,
+        RIGHT_RAIL,
+        HOME_TOP_BANNER,
+        HOME_MIDDLE_BANNER,
+        SEARCH_TOP_BANNER,
+        SEARCH_INLINE_BANNER,
+        SEARCH_BOTTOM_BANNER,
+        PROPERTY_SIDE_AD,
+        PROPERTY_INLINE_AD,
+        MOBILE_TOP,
+        MOBILE_INLINE,
+        MOBILE_BOTTOM,
     ]
 
     @classmethod
@@ -76,7 +83,9 @@ class AdCampaignBase(BaseModel):
     @model_validator(mode="after")
     def _at_least_one_creative(self):
         if self.desktop_creative_url is None and self.mobile_creative_url is None:
-            raise ValueError("At least one of desktop_creative_url or mobile_creative_url must be provided")
+            raise ValueError(
+                "At least one of desktop_creative_url or mobile_creative_url must be provided"
+            )
         return self
 
 
@@ -141,6 +150,7 @@ class AdCampaignRead(BaseModel):
 
 class AdCampaignPublic(BaseModel):
     """Minimal public response for ad rendering."""
+
     id: uuid.UUID
     placement: str
     desktop_creative_url: str | None

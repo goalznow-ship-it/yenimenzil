@@ -15,6 +15,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Async lifespan — start watcher as a background thread task."""
     import asyncio
+
     from app.services.expiry_watcher import start_expiry_watcher
 
     # Start the watcher in a daemon thread via asyncio.to_thread.

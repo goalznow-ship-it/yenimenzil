@@ -17,7 +17,6 @@ from app.models.enums import PropertyStatus
 from app.models.promotion import PromotionPurchase
 from app.models.property import Property
 
-
 # ──────────────────────────────────────────────────────────────────────
 # Interval for saved-search alert deduplication (one run per 24h).
 # Imported by app.services.saved_search_alerts.
@@ -41,6 +40,7 @@ def _run_watcher_cycle():
     context have no coroutine to "never await".
     """
     import asyncio
+
     asyncio.run(_watcher_loop())
 
 
@@ -123,6 +123,7 @@ async def _run_saved_search_alerts() -> bool:
     """Daily digest: notify users when new active listings match saved searches."""
     global _last_alert_run
     from app.services.saved_search_alerts import _run_saved_search_alerts as _impl
+
     ran = await _impl()
     if ran:
         _last_alert_run = datetime.now(UTC)
@@ -143,8 +144,10 @@ def start_expiry_watcher() -> threading.Thread:
     Since this function is a plain (non-async def) function,
     calling it does NOT trigger RuntimeWarning about unawaited coroutines.
     """
+
     def target():
         _run_watcher_cycle()
+
     thread = threading.Thread(target=target, daemon=True)
     thread.start()
     return thread
@@ -156,4 +159,3 @@ def stop_expiry_watcher() -> None:
     Since the watcher runs in a daemon thread, it terminates
     automatically when the process exits. No explicit cleanup is required.
     """
-    pass

@@ -2,10 +2,10 @@ from .advertising import router as admin_advertising_router
 from .dashboard import admin_router
 
 __all__ = [
+    "admin_advertising_router",
     "admin_agencies_router",
     "admin_analytics_router",
     "admin_audit_router",
-    "admin_advertising_router",
     "admin_detail_router",
     "admin_features_router",
     "admin_intelligence_router",

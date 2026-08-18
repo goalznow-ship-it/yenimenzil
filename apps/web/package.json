@@ -24,8 +24,7 @@
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
+"devDependencies": {
     "@types/geojson": "^7946.0.16",
     "@types/node": "^22",
     "@types/react": "^19.2.0",
@@ -34,6 +33,7 @@
     "@yenimenzil/typescript-config": "workspace:*",
     "eslint": "^9",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "playwright": "^1.40.0"
   }
 }

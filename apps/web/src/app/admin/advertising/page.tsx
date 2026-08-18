@@ -1,23 +1,32 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/store/auth";
 
 const PLACEMENTS = ["LEFT_RAIL", "RIGHT_RAIL", "HOME_TOP", "HOME_MIDDLE", "SEARCH_TOP", "SEARCH_INLINE", "SEARCH_BOTTOM", "PROPERTY", "MOBILE"];
 
+interface Campaign {
+  id: number;
+  name: string;
+  placement: string;
+  destination_url: string;
+  is_active: boolean;
+  impressions: number;
+  clicks: number;
+}
+
 export default function AdminAdvertisingPage() {
-  const { user } = useAuth();
-  const [campaigns, setCampaigns] = useState([]);
+  const { campaigns, setCampaigns } = useAdvertising();
 
   useEffect(() => {
     fetch("/api/admin/advertising", { credentials: "include" }).then(r => r.json()).then(setCampaigns);
   }, []);
 
-  const handleCreate = (e: any) => {
+  const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const name = e.target.name.value;
-    const placement = e.target.placement.value;
-    const dest = e.target.destination_url.value;
+    const target = e.target as HTMLFormElement;
+    const name = (target.querySelector('input[name="name"]') as HTMLInputElement).value;
+    const placement = (target.querySelector('select[name="placement"]') as HTMLSelectElement).value;
+    const dest = (target.querySelector('input[name="destination_url"]') as HTMLInputElement).value;
     try {
       fetch("/api/admin/advertising", {
         method: "POST",
@@ -44,9 +53,17 @@ export default function AdminAdvertisingPage() {
       </div>
       <div className="card rounded-xl overflow-x-auto">
         <table className="w-full min-w-[600px] text-sm"><thead><tr className="border-b border-gray-200"><th className="px-4 py-3 text-sm font-medium text-foreground/60">Adı</th><th className="px-4 py-3 text-sm font-medium text-foreground/60">Plasiman</th><th className="px-4 py-3 text-sm font-medium text-foreground/60">Hedef URL</th><th className="px-4 py-3 text-sm font-medium text-foreground/60">Status</th><th className="px-4 py-3 text-sm font-medium text-foreground/60">Gösterim</th><th className="px-4 py-3 text-sm font-medium text-foreground/60">Tıklama</th><th className="px-4 py-3 text-sm font-medium text-foreground/60">İşlemler</th></tr></thead>
-        <tbody>{campaigns.map((c: any, i: number) => <tr key={c.id} className="border-b"><td className="px-4 py-3">{c.name}</td><td className="px-4 py-3">{c.placement}</td><td className="px-4 py-3">{c.destination_url ? c.destination_url : "-"}</td><td className="px-4 py-3">Aktif</td><td className="px-4 py-3">{c.impressions || 0}</td><td className="px-4 py-3">{c.clicks || 0}</td><td className="px-4 py-3"><button className="rounded border px-3 py-2 text-sm">Düzenle</button></td></tr>)}</tbody></table>
+        <tbody>{campaigns.map((c) => <tr key={c.id} className="border-b"><td className="px-4 py-3">{c.name}</td><td className="px-4 py-3">{c.placement}</td><td className="px-4 py-3">{c.destination_url ? c.destination_url : "-"}</td><td className="px-4 py-3">Aktif</td><td className="px-4 py-3">{c.impressions || 0}</td><td className="px-4 py-3">{c.clicks || 0}</td><td className="px-4 py-3"><button className="rounded border px-3 py-2 text-sm">Düzenle</button></td></tr>)}</tbody></table>
       </div>
-      <div>Toplam Gösterim: {campaigns.reduce((s: number, c: any) => s + (c.impressions || 0), 0)}</div><div>Toplam Tıklama: {campaigns.reduce((s: number, c: any) => s + (c.clicks || 0), 0)}</div>
+      <div>Toplam Gösterim: {campaigns.reduce((s: number, c) => s + (c.impressions || 0), 0)}</div><div>Toplam Tıklama: {campaigns.reduce((s: number, c) => s + (c.clicks || 0), 0)}</div>
     </div>
   );
+}
+
+function useAdvertising() {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  useEffect(() => {
+    fetch("/api/admin/advertising", { credentials: "include" }).then(r => r.json()).then(setCampaigns);
+  }, []);
+  return { campaigns, setCampaigns };
 }

@@ -9,6 +9,7 @@ from sqlalchemy import Date, DateTime, ForeignKey, Integer, UniqueConstraint, Uu
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.models.ad_campaign import AdCampaign
 
 
 class AdDailyStats(Base):
@@ -35,7 +36,7 @@ class AdDailyStats(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    campaign: Mapped["AdCampaign"] = relationship(back_populates="daily_stats")
+    campaign: Mapped[AdCampaign] = relationship(back_populates="daily_stats")
 
     @property
     def ctr(self) -> float:

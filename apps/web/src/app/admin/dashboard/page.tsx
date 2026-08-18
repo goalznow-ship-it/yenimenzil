@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { LayoutDashboard, Users, ClipboardCheck, Home, Clock, Flag, Building } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 import { adminApi, type AdminStats } from "@/services/admin-api";
 import { AdminPageHeader } from "../layout";
 
