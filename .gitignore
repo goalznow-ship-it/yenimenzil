@@ -42,3 +42,7 @@ public/uploads/
 
 *.backup
 *.tsbuildinfo
+# Testing
+test-results/
+playwright-report/
+coverage/
