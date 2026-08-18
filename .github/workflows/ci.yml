@@ -1,4 +1,4 @@
-name: YeniMenzil CI/CD
+name: IdealEv CI/CD
 
 on:
   push:

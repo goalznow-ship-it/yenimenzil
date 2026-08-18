@@ -1,7 +1,7 @@
 export const appConfig = {
-  name: "YeniMenzil",
-  domain: "yenimenzil.az",
-  slogan: "Yeni məkanını burada tap.",
+  name: "IdealEv",
+  domain: "idealev.az",
+  slogan: "IdealEvda elan bul.",
   primaryColor: "#15543F",
   features: {
     priceIntelligence: true,

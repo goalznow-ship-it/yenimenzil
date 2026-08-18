@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Qeydiyyat",
-  description: "YeniMenzil.az-da yeni hesab yaradın."
+  description: "IdealEv.az-da yeni hesab yaradın."
 };
 
 export default function RegisterPage() {

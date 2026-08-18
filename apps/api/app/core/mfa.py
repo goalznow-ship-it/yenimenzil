@@ -39,7 +39,7 @@ def generate_mfa_uri(user_email: str, secret: str, issuer: str | None = None) ->
         issuer: The MFA issuer name (defaults to APP_NAME).
     """
     if issuer is None:
-        issuer = settings.APP_NAME or "YeniMenzil.az"
+        issuer = settings.APP_NAME or "IdealEv.az"
 
     # OTPAuth URI format
     totp_uri = (

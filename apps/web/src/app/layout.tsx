@@ -22,10 +22,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yenimenzil.az"),
+  metadataBase: new URL("https://idealev.az"),
   title: {
-    default: "YeniMenzil.az — Yeni məkanını burada tap",
-    template: "%s | YeniMenzil.az"
+    default: "IdealEv.az — Yeni məkanını burada tap",
+    template: "%s | IdealEv.az"
   },
   description:
     "Azərbaycan üzrə mənzil, villa, torpaq, obyekt və digər daşınmaz əmlak elanlarını rahat şəkildə kəşf et.",
@@ -39,8 +39,8 @@ export const metadata: Metadata = {
     "yenimenzil"
   ],
   openGraph: {
-    siteName: "YeniMenzil.az",
-    title: "YeniMenzil.az — Yeni məkanını burada tap",
+    siteName: "IdealEv.az",
+    title: "IdealEv.az — Yeni məkanını burada tap",
     description:
       "Azərbaycan üzrə mənzil, villa, torpaq, obyekt və digər daşınmaz əmlak elanlarını rahat şəkildə kəşf et.",
     locale: "az_AZ",

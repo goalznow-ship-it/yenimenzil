@@ -47,11 +47,11 @@ export function Footer() {
           <div className="lg:col-span-2">
             <Logo />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              YeniMenzil.az — Azərbaycan üzrə daşınmaz əmlak elanları üçün
+              IdealEv.az — Azərbaycan üzrə daşınmaz əmlak elanları üçün
               müasir platforma. Yeni məkanını burada tap.
             </p>
             <p className="mt-4 text-xs text-foreground/45">
-              © {new Date().getFullYear()} YeniMenzil.az. Bütün hüquqlar
+              © {new Date().getFullYear()} IdealEv.az. Bütün hüquqlar
               qorunur.
             </p>
           </div>

@@ -11,7 +11,7 @@ import { AdSlot } from "@/components/ads/ad-slot";
 import { getPopularAreas } from "@/data/areas";
 
 export const metadata: Metadata = {
-  title: "YeniMenzil.az — Yeni məkanını burada tap"
+  title: "IdealEv.az — Yeni məkanını burada tap"
 };
 
 export default async function HomePage() {

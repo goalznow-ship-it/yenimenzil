@@ -26,7 +26,7 @@ export async function generateMetadata({
   const complex = await loadComplex(id);
   if (!complex) return {};
   return {
-    title: `${complex.name} — YeniMenzil`,
+    title: `${complex.name} — IdealEv`,
     description:
       complex.description ??
       `${complex.name} rezidans kompleksi: ${complex.propertiesCount} elan, ${complex.unitsAvailable} mənzil.`

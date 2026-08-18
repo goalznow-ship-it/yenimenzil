@@ -1,8 +1,8 @@
-# YeniMenzil.az Production Deployment Guide
+# IdealEv.az Production Deployment Guide
 
 ## Overview
 
-This document describes the production deployment of YeniMenzil.az, a marketplace backend application. The deployment uses Docker Compose with Caddy as a reverse proxy on ports 80/443.
+This document describes the production deployment of IdealEv.az, a marketplace backend application. The deployment uses Docker Compose with Caddy as a reverse proxy on ports 80/443.
 
 ---
 

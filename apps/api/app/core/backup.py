@@ -1,4 +1,4 @@
-"""Database and storage backup utilities for YeniMenzil.az.
+"""Database and storage backup utilities for IdealEv.az.
 
 Provides automated backup functionality for:
 - PostgreSQL database (with PostGIS)

@@ -9,4 +9,4 @@ async def test_health_ok(client):
     assert body["status"] == "ok"
     assert body["database"] == "ok"
     assert body["redis"] == "ok"
-    assert body["application"] == "YeniMenzil.az API"
+    assert body["application"] == "IdealEv.az API"

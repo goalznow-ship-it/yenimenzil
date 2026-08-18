@@ -16,7 +16,7 @@ export function propertyMetadata(property: Property): Metadata {
       title,
       description,
       url,
-      siteName: "YeniMenzil.az",
+      siteName: "IdealEv.az",
       locale: "az_AZ",
       type: "website",
       images: image

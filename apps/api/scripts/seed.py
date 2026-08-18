@@ -120,9 +120,9 @@ class Seed:
         from app.models.enums import UserRole
 
         accounts = [
-            ("demo@yenimenzil.az", "demo1234", "Demo İstifadəçi", UserRole.USER),
-            ("moderator@yenimenzil.az", "moderator1", "Moderator", UserRole.MODERATOR),
-            ("admin@yenimenzil.az", "admin1234", "Administrator", UserRole.ADMIN),
+            ("demo@idealev.az", "demo1234", "Demo İstifadəçi", UserRole.USER),
+            ("moderator@idealev.az", "moderator1", "Moderator", UserRole.MODERATOR),
+            ("admin@idealev.az", "admin1234", "Administrator", UserRole.ADMIN),
         ]
         for email, password, name, role in accounts:
             user = User(
@@ -164,7 +164,7 @@ class Seed:
         agency_by_name: dict[str, Agency] = {}
         for seller in by_id.values():
             sid = seller["id"]
-            email = f"{sid}@demo.yenimenzil.az"
+            email = f"{sid}@demo.idealev.az"
             phone = None
             if seller["kind"] == "owner":
                 phone = f"+99450{self.phone_seq}"

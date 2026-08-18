@@ -3,7 +3,7 @@ import { ListingWizard } from "@/features/listings/listing-wizard";
 
 export const metadata: Metadata = {
   title: "Elan yerləşdir",
-  description: "Daşınmaz əmlak elanınızı YeniMenzil.az-da yerləşdirin."
+  description: "Daşınmaz əmlak elanınızı IdealEv.az-da yerləşdirin."
 };
 
 export default function AddPropertyPage() {

@@ -70,7 +70,7 @@ export function ContactCard({ property }: { property: Property }) {
   };
 
   const whatsappHref = `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(
-    `Salam, "${property.title}" elanı ilə bağlı maraqlanıram (YeniMenzil.az).`
+    `Salam, "${property.title}" elanı ilə bağlı maraqlanıram (IdealEv.az).`
   )}`;
 
   return (

@@ -1,1 +1,1 @@
-# YeniMenzil.az
+# IdealEv.az

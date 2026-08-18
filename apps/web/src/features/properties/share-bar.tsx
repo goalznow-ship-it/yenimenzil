@@ -24,7 +24,7 @@ import { siteUrl } from "@yenimenzil/config";
 export function ShareBar({ property }: { property: Property }) {
   const [copied, setCopied] = React.useState(false);
   const url = `${siteUrl}/property/${property.id}`;
-  const text = encodeURIComponent(`${property.title} — YeniMenzil.az`);
+  const text = encodeURIComponent(`${property.title} — IdealEv.az`);
   const encodedUrl = encodeURIComponent(url);
 
   const copy = async () => {

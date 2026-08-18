@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Gizlilik siyasəti",
-  description: "YeniMenzil.az gizlilik siyasəti."
+  description: "IdealEv.az gizlilik siyasəti."
 };
 
 const SECTIONS = [

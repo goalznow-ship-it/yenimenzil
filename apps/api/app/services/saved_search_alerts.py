@@ -125,7 +125,7 @@ def _digest_html(
 <html><body style="margin:0;background:#f4f6f8;font-family:Arial,sans-serif;">
 <div style="max-width:560px;margin:24px auto;background:#fff;border-radius:12px;overflow:hidden;">
   <div style="background:#0a7d5c;padding:20px 24px;">
-    <span style="color:#fff;font-size:18px;font-weight:700;">YeniMenzil.az</span>
+    <span style="color:#fff;font-size:18px;font-weight:700;">IdealEv.az</span>
   </div>
   <div style="padding:24px;">
     <h2 style="margin:0 0 8px;font-size:18px;color:#141a17;">Yeni elanlar tapıldı</h2>
@@ -286,7 +286,7 @@ async def _run_saved_search_alerts() -> bool:
             unsubscribe_url = f"{app_url}/saved-searches/unsubscribe?search_id={search_id}&token={token}"
             send_email(
                 to=user.email,
-                subject=f"YeniMenzil.az: {len(items)} yeni elan tapıldı",
+                subject=f"IdealEv.az: {len(items)} yeni elan tapıldı",
                 text_body=_digest_text(items, unsubscribe_url),
                 html_body=_digest_html(items, unsubscribe_url, app_url),
             )

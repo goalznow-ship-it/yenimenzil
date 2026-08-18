@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     )
 
     APP_ENV: str = "development"
-    APP_NAME: str = "YeniMenzil.az API"
+    APP_NAME: str = "IdealEv.az API"
     API_V1_PREFIX: str = "/api/v1"
 
     DATABASE_URL: str = (

@@ -1,6 +1,6 @@
 """Payment provider abstraction.
 
-YeniMenzil.az never trusts payment success reported by the frontend.
+IdealEv.az never trusts payment success reported by the frontend.
 Every provider must be confirmed server-side via webhook or admin action.
 
 Providers:

@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "İstifadəçi razılaşması",
-  description: "YeniMenzil.az istifadəçi razılaşması."
+  description: "IdealEv.az istifadəçi razılaşması."
 };
 
 const SECTIONS = [
   {
     title: "Xidmətdən istifadə",
-    body: "YeniMenzil.az platformasından istifadə etməklə siz bu razılaşmanın şərtlərini qəbul edirsiniz. Elan yerləşdirərkən dəqiq və həqiqi məlumat təqdim etməlisiniz."
+    body: "IdealEv.az platformasından istifadə etməklə siz bu razılaşmanın şərtlərini qəbul edirsiniz. Elan yerləşdirərkən dəqiq və həqiqi məlumat təqdim etməlisiniz."
   },
   {
     title: "Elanlar",

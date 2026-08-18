@@ -102,7 +102,7 @@ async def health(
 
 def build_openapi_info() -> dict[str, Any]:
     return {
-        "title": "YeniMenzil.az API",
+        "title": "IdealEv.az API",
         "version": "0.1.0",
-        "description": "Marketplace backend for YeniMenzil.az",
+        "description": "Marketplace backend for IdealEv.az",
     }

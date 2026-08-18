@@ -22,7 +22,7 @@ export default function RootError({
   return (
     <html lang="az">
       <head>
-        <title>Xəta - YeniMenzil.az</title>
+        <title>Xəta - IdealEv.az</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="robots" content="noindex" />
         <script

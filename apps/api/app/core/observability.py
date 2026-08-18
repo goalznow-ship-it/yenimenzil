@@ -1,4 +1,4 @@
-"""Structured logging and observability for YeniMenzil.az."""
+"""Structured logging and observability for IdealEv.az."""
 
 import logging
 import os

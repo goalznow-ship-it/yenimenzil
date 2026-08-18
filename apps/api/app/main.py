@@ -31,7 +31,7 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title=settings.APP_NAME,
         version="0.1.0",
-        description="Marketplace backend for YeniMenzil.az",
+        description="Marketplace backend for IdealEv.az",
         lifespan=lifespan,
     )
 

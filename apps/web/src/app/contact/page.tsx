@@ -3,7 +3,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Əlaqə",
-  description: "YeniMenzil.az ilə əlaqə."
+  description: "aidealEv.az ilə əlaqə."
 };
 
 export default function ContactPage() {

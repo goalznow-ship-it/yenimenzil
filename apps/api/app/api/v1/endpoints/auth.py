@@ -65,7 +65,7 @@ def _send_password_reset_email(to: str, token: str) -> None:
     reset_url = f"{settings.PUBLIC_APP_URL}/reset-password?token={token}"
     send_email(
         to,
-        "YeniMenzil.az — Şifrə bərpası",
+        "IdealEv.az — Şifrə bərpası",
         (
             f"Şifrənizi bərpa etmək üçün bu linki açın: {reset_url}\n\n"
             "Əgər bu sorğunu siz etməmisinizsə, bu e-poçtu nəzərə almayın."
@@ -80,7 +80,7 @@ def _send_verification_email(to: str, token: str) -> None:
     verify_url = f"{settings.PUBLIC_APP_URL}/verify-email?token={token}"
     send_email(
         to,
-        "YeniMenzil.az — E-poçt təsdiqi",
+        "IdealEv.az — E-poçt təsdiqi",
         (
             f"E-poçtunuzu təsdiq etmək üçün bu linki açın: {verify_url}\n\n"
             "Əgər qeydiyyatdan siz keçməmisinizsə, bu e-poçtu nəzərə almayın."

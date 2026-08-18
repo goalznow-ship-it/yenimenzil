@@ -4,7 +4,7 @@ import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Giriş",
-  description: "YeniMenzil.az hesabınıza daxil olun."
+  description: "aidealEv.az hesabınıza daxil olun."
 };
 
 export default function LoginPage() {
