@@ -31,6 +31,7 @@ const NAV = [
   { href: "/admin/agencies", label: "Agentliklər", icon: Building2 },
   { href: "/admin/agents", label: "Agentlər", icon: UserCheck },
   { href: "/admin/promotions", label: "Promosiyalar", icon: Megaphone },
+  { href: "/admin/advertising", label: "Reklamlar", icon: Megaphone },
   { href: "/admin/payments", label: "Ödənişlər", icon: Wallet },
   { href: "/admin/analytics", label: "Analitika", icon: BarChart3 },
   { href: "/admin/features", label: "Kataloq", icon: FolderCog },
@@ -95,7 +96,7 @@ export default function AdminLayout({
         {/* Mobile nav */}
         <div className="fixed bottom-16 left-0 right-0 z-30 border-t border-border/60 bg-surface/95 backdrop-blur md:hidden">
           <div className="flex justify-around overflow-x-auto py-1.5">
-            {NAV.slice(0, 6).map((item) => {
+            {NAV.map((item) => {
               const active = pathname.startsWith(item.href);
               return (
                 <Link
