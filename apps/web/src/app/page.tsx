@@ -30,7 +30,7 @@ export default async function HomePage() {
         <aside className="col-span-1 bg-blue-50 border-r border-gray-200">
           <AdSlot placement="LEFT_RAIL" className="w-full h-full object-cover" />
         </aside>
-        <div className="col-span-2 p-4">
+        <div className="col-span-1 min-h-[calc(100dvh-11rem)] p-4">
           <Suspense fallback={<div className="h-64 flex items-center justify-center">Loading...</div>}>
             <HeroSection />
           </Suspense>
@@ -55,7 +55,7 @@ export default async function HomePage() {
             </div>
           </section>
         </div>
-        <aside className="col-span-3 bg-red-50 border-l border-gray-200">
+        <aside className="col-span-1 bg-red-50 border-l border-gray-200">
           <AdSlot placement="RIGHT_RAIL" className="w-full h-full object-cover" />
         </aside>
       </main>

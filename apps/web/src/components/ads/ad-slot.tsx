@@ -83,15 +83,17 @@ export function AdSlot({
   }, [ad, loading, placement]);
 
   if (loading) {
+    const isRail = placement === "LEFT_RAIL" || placement === "RIGHT_RAIL";
     return (
       <div
         ref={adRef}
         className={cn(
           "relative overflow-hidden bg-muted/30 animate-pulse",
+          isRail && "h-full w-full max-w-none min-w-0",
           className
         )}
       >
-        <div className="aspect-video w-full bg-muted/50" />
+        <div className={cn("w-full", isRail ? "h-full" : "aspect-video", "bg-muted/50")} />
         {isDesktopPlacement(placement) && (
           <span className="absolute top-1 right-1 text-[10px] text-muted-foreground/60">
             Reklam
@@ -157,6 +159,7 @@ export function AdSlot({
   }
 
   const isMobile = device === "mobile";
+  const isRail = placement === "LEFT_RAIL" || placement === "RIGHT_RAIL";
   const imageUrl = isMobile ? ad.mobile_creative_url ?? ad.desktop_creative_url : ad.desktop_creative_url;
 
   const handleClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -164,13 +167,16 @@ export function AdSlot({
   };
 
   return (
-    <div ref={adRef} className={cn("relative", className)}>
+    <div ref={adRef} className={cn("relative", isRail && "h-full w-full max-w-none min-w-0", className)}>
       <a
         href={ad.destination_url}
         target={ad.open_in_new_tab ? "_blank" : "_self"}
         rel={ad.open_in_new_tab ? "noopener noreferrer" : undefined}
         onClick={handleClick}
-        className="block relative overflow-hidden"
+        className={cn(
+          "block relative overflow-hidden",
+          isRail && "h-full w-full max-w-none min-w-0"
+        )}
       >
         {imageUrl && (
           <ImageWithFallback
@@ -183,7 +189,12 @@ export function AdSlot({
           />
         )}
         {!imageUrl && (
-          <div className="aspect-video w-full bg-muted/30 flex items-center justify-center">
+          <div
+            className={cn(
+              "w-full bg-muted/30 flex items-center justify-center",
+              isRail ? "h-full" : "aspect-video"
+            )}
+          >
             <span className="text-sm text-muted-foreground">
               {ad.alt_text ?? "Reklam"}
             </span>
