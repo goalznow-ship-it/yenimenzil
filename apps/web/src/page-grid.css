@@ -1,0 +1,15 @@
+/* Grid layout for desktop */
+.grid-desktop {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) minmax(0,1240px) minmax(0,1fr) !important;
+  gap: 0 !important;
+}
+.left-ad-column {
+  grid-column: 1 !important;
+}
+.center-site-column {
+  grid-column: 2 !important;
+}
+.right-ad-column {
+  grid-column: 3 !important;
+}

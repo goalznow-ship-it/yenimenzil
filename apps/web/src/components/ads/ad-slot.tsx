@@ -135,12 +135,13 @@ export function AdSlot({
               className
             )}
             style={{ 
-              width: "120px", 
-              height: "600px",
-              maxWidth: "120px",
+              width: "100%",
+              height: "100%",
+              maxWidth: "100%",
+              minWidth: 0,
             }}
           >
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-0">
               <div className="text-center text-brand/60">
                 <div className="text-[10px] font-medium uppercase tracking-wider mb-2">Reklam</div>
                 <div className="text-[9px] text-muted-foreground/50">
