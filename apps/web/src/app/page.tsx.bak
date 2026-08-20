@@ -1,0 +1,208 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { SectionHeading } from "@yenimenzil/ui";
+import { fetchFeaturedSections } from "@/services/property-api";
+import { SearchBar } from "@/features/search/search-bar";
+import { PropertyGrid } from "@/features/properties/property-grid";
+import { AdSlot } from "@/components/ads/ad-slot";
+import { getPopularAreas } from "@/data/areas";
+import { POPULAR_PLACES } from "@/data/locations";
+import { Header } from "@/components/layout/header";
+
+export const metadata: Metadata = {
+  title: "IdealEv.az — Yeni məkanını burada tap",
+  description:
+    "Azərbaycan_ORDERÜR mənzil, villa, torpaq, obyekt və digər daşınmaz əmlak elanlarını rahat şəkildə kəşf et.",
+  keywords: ["daşınmaz əmlak", "mənzil", "kirayə", "villa", "torpaq", "Bakı"],
+  openGraph: {
+    siteName: "IdealEv.az",
+    title: "IdealEv.az — Yeni məkanını burada tap",
+    description:
+      "Azərbaycan_ORDERÜR mənzil, villa, torpaq, obyekt və digər daşınmaz əmlak elanlarını rahat sekilde keshfet et.",
+    locale: "az_AZ",
+    type: "website",
+  },
+  robots: { index: true, follow: true }
+};
+
+export default async function HomePage() {
+  const sections = await fetchFeaturedSections();
+  const all = sections.all;
+  const activeCount = all.filter((p) => p.status === "active").length;
+  const droppedCount = all.filter(
+    (p) =>
+      p.priceHistory.length >= 2 &&
+      p.priceHistory.at(-1)!.price < p.priceHistory[0]!.price
+  ).length;
+  const popularAreas = getPopularAreas(all);
+
+  const stats = [
+    { value: `${activeCount}+`, label: "aktiv elan" },
+    { value: String(popularAreas.length), label: "populyar ərazi" },
+    { value: String(droppedCount), label: "qiyməti endirilmiş elan" }
+  ];
+
+  return (
+    <div className="relative overflow-x-hidden min-h-screen">
+      {/* A. TOP FULL-WIDTH ADVERTISEMENT */}
+      <div className="w-full">
+        <AdSlot placement="HOME_TOP_BANNER" className="w-full" />
+      </div>
+
+      {/* B. MAIN HEADER */}
+      <Header />
+
+      {/* C. LEFT + CENTER + RIGHT LAYOUT */}
+      <div className="pt-20 pb-12">
+        {/* Left rail - shown on screens >= 1440px */}
+        <aside
+          className="fixed left-0 top-0 bottom-0 w-24 z-20 pointer-events-none opacity-0 xl:opacity-100 xl:transition-opacity-75"
+        >
+          <AdSlot
+            placement="LEFT_RAIL"
+            className="w-full max-w-[300px] mx-auto"
+          />
+        </aside>
+
+        {/* Main content - margins for rails on wide screens */}
+        <main className="mx-auto relative pt-8 max-w-[1440px] px-4 xl:ml-24 xl:mr-24 xl:max-w-[calc(100vw-600px)]">
+          {/* D. HERO / SEARCH */}
+          <div className="mb-16">
+            <SectionHeading
+              title="Yeni məkanını burada tap."
+              subtitle="Azərbaycan_ORDERÜR mənzil, villa, torpaq, obyekt və digər daşınmaz əmlak elanlarını rahat sekilde keshfet et."
+            />
+          </div>
+
+          <SearchBar />
+
+          {/* E. POPULAR LOCATIONS */}
+          <section aria-labelledby="popular-areas-title" className="mb-16">
+            <h2 id="popular-areas-title" className="text-xl font-semibold text-foreground mb-4">
+              Populyar endpoints
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+              {POPULAR_PLACES.slice(0, 8).map((place) => (
+                <Link
+                  key={place.label}
+                  href={`/search?deal=sale&district=${place.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-[13px] font-medium text-foreground/65 shadow-sm transition-all hover:-translate-y-px hover:border-brand/40 hover:text-brand"
+                >
+                  {place.label}
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* F. PLATFORM STATS */}
+          <section aria-labelledby="stats-title" className="mb-12">
+            <h2 id="stats-title" className="text-xl font-semibold text-foreground mb-6">
+              Platform statistikası
+            </h2>
+            <div className="grid grid-cols-3 gap-6 md:grid-cols-3">
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-3xl font-bold text-brand">{stat.value}</div>
+                  <div className="text-[12px] text-muted-foreground mt-1">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* G. PROPERTY CATEGORY BAR */}
+          <section aria-labelledby="categories-title" className="mb-12">
+            <h2 id="categories-title" className="text-xl font-semibold text-foreground mb-4">
+              Elan növləri
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <Link
+                href="/search?deal=sale&property_type=new_building"
+                className="rounded-xl bg-brand-soft text-brand px-3 py-2 text-sm font-medium transition-colors hover:bg-brand hover:text-white"
+              >
+                Yeni tikili
+              </Link>
+              <Link
+                href="/search?deal=sale"
+                className="rounded-xl bg-brand-soft text-brand px-3 py-2 text-sm font-medium transition-colors hover:bg-brand hover:text-white"
+              >
+                Köhnə tikili
+              </Link>
+              <Link
+                href="/search?deal=sale&property_type=house"
+                className="rounded-xl bg-surface px-3 py-2 text-sm font-medium transition-colors hover:bg-brand-soft hover:text-brand"
+              >
+                Həyət evi / Bağ evi
+              </Link>
+              <Link
+                href="/search?deal=sale&property_type=land"
+                className="rounded-xl bg-surface px-3 py-2 text-sm font-medium transition-colors hover:bg-brand-soft hover:text-brand"
+              >
+                Torpaq
+              </Link>
+              <Link
+                href="/search?deal=sale&property_type=commercial"
+                className="rounded-xl bg-surface px-3 py-2 text-sm font-medium transition-colors hover:bg-brand-soft hover:text-brand"
+              >
+                Obyekt
+              </Link>
+            </div>
+          </section>
+
+          {/* H. NEW LISTINGS */}
+          <section aria-labelledby="new-listings-title">
+            <SectionHeading
+              title="Yeni elanlar"
+              subtitle="Son əlavə olunan elanlar"
+              linkHref="/search?sort=newest"
+              linkLabel="Hamısına bax"
+            />
+            <PropertyGrid listings={sections.newest.slice(0, 8)} columns={4} />
+          </section>
+
+          {/* I. TRUST / BENEFITS ROW */}
+          <section aria-labelledby="benefits-title" className="mt-20 border-t border-border/70 pt-8">
+            <h2 id="benefits-title" className="text-xl font-semibold text-foreground mb-6">
+              Necə söhbət edərik?
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="px-4 py-3 bg-surface rounded-xl border border-border/70">
+                <div className="text-brand text-xl mb-2">Pulsuz elan yerləşdir</div>
+                <div className="text-[13px] text-muted-foreground">
+                  Eldənocated əmlak elanları qoşulur
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-surface rounded-xl border border-border/70">
+                <div className="text-brand text-xl mb-2">Asan və sürətli</div>
+                <div className="text-[13px] text-muted-foreground">
+                  Hazır administration şkäildinde tezliklə işlənir
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-surface rounded-xl border border-border/70">
+                <div className="text-brand text-xl mb-2">Təhlükəsiz ödəniş</div>
+                <div className="text-[13px] text-muted-foreground">
+                  Qorunan əməliyyat, her iki tərəf also qorunur
+                </div>
+              </div>
+              <div className="px-4 py-3 bg-surface rounded-xl border border-border/70">
+                <div className="text-brand text-xl mb-2">24/7 Dəstək</div>
+                <div className="text-[13px] text-muted-foreground">
+                  Hər zaman sizləmizdəyik, riyax assistance
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+
+      {/* Right rail - shown on wide screens only */}
+      <aside
+        className="fixed right-0 top-0 bottom-0 w-24 z-20 pointer-events-none opacity-0 xl:opacity-100 xl:transition-opacity-75"
+      >
+        <AdSlot
+          placement="RIGHT_RAIL"
+          className="w-full max-w-[300px] mx-auto"
+        />
+      </aside>
+    </div>
+  );
+}

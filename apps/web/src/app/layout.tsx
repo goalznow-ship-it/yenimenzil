@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { CookieConsent } from "@/components/cookie-consent";
 import { AdsRootProvider } from "@/components/ads/ads-root-provider";
+import { HomeTopBanner } from "@/components/ads/home-top-banner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -68,6 +69,7 @@ export default function RootLayout({
           <AuthProvider>
             <AdsRootProvider>
               <div className="flex min-h-dvh flex-col">
+                <HomeTopBanner />
                 <Header />
                 <main className="flex-1 pb-20 md:pb-0">{children}</main>
                 <Footer />

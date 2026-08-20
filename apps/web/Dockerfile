@@ -48,6 +48,7 @@ WORKDIR /home/app
 # apps/web/server.js (not ./server.js) because @yenimenzil/web lives in apps/web.
 COPY --from=builder /home/app/apps/web/.next/standalone ./
 COPY --from=builder /home/app/apps/web/.next/static ./apps/web/.next/static
+RUN chown -R appuser:appuser /home/app
 
 USER appuser
 

@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { DealType } from "@yenimenzil/types";
 import { PROPERTY_TYPE_LABELS, type PropertyType } from "@yenimenzil/types";
-import { Button, cn, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsList, TabsTrigger } from "@yenimenzil/ui";
+import { Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Tabs, TabsList, TabsTrigger } from "@yenimenzil/ui";
 import { MapPin, Search } from "lucide-react";
 import { POPULAR_PLACES } from "@/data/locations";
 
@@ -25,7 +25,16 @@ const PRICE_OPTIONS = [
 
 export function SearchBar() {
   const router = useRouter();
-  const [deal, setDeal] = React.useState<DealType>("sale");
+  const searchParams = useSearchParams();
+  const [deal, setDeal] = React.useState<DealType>(searchParams.get("deal") as DealType || "sale");
+  React.useEffect(() => {
+    const dealParam = searchParams.get("deal");
+    if (dealParam && (dealParam === "sale" || dealParam === "rent" || dealParam === "daily")) {
+      window.setTimeout(() => {
+        setDeal(dealParam as DealType);
+      }, 0);
+    }
+  }, [searchParams]);
   const [city, setCity] = React.useState("");
   const [propertyType, setPropertyType] = React.useState<string>("all");
   const [rooms, setRooms] = React.useState<string>("");
@@ -51,36 +60,32 @@ export function SearchBar() {
     router.push(`/search?${buildQuery().toString()}`);
   };
 
-  const goToPopular = (label: string) => {
-    router.push(`/search?${buildQuery({ district: label }).toString()}`);
-  };
-
   return (
     <div>
-      <Tabs value={deal} onValueChange={(v) => setDeal(v as DealType)} variant="underline" className="mb-3 max-w-md">
-        <TabsList className="gap-5">
-          <TabsTrigger value="sale" className="text-[16px]">
+      <Tabs value={deal} onValueChange={(v) => setDeal(v as DealType)} variant="underline" className="mb-4">
+        <TabsList className="gap-6 bg-transparent p-0">
+          <TabsTrigger value="sale" className="text-base font-medium px-1 py-2 text-foreground/60 hover:text-brand data-[state=active]:text-brand data-[state=active]:font-semibold">
             Al
           </TabsTrigger>
-          <TabsTrigger value="rent" className="text-[16px]">
+          <TabsTrigger value="rent" className="text-base font-medium px-1 py-2 text-foreground/60 hover:text-brand data-[state=active]:text-brand data-[state=active]:font-semibold">
             Kirayə
           </TabsTrigger>
-          <TabsTrigger value="daily" className="text-[16px]">
+          <TabsTrigger value="daily" className="text-base font-medium px-1 py-2 text-foreground/60 hover:text-brand data-[state=active]:text-brand data-[state=active]:font-semibold">
             Günlük
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      <div className="rounded-2xl border border-border bg-surface p-3 shadow-panel md:p-3.5">
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_0.8fr_1fr_auto]">
+      <div className="rounded-2xl border border-border bg-surface p-4 shadow-lg md:p-5">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_0.9fr_1fr_auto]">
           <div className="relative">
-            <MapPin className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/40" />
+            <MapPin className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/40" />
             <Select value={city} onValueChange={setCity}>
-              <SelectTrigger className="pl-9">
+              <SelectTrigger className="pl-11 h-12">
                 <SelectValue placeholder="Harada?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Bütün ərazilər</SelectItem>
+                <SelectItem value="">Bütün bölgələr</SelectItem>
                 {POPULAR_PLACES.map((place) => (
                   <SelectItem key={place.label} value={place.label}>
                     {place.label}
@@ -91,7 +96,7 @@ export function SearchBar() {
           </div>
 
           <Select value={propertyType} onValueChange={setPropertyType}>
-            <SelectTrigger>
+            <SelectTrigger className="h-12">
               <SelectValue placeholder="Əmlak növü" />
             </SelectTrigger>
             <SelectContent>
@@ -110,7 +115,7 @@ export function SearchBar() {
           </Select>
 
           <Select value={rooms} onValueChange={setRooms}>
-            <SelectTrigger>
+            <SelectTrigger className="h-12">
               <SelectValue placeholder="Otaq" />
             </SelectTrigger>
             <SelectContent>
@@ -124,7 +129,7 @@ export function SearchBar() {
           </Select>
 
           <Select value={price} onValueChange={setPrice}>
-            <SelectTrigger>
+            <SelectTrigger className="h-12">
               <SelectValue placeholder="Qiymət" />
             </SelectTrigger>
             <SelectContent>
@@ -136,29 +141,11 @@ export function SearchBar() {
             </SelectContent>
           </Select>
 
-          <Button onClick={submit} size="lg" className="gap-2 lg:px-8">
-            <Search className="h-4 w-4" />
+          <Button onClick={submit} size="lg" className="h-12 gap-2 lg:px-8 bg-brand hover:bg-brand/90 text-white font-semibold">
+            <Search className="h-5 w-5" />
             Axtar
           </Button>
         </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-[13px] text-muted-foreground">
-          Populyar ərazilər:
-        </span>
-        {POPULAR_PLACES.slice(0, 8).map((place) => (
-          <button
-            key={place.label}
-            type="button"
-            onClick={() => goToPopular(place.label)}
-            className={cn(
-              "rounded-full border border-border bg-surface px-3.5 py-1.5 text-[13px] font-medium text-foreground/65 shadow-sm transition-all hover:-translate-y-px hover:border-brand/40 hover:text-brand"
-            )}
-          >
-            {place.label}
-          </button>
-        ))}
       </div>
     </div>
   );

@@ -64,7 +64,7 @@ services:
       APP_ENV: ${APP_ENV:-production}
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://yenimenzil:yenimenzil@postgres:5432/yenimenzil}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000,http://localhost:2222}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
       SECRET_KEY: ${SECRET_KEY}
       NEXT_PUBLIC_API_URL: http://api:8000/api/v1
       API_INTERNAL_URL: http://api:8000/api/v1
@@ -104,8 +104,6 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-      args:
-        NEXT_PUBLIC_USE_DEMO_DATA: "true"
     container_name: yenimenzil-web
     restart: unless-stopped
     depends_on:

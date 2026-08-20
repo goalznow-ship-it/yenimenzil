@@ -19,7 +19,7 @@ export default function AdminAdvertisingPage() {
 
   useEffect(() => {
     fetch("/api/admin/advertising", { credentials: "include" }).then(r => r.json()).then(setCampaigns);
-  }, []);
+  }, [setCampaigns]);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();

@@ -15,11 +15,16 @@ test.describe('IDEALEV.AZ - Authentication Flow', () => {
     await expect(page).toHaveTitle(/IdealEv/);
   });
 
-  test('profile navigation', async ({ page }) => {
-    await page.goto('/');
-    await page.click('text=Profil');
-    await expect(page).toHaveURL(/.*\/login/);
-  });
+test('profile navigation', async ({ page }) => {
+      await page.goto('/');
+      // Accept cookies if the banner is present
+      const cookieButton = page.locator('text=Razıyam');
+      if (await cookieButton.isVisible()) {
+        await cookieButton.click();
+      }
+      await page.click('text=Profil');
+      await expect(page).toHaveURL(/.*\/login/);
+    });
 
   test('session persistence after refresh', async ({ page }) => {
     await page.goto('/');

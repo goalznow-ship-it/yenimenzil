@@ -61,6 +61,7 @@ export function AdSlot({
     };
   }, [placement, device, city, category, preloadedAd]);
 
+  // Fire impression when ad becomes visible (IntersectionObserver)
   React.useEffect(() => {
     if (!ad || impressionFired.current || loading) return;
 
@@ -68,7 +69,28 @@ export function AdSlot({
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting) {
-            impressionFired.current = true;
+  if (error || !ad) {
+    // For local development, show dummy banners for specific placements
+    if (["HOME_TOP_BANNER", "LEFT_RAIL", "RIGHT_RAIL"].includes(placement)) {
+      return (
+        <div
+          ref={adRef}
+          className={cn(
+            "relative overflow-hidden bg-muted/30",
+            className
+          )}
+          style={{ minHeight: "200px" }}
+        >
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50 text-[18px] font-medium">
+            {placement === "HOME_TOP_BANNER" && "HOME TOP BANNER"}
+            {placement === "LEFT_RAIL" && "LEFT RAIL AD"}
+            {placement === "RIGHT_RAIL" && "RIGHT RAIL AD"}
+          </div>
+        </div>
+      );
+    }
+    return null; // collapse cleanly per requirements
+  }
             break;
           }
         }
@@ -80,7 +102,7 @@ export function AdSlot({
       observer.observe(adRef.current);
     }
     return () => observer.disconnect();
-  }, [ad, loading, placement]);
+  }, [ad, loading]);
 
   if (loading) {
     return (
@@ -102,63 +124,14 @@ export function AdSlot({
   }
 
   if (error || !ad) {
-    if (["HOME_TOP_BANNER", "LEFT_RAIL", "RIGHT_RAIL"].includes(placement)) {
-      const isTopBanner = placement === "HOME_TOP_BANNER";
-      const isRail = placement === "LEFT_RAIL" || placement === "RIGHT_RAIL";
-      
-      if (isTopBanner) {
-        return (
-          <div
-            ref={adRef}
-            className={cn(
-              "relative overflow-hidden rounded-xl bg-gradient-to-r from-brand/10 via-brand/5 to-brand/10 border border-brand/20",
-              className
-            )}
-            style={{ width: "100%", height: "100%" }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center p-4 text-brand/60">
-                <div className="text-[11px] font-medium uppercase tracking-wider mb-1">Reklam</div>
-                <div className="text-[10px] text-muted-foreground/50">Üst Banner</div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-      
-      if (isRail) {
-        return (
-          <div
-            ref={adRef}
-            className={cn(
-              "relative overflow-hidden rounded-xl bg-gradient-to-b from-brand/10 via-brand/5 to-brand/10 border border-brand/20",
-              className
-            )}
-            style={{ 
-              width: "120px", 
-              height: "600px",
-              maxWidth: "120px",
-            }}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
-              <div className="text-center text-brand/60">
-                <div className="text-[10px] font-medium uppercase tracking-wider mb-2">Reklam</div>
-                <div className="text-[9px] text-muted-foreground/50">
-                  {placement === "LEFT_RAIL" ? "Sol Rail" : "Sağ Rail"}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      }
-    }
-    return null;
+    return null; // collapse cleanly per requirements
   }
 
   const isMobile = device === "mobile";
   const imageUrl = isMobile ? ad.mobile_creative_url ?? ad.desktop_creative_url : ad.desktop_creative_url;
 
   const handleClick = (_e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Allow default navigation; record click asynchronously
     recordClick(ad.id, getAdSessionKey());
   };
 
