@@ -15,6 +15,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - yenimenzil-net
 
   redis:
     image: redis:7-alpine
@@ -28,6 +30,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - yenimenzil-net
 
   minio:
     image: minio/minio:latest
@@ -46,6 +50,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - yenimenzil-net
 
   api:
     build:
@@ -105,7 +111,7 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        NEXT_PUBLIC_USE_DEMO_DATA: "true"
+        NEXT_PUBLIC_USE_DEMO_DATA: "false"
     container_name: yenimenzil-web
     restart: unless-stopped
     depends_on:
@@ -114,6 +120,7 @@ services:
       NEXT_PUBLIC_API_URL: http://api:8000/api/v1
       API_INTERNAL_URL: http://api:8000/api/v1
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://idealev.az}
+      NEXT_PUBLIC_USE_DEMO_DATA: "false"
     ports:
       - "2222:3000"
     networks:

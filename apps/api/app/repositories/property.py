@@ -794,6 +794,10 @@ class PropertyRepository:
             cover_image=cover.url if cover else None,
             image_count=len(prop.media),
             has_price_drop=has_price_drop,
+            price_history=[
+                PropertyPriceHistoryRead.model_validate(ph)
+                for ph in price_history_sorted
+            ],
             seller=self._seller_read(prop),
         )
 

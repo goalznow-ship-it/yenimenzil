@@ -235,6 +235,7 @@ class PropertySummaryRead(BaseModel):
     cover_image: str | None
     image_count: int
     has_price_drop: bool
+    price_history: list[PropertyPriceHistoryRead] = Field(default_factory=list)
     seller: PropertySellerRead
 
 

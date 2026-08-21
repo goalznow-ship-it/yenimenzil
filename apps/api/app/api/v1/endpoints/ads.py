@@ -54,12 +54,12 @@ def _is_campaign_active(
     category: str | None,
 ) -> bool:
     return (
-        campaign.state == "ACTIVE"
-        and campaign.device_targeting == "all"
-        or campaign.device_targeting == device
-        and not (
-            city and campaign.city_targeting and city not in campaign.city_targeting
-        )
+        campaign.enabled
+        and not campaign.archived
+        and (campaign.start_at is None or campaign.start_at <= now)
+        and (campaign.end_at is None or campaign.end_at >= now)
+        and (campaign.device_targeting == "all" or campaign.device_targeting == device)
+        and not (city and campaign.city_targeting and city not in campaign.city_targeting)
         and not (
             category
             and campaign.property_category_targeting
